@@ -24,6 +24,7 @@ import { PageHeader } from '../../components/layout/page-header';
 import { PageShell } from '../../components/layout/page-shell';
 import { FinancialLogic } from '../../logic/FinancialLogic';
 import { useDepartmentData } from '../../context/DepartmentContext';
+import { useAppNotification } from '../../context/NotificationContext';
 import { buildTuitionSemesterKey, formatTuitionDeadline, getTuitionDeadline } from '../../config/tuitionDeadlines';
 import { CreditDistributionWidget } from './components/CreditDistributionWidget';
 import { DashboardCalendarWidget } from './components/DashboardCalendarWidget';
@@ -41,7 +42,7 @@ import {
   type DashboardWidgetId,
 } from './services/dashboard-layout';
 import {
-  requestCalendarNotificationPermission,
+  prepareCalendarNotificationPermission,
   syncCalendarNotifications,
 } from '../../mobile/calendar-notifications';
 
@@ -67,6 +68,7 @@ export function DashboardWidgets() {
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCalendarSettingsOpen, setIsCalendarSettingsOpen] = useState(false);
   const [layout, setLayout] = useState<DashboardLayoutPreferences>(readDashboardLayout);
+  const { addNotification } = useAppNotification();
   const { academicYear, semesterNumber } = useDepartmentData();
   const schedule = useSchedule();
   const { exams } = useStudentDb();
@@ -329,27 +331,36 @@ export function DashboardWidgets() {
           notificationsEnabled: calendarNotificationsEnabled,
           reminderMinutes: calendarReminderMinutes,
         }) => {
-          try {
-            if (calendarNotificationsEnabled) {
-              const permission = await requestCalendarNotificationPermission();
-              if (!permission.granted) return { saved: false, message: permission.message };
-            }
+          const nextLayout = normalizeDashboardLayout({
+            ...layout,
+            calendarSources,
+            calendarDays,
+            calendarNotificationsEnabled,
+            calendarReminderMinutes,
+          });
 
-            updateLayout({
-              ...layout,
-              calendarSources,
-              calendarDays,
-              calendarNotificationsEnabled,
-              calendarReminderMinutes,
-            });
-            return { saved: true };
-          } catch (error) {
-            console.error('[calendar-settings] Không thể xin quyền thông báo:', error);
+          if (!saveDashboardLayout(nextLayout)) {
             return {
               saved: false,
-              message: 'Android không phản hồi yêu cầu cấp quyền. Hãy đóng hẳn UStudy, mở lại rồi thử lần nữa.',
+              message: 'Không thể ghi thiết lập vào bộ nhớ ứng dụng. Hãy giải phóng dung lượng rồi thử lại.',
             };
           }
+
+          setLayout(nextLayout);
+
+          if (calendarNotificationsEnabled) {
+            prepareCalendarNotificationPermission();
+            void syncCalendarNotifications(calendarEvents, true, calendarReminderMinutes).catch((error) => {
+              console.error('[calendar-settings] Không thể lập lịch thông báo:', error);
+              addNotification({
+                title: 'Chưa thể lập lịch thông báo',
+                message: 'Thiết lập đã được lưu. Hãy mở lại UStudy rồi thử lại.',
+                type: 'warning',
+              });
+            });
+          }
+
+          return { saved: true };
         }}
       />
 
