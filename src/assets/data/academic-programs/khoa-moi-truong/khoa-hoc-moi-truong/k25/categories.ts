@@ -138,215 +138,262 @@ export const categories = {
     },
     "MAJOR_ENVIRONMENTAL_SCIENCE": {
         "name": "Kiến thức chuyên ngành Khoa học môi trường",
-        "specializations": {
+        "breakdown": {
             "ENVIRONMENTAL_SCIENCE": {
                 "name": "Khoa học môi trường",
-                "mandatory_credits": 13,
-                "mandatory_courses": [
-                    "ENV10101",
-                    "ENV10102",
-                    "ENV10103",
-                    "ENV10104",
-                    "ENV10179"
-                ],
-                "elective_credits_required": 7,
-                "elective_courses": [
-                    "ENV10106",
-                    "ENV10116",
-                    "ENV10117",
-                    "ENV10118",
-                    "ENV10114",
-                    "ENV10122",
-                    "ENV10124",
-                    "ENV10125",
-                    "ENV10126",
-                    "ENV10128",
-                    "ENV10147",
-                    "ENV10161",
-                    "ENV10160",
-                    "ENV10162",
-                    "ENV10157",
-                    "ENV10172",
-                    "ENV10158",
-                    "ENV10159",
-                    "ENV10174",
-                    "ENV10175",
-                    "ENV10176",
-                    "ENV10185"
-                ]
+                "total_credits_required": 20,
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 13,
+                        "courses": [
+                            "ENV10101",
+                            "ENV10102",
+                            "ENV10103",
+                            "ENV10104",
+                            "ENV10179"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 7,
+                        "courses": [
+                            "ENV10106",
+                            "ENV10116",
+                            "ENV10117",
+                            "ENV10118",
+                            "ENV10114",
+                            "ENV10122",
+                            "ENV10124",
+                            "ENV10125",
+                            "ENV10126",
+                            "ENV10128",
+                            "ENV10147",
+                            "ENV10161",
+                            "ENV10160",
+                            "ENV10162",
+                            "ENV10157",
+                            "ENV10172",
+                            "ENV10158",
+                            "ENV10159",
+                            "ENV10174",
+                            "ENV10175",
+                            "ENV10176",
+                            "ENV10185"
+                        ]
+                    }
+                }
             },
+
             "ENVIRONMENTAL_MANAGEMENT": {
                 "name": "Quản lý môi trường",
-                "mandatory_credits": 14,
-                "mandatory_courses": [
-                    "ENV10128",
-                    "ENV10129",
-                    "ENV10154",
-                    "ENV10182",
-                    "ENV10106"
-                ],
-                "elective_credits_required": 7,
-                "elective_courses": [
-                    "ENV10138",
-                    "ENV10139",
-                    "ENV10140",
-                    "ENV10141",
-                    "ENV10143",
-                    "ENV10144",
-                    "ENV10145",
-                    "ENV10146",
-                    "ENV10122",
-                    "ENV10147",
-                    "ENV10114",
-                    "ENV10117",
-                    "ENV10132",
-                    "ENV10172",
-                    "ENV10158",
-                    "ENV10159",
-                    "ENV10170",
-                    "ENV10171",
-                    "ENV10177",
-                    "ENV10178",
-                    "ENV10185"
-                ]
+                "total_credits_required": 21,
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 14,
+                        "courses": [
+                            "ENV10128",
+                            "ENV10129",
+                            "ENV10154",
+                            "ENV10182",
+                            "ENV10106"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 7,
+                        "courses": [
+                            "ENV10138",
+                            "ENV10139",
+                            "ENV10140",
+                            "ENV10141",
+                            "ENV10143",
+                            "ENV10144",
+                            "ENV10145",
+                            "ENV10146",
+                            "ENV10122",
+                            "ENV10147",
+                            "ENV10114",
+                            "ENV10117",
+                            "ENV10132",
+                            "ENV10172",
+                            "ENV10158",
+                            "ENV10159",
+                            "ENV10170",
+                            "ENV10171",
+                            "ENV10177",
+                            "ENV10178",
+                            "ENV10185"
+                        ]
+                    }
+                }
             },
+
             "NATURAL_RESOURCES": {
                 "name": "Tài nguyên thiên nhiên và môi trường",
-                "mandatory_credits": 13,
-                "mandatory_courses": [
-                    "ENV10106",
-                    "ENV10107",
-                    "ENV10103",
-                    "ENV10109",
-                    "ENV10180"
-                ],
-                "elective_credits_required": 7,
-                "elective_courses": [
-                    "ENV10116",
-                    "ENV10117",
-                    "ENV10118",
-                    "ENV10147",
-                    "ENV10114",
-                    "ENV10122",
-                    "ENV10160",
-                    "ENV10124",
-                    "ENV10125",
-                    "ENV10126",
-                    "ENV10128",
-                    "ENV10161",
-                    "ENV10162",
-                    "ENV10157",
-                    "ENV10172",
-                    "ENV10158",
-                    "ENV10159",
-                    "ENV10174",
-                    "ENV10175",
-                    "ENV10176",
-                    "ENV10185"
-                ]
+                "total_credits_required": 20,
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 13,
+                        "courses": [
+                            "ENV10106",
+                            "ENV10107",
+                            "ENV10103",
+                            "ENV10109",
+                            "ENV10180"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 7,
+                        "courses": [
+                            "ENV10116",
+                            "ENV10117",
+                            "ENV10118",
+                            "ENV10147",
+                            "ENV10114",
+                            "ENV10122",
+                            "ENV10160",
+                            "ENV10124",
+                            "ENV10125",
+                            "ENV10126",
+                            "ENV10128",
+                            "ENV10161",
+                            "ENV10162",
+                            "ENV10157",
+                            "ENV10172",
+                            "ENV10158",
+                            "ENV10159",
+                            "ENV10174",
+                            "ENV10175",
+                            "ENV10176",
+                            "ENV10185"
+                        ]
+                    }
+                }
             },
+
             "MARINE_ENVIRONMENT": {
                 "name": "Môi trường & Tài nguyên biển",
-                "mandatory_credits": 12,
-                "mandatory_courses": [
-                    "ENV10111",
-                    "ENV10112",
-                    "ENV10113",
-                    "ENV10117",
-                    "ENV10181"
-                ],
-                "elective_credits_required": 7,
-                "elective_courses": [
-                    "ENV10106",
-                    "ENV10116",
-                    "ENV10114",
-                    "ENV10118",
-                    "ENV10147",
-                    "ENV10122",
-                    "ENV10160",
-                    "ENV10124",
-                    "ENV10125",
-                    "ENV10126",
-                    "ENV10128",
-                    "ENV10161",
-                    "ENV10162",
-                    "ENV10157",
-                    "ENV10172",
-                    "ENV10158",
-                    "ENV10159",
-                    "ENV10174",
-                    "ENV10175",
-                    "ENV10176",
-                    "ENV10185"
-                ]
+                "total_credits_required": 19,
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 12,
+                        "courses": [
+                            "ENV10111",
+                            "ENV10112",
+                            "ENV10113",
+                            "ENV10117",
+                            "ENV10181"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 7,
+                        "courses": [
+                            "ENV10106",
+                            "ENV10116",
+                            "ENV10114",
+                            "ENV10118",
+                            "ENV10147",
+                            "ENV10122",
+                            "ENV10160",
+                            "ENV10124",
+                            "ENV10125",
+                            "ENV10126",
+                            "ENV10128",
+                            "ENV10161",
+                            "ENV10162",
+                            "ENV10157",
+                            "ENV10172",
+                            "ENV10158",
+                            "ENV10159",
+                            "ENV10174",
+                            "ENV10175",
+                            "ENV10176",
+                            "ENV10185"
+                        ]
+                    }
+                }
             },
+
             "ENVIRONMENTAL_INFORMATICS": {
                 "name": "Tin học môi trường",
-                "mandatory_credits": 14,
-                "mandatory_courses": [
-                    "ENV10148",
-                    "ENV10173",
-                    "ENV10114",
-                    "ENV10150",
-                    "ENV10183"
-                ],
-                "elective_credits_required": 8,
-                "elective_courses": [
-                    "ENV10116",
-                    "ENV10152",
-                    "ENV10103",
-                    "ENV10153",
-                    "ENV10156",
-                    "ENV10122",
-                    "ENV10132",
-                    "ENV10147",
-                    "ENV10143",
-                    "ENV10172",
-                    "ENV10158",
-                    "ENV10159",
-                    "ENV10170",
-                    "ENV10171",
-                    "ENV10177",
-                    "ENV10178",
-                    "ENV10185"
-                ]
+                "total_credits_required": 22,
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 14,
+                        "courses": [
+                            "ENV10148",
+                            "ENV10173",
+                            "ENV10114",
+                            "ENV10150",
+                            "ENV10183"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 8,
+                        "courses": [
+                            "ENV10116",
+                            "ENV10152",
+                            "ENV10103",
+                            "ENV10153",
+                            "ENV10156",
+                            "ENV10122",
+                            "ENV10132",
+                            "ENV10147",
+                            "ENV10143",
+                            "ENV10172",
+                            "ENV10158",
+                            "ENV10159",
+                            "ENV10170",
+                            "ENV10171",
+                            "ENV10177",
+                            "ENV10178",
+                            "ENV10185"
+                        ]
+                    }
+                }
             },
+
             "REMOTE_SENSING_GIS": {
                 "name": "Viễn thám và GIS ứng dụng trong quản lý tài nguyên thiên nhiên và môi trường",
-                "mandatory_credits": 13,
-                "mandatory_courses": [
-                    "ENV10132",
-                    "ENV10133",
-                    "ENV10134",
-                    "ENV10135",
-                    "ENV10136",
-                    "ENV10184"
-                ],
-                "elective_credits_required": 7,
-                "elective_courses": [
-                    "ENV10138",
-                    "ENV10139",
-                    "ENV10140",
-                    "ENV10141",
-                    "ENV10143",
-                    "ENV10144",
-                    "ENV10145",
-                    "ENV10146",
-                    "ENV10118",
-                    "ENV10122",
-                    "ENV10147",
-                    "ENV10114",
-                    "ENV10117",
-                    "ENV10156",
-                    "ENV10172",
-                    "ENV10158",
-                    "ENV10159",
-                    "ENV10170",
-                    "ENV10171",
-                    "ENV10177",
-                    "ENV10178",
-                    "ENV10185"
-                ]
+                "total_credits_required": 20,
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 13,
+                        "courses": [
+                            "ENV10132",
+                            "ENV10133",
+                            "ENV10134",
+                            "ENV10135",
+                            "ENV10136",
+                            "ENV10184"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 7,
+                        "courses": [
+                            "ENV10138",
+                            "ENV10139",
+                            "ENV10140",
+                            "ENV10141",
+                            "ENV10143",
+                            "ENV10144",
+                            "ENV10145",
+                            "ENV10146",
+                            "ENV10118",
+                            "ENV10122",
+                            "ENV10147",
+                            "ENV10114",
+                            "ENV10117",
+                            "ENV10156",
+                            "ENV10172",
+                            "ENV10158",
+                            "ENV10159",
+                            "ENV10170",
+                            "ENV10171",
+                            "ENV10177",
+                            "ENV10178",
+                            "ENV10185"
+                        ]
+                    }
+                }
             }
         }
     },

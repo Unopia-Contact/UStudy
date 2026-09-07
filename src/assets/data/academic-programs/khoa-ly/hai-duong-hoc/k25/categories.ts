@@ -146,182 +146,188 @@ export const categories = {
             }
         }
     },
-    "MAJOR_OCEANOGRAPHY": {
-        "name": "Chuyên ngành Hải dương học",
-        "total_credits_required": 30,
+    "MAJOR": {
+        "name": "Chuyên ngành",
+        "total_credits_required": 48,
         "breakdown": {
-            "MANDATORY": {
-                "credits": 10,
-                "courses": [
-                    "OMH10104",
-                    "OMH10105",
-                    "OMH10106",
-                    "OMH10108"
-                ]
+            "MAJOR_OCEANOGRAPHY": {
+                "name": "Chuyên ngành Hải dương học",
+                "total_credits_required": 30,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 10,
+                        "courses": [
+                            "OMH10104",
+                            "OMH10105",
+                            "OMH10106",
+                            "OMH10108"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 20,
+                        "courses": [
+                            "OMH10101",
+                            "OMH10102",
+                            "OMH10103",
+                            "OMH10107",
+                            "OMH10109",
+                            "OMH10110",
+                            "OMH10111",
+                            "OMH10112",
+                            "OMH10113",
+                            "OMH10114",
+                            "OMH10115",
+                            "OMH10116",
+                            "OMH10117",
+                            "OMH10118",
+                            "OMH10119",
+                            "OMH10120",
+                            "OMH10404",
+                            "OMH10411",
+                            "OMH10412",
+                            "OMH10414",
+                            "OMH10415",
+                            "OMH10420",
+                            "OMH10422",
+                            "OMH10423"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 20,
-                "courses": [
-                    "OMH10101",
-                    "OMH10102",
-                    "OMH10103",
-                    "OMH10107",
-                    "OMH10109",
-                    "OMH10110",
-                    "OMH10111",
-                    "OMH10112",
-                    "OMH10113",
-                    "OMH10114",
-                    "OMH10115",
-                    "OMH10116",
-                    "OMH10117",
-                    "OMH10118",
-                    "OMH10119",
-                    "OMH10120",
-                    "OMH10404",
-                    "OMH10411",
-                    "OMH10412",
-                    "OMH10414",
-                    "OMH10415",
-                    "OMH10420",
-                    "OMH10422",
-                    "OMH10423"
-                ]
-            }
-        }
-    },
-    "MAJOR_METEOROLOGY": {
-        "name": "Chuyên ngành Khí tượng học",
-        "total_credits_required": 30,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 10,
-                "courses": [
-                    "OMH10201",
-                    "OMH10202",
-                    "OMH10203",
-                    "OMH10206"
-                ]
+            "MAJOR_METEOROLOGY": {
+                "name": "Chuyên ngành Khí tượng học",
+                "total_credits_required": 30,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 10,
+                        "courses": [
+                            "OMH10201",
+                            "OMH10202",
+                            "OMH10203",
+                            "OMH10206"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 20,
+                        "courses": [
+                            "OMH10101",
+                            "OMH10117",
+                            "OMH10119",
+                            "OMH10120",
+                            "OMH10204",
+                            "OMH10205",
+                            "OMH10207",
+                            "OMH10208",
+                            "OMH10209",
+                            "OMH10210",
+                            "OMH10211",
+                            "OMH10212",
+                            "OMH10213",
+                            "OMH10214",
+                            "OMH10215",
+                            "OMH10216",
+                            "OMH10217",
+                            "OMH10411",
+                            "OMH10412",
+                            "OMH10413",
+                            "OMH10418",
+                            "OMH10421",
+                            "OMH10422",
+                            "OMH10423"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 20,
-                "courses": [
-                    "OMH10101",
-                    "OMH10117",
-                    "OMH10119",
-                    "OMH10120",
-                    "OMH10204",
-                    "OMH10205",
-                    "OMH10207",
-                    "OMH10208",
-                    "OMH10209",
-                    "OMH10210",
-                    "OMH10211",
-                    "OMH10212",
-                    "OMH10213",
-                    "OMH10214",
-                    "OMH10215",
-                    "OMH10216",
-                    "OMH10217",
-                    "OMH10411",
-                    "OMH10412",
-                    "OMH10413",
-                    "OMH10418",
-                    "OMH10421",
-                    "OMH10422",
-                    "OMH10423"
-                ]
-            }
-        }
-    },
-    "MAJOR_HYDROLOGY": {
-        "name": "Chuyên ngành Thủy văn học",
-        "total_credits_required": 30,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 10,
-                "courses": [
-                    "OMH10301",
-                    "OMH10303",
-                    "OMH10305",
-                    "OMH10302"
-                ]
+            "MAJOR_HYDROLOGY": {
+                "name": "Chuyên ngành Thủy văn học",
+                "total_credits_required": 30,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 10,
+                        "courses": [
+                            "OMH10301",
+                            "OMH10303",
+                            "OMH10305",
+                            "OMH10302"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 20,
+                        "courses": [
+                            "OMH10101",
+                            "OMH10117",
+                            "OMH10119",
+                            "OMH10120",
+                            "OMH10304",
+                            "OMH10306",
+                            "OMH10307",
+                            "OMH10308",
+                            "OMH10309",
+                            "OMH10310",
+                            "OMH10311",
+                            "OMH10312",
+                            "OMH10313",
+                            "OMH10314",
+                            "OMH10315",
+                            "OMH10316",
+                            "OMH10410",
+                            "OMH10411",
+                            "OMH10412",
+                            "OMH10414",
+                            "OMH10419",
+                            "OMH10420",
+                            "OMH10422",
+                            "OMH10423"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 20,
-                "courses": [
-                    "OMH10101",
-                    "OMH10117",
-                    "OMH10119",
-                    "OMH10120",
-                    "OMH10304",
-                    "OMH10306",
-                    "OMH10307",
-                    "OMH10308",
-                    "OMH10309",
-                    "OMH10310",
-                    "OMH10311",
-                    "OMH10312",
-                    "OMH10313",
-                    "OMH10314",
-                    "OMH10315",
-                    "OMH10316",
-                    "OMH10410",
-                    "OMH10411",
-                    "OMH10412",
-                    "OMH10414",
-                    "OMH10419",
-                    "OMH10420",
-                    "OMH10422",
-                    "OMH10423"
-                ]
-            }
-        }
-    },
-    "MAJOR_INTEGRATED_OCEAN_MET_HYDRO": {
-        "name": "Chuyên ngành Hải dương - Khí tượng - Thủy văn",
-        "total_credits_required": 30,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 8,
-                "courses": [
-                    "OMH10401",
-                    "OMH10403",
-                    "OMH10406"
-                ]
+            "MAJOR_INTEGRATED_OCEAN_MET_HYDRO": {
+                "name": "Chuyên ngành Hải dương - Khí tượng - Thủy văn",
+                "total_credits_required": 30,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 8,
+                        "courses": [
+                            "OMH10401",
+                            "OMH10403",
+                            "OMH10406"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 22,
+                        "courses": [
+                            "OMH10101",
+                            "OMH10114",
+                            "OMH10117",
+                            "OMH10119",
+                            "OMH10120",
+                            "OMH10210",
+                            "OMH10211",
+                            "OMH10402",
+                            "OMH10404",
+                            "OMH10405",
+                            "OMH10407",
+                            "OMH10408",
+                            "OMH10410",
+                            "OMH10411",
+                            "OMH10412",
+                            "OMH10413",
+                            "OMH10414",
+                            "OMH10415",
+                            "OMH10416",
+                            "OMH10417",
+                            "OMH10418",
+                            "OMH10419",
+                            "OMH10420",
+                            "OMH10421",
+                            "OMH10422",
+                            "OMH10423"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 22,
-                "courses": [
-                    "OMH10101",
-                    "OMH10114",
-                    "OMH10117",
-                    "OMH10119",
-                    "OMH10120",
-                    "OMH10210",
-                    "OMH10211",
-                    "OMH10402",
-                    "OMH10404",
-                    "OMH10405",
-                    "OMH10407",
-                    "OMH10408",
-                    "OMH10410",
-                    "OMH10411",
-                    "OMH10412",
-                    "OMH10413",
-                    "OMH10414",
-                    "OMH10415",
-                    "OMH10416",
-                    "OMH10417",
-                    "OMH10418",
-                    "OMH10419",
-                    "OMH10420",
-                    "OMH10421",
-                    "OMH10422",
-                    "OMH10423"
-                ]
-            }
-        }
+        },
     },
     "GRADUATION": {
         "name": "Kiến thức tốt nghiệp",

@@ -142,158 +142,206 @@ export const categories = {
         "name": "Kiến thức chuyên ngành Địa chất học",
         "total_credits_required": 17,
         "note": "Chọn một trong 6 chuyên ngành; mỗi chuyên ngành gồm 1 tín chỉ thực tập doanh nghiệp bắt buộc và 16 tín chỉ tự chọn",
-        "specializations": {
+        "breakdown": {
             "MINERAL": {
                 "name": "Địa chất Khoáng sản",
-                "mandatory_courses": [
-                    "GEO10114"
-                ],
-                "elective_credits_required": 16,
-                "courses": [
-                    "GEO10111",
-                    "GEO10102",
-                    "GEO10112",
-                    "GEO10104",
-                    "GEO10113",
-                    "GEO10106",
-                    "GEO10108",
-                    "GEO10115",
-                    "GEO10116",
-                    "GEO10117",
-                    "GEO10118",
-                    "GEO10119",
-                    "GEO10120",
-                    "GEO10121",
-                    "GEO10122"
-                ]
+                "total_credits_required": 17,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 1,
+                        "courses": [
+                            "GEO10114"
+                        ],
+                    },
+                    "ELECTIVE": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "GEO10111",
+                            "GEO10102",
+                            "GEO10112",
+                            "GEO10104",
+                            "GEO10113",
+                            "GEO10106",
+                            "GEO10108",
+                            "GEO10115",
+                            "GEO10116",
+                            "GEO10117",
+                            "GEO10118",
+                            "GEO10119",
+                            "GEO10120",
+                            "GEO10121",
+                            "GEO10122"
+                        ]
+                    },
+                },
             },
             "GEMOLOGY": {
                 "name": "Ngọc học",
-                "mandatory_courses": [
-                    "GEO10114"
-                ],
-                "elective_credits_required": 16,
-                "courses": [
-                    "GEO10201",
-                    "GEO10210",
-                    "GEO10203",
-                    "GEO10211",
-                    "GEO10212",
-                    "GEO10213",
-                    "GEO10214",
-                    "GEO10110",
-                    "GEO10206",
-                    "GEO10215",
-                    "GEO10205",
-                    "GEO10117",
-                    "GEO10118",
-                    "GEO10119",
-                    "GEO10120",
-                    "GEO10121",
-                    "GEO10122"
-                ]
+                "total_credits_required": 17,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 1,
+                        "courses": [
+                            "GEO10114"
+                        ],
+                    },
+                    "ELECTIVE": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "GEO10201",
+                            "GEO10210",
+                            "GEO10203",
+                            "GEO10211",
+                            "GEO10212",
+                            "GEO10213",
+                            "GEO10214",
+                            "GEO10110",
+                            "GEO10206",
+                            "GEO10215",
+                            "GEO10205",
+                            "GEO10117",
+                            "GEO10118",
+                            "GEO10119",
+                            "GEO10120",
+                            "GEO10121",
+                            "GEO10122"
+                        ]
+                    }
+                }
             },
             "PETROLEUM": {
                 "name": "Địa chất Dầu khí",
-                "mandatory_courses": [
-                    "GEO10114"
-                ],
-                "elective_credits_required": 16,
-                "courses": [
-                    "GEO10301",
-                    "GEO10311",
-                    "GEO10303",
-                    "GEO10304",
-                    "GEO10305",
-                    "GEO10308",
-                    "GEO10307",
-                    "GEO10309",
-                    "GEO10312",
-                    "GEO10313",
-                    "GEO10314",
-                    "GEO10117",
-                    "GEO10118",
-                    "GEO10119",
-                    "GEO10120",
-                    "GEO10121",
-                    "GEO10122"
-                ]
+                "total_credits_required": 17,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 1,
+                        "courses": [
+                            "GEO10114"
+                        ],
+                    },
+                    "ELECTIVE": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "GEO10301",
+                            "GEO10311",
+                            "GEO10303",
+                            "GEO10304",
+                            "GEO10305",
+                            "GEO10308",
+                            "GEO10307",
+                            "GEO10309",
+                            "GEO10312",
+                            "GEO10313",
+                            "GEO10314",
+                            "GEO10117",
+                            "GEO10118",
+                            "GEO10119",
+                            "GEO10120",
+                            "GEO10121",
+                            "GEO10122"
+                        ]
+                    }
+                }
             },
             "HYDRO_ENGINEERING": {
                 "name": "Địa chất Thủy văn - Địa chất công trình",
-                "mandatory_courses": [
-                    "GEO10114"
-                ],
-                "elective_credits_required": 16,
-                "courses": [
-                    "GEO10411",
-                    "GEO10404",
-                    "GEO10409",
-                    "GEO10412",
-                    "GEO10405",
-                    "GEO10413",
-                    "GEO10414",
-                    "GEO10403",
-                    "GEO10415",
-                    "GEO10416",
-                    "GEO10117",
-                    "GEO10118",
-                    "GEO10119",
-                    "GEO10120",
-                    "GEO10121",
-                    "GEO10122"
-                ]
+                "total_credits_required": 17,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 1,
+                        "courses": [
+                            "GEO10114"
+                        ],
+                    },
+                    "ELECTIVE": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "GEO10411",
+                            "GEO10404",
+                            "GEO10409",
+                            "GEO10412",
+                            "GEO10405",
+                            "GEO10413",
+                            "GEO10414",
+                            "GEO10403",
+                            "GEO10415",
+                            "GEO10416",
+                            "GEO10117",
+                            "GEO10118",
+                            "GEO10119",
+                            "GEO10120",
+                            "GEO10121",
+                            "GEO10122"
+                        ]
+                    }
+                }
             },
             "ENV_GEOLOGY": {
                 "name": "Địa chất Môi trường",
-                "mandatory_courses": [
-                    "GEO10114"
-                ],
-                "elective_credits_required": 16,
-                "courses": [
-                    "GEO10503",
-                    "GEO10504",
-                    "GEO10509",
-                    "GEO10414",
-                    "GEO10510",
-                    "GEO10501",
-                    "GEO10505",
-                    "GEO10409",
-                    "GEO10502",
-                    "GEO10511",
-                    "GEO10117",
-                    "GEO10118",
-                    "GEO10119",
-                    "GEO10120",
-                    "GEO10121",
-                    "GEO10122"
-                ]
+                "total_credits_required": 17,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 1,
+                        "courses": [
+                            "GEO10114"
+                        ],
+                    },
+                    "ELECTIVE": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "GEO10503",
+                            "GEO10504",
+                            "GEO10509",
+                            "GEO10414",
+                            "GEO10510",
+                            "GEO10501",
+                            "GEO10505",
+                            "GEO10409",
+                            "GEO10502",
+                            "GEO10511",
+                            "GEO10117",
+                            "GEO10118",
+                            "GEO10119",
+                            "GEO10120",
+                            "GEO10121",
+                            "GEO10122"
+                        ]
+                    }
+                }
             },
             "MARINE": {
                 "name": "Địa chất Biển",
-                "mandatory_courses": [
-                    "GEO10114"
-                ],
-                "elective_credits_required": 16,
-                "courses": [
-                    "GEO10613",
-                    "GEO10602",
-                    "GEO10614",
-                    "GEO10606",
-                    "GEO10607",
-                    "GEO10608",
-                    "GEO10609",
-                    "GEO10604",
-                    "GEO10611",
-                    "GEO10612",
-                    "GEO10117",
-                    "GEO10118",
-                    "GEO10119",
-                    "GEO10120",
-                    "GEO10121",
-                    "GEO10122"
-                ]
-            }
+                "total_credits_required": 17,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 1,
+                        "courses": [
+                            "GEO10114"
+                        ],
+                    },
+                    "ELECTIVE": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "GEO10613",
+                            "GEO10602",
+                            "GEO10614",
+                            "GEO10606",
+                            "GEO10607",
+                            "GEO10608",
+                            "GEO10609",
+                            "GEO10604",
+                            "GEO10611",
+                            "GEO10612",
+                            "GEO10117",
+                            "GEO10118",
+                            "GEO10119",
+                            "GEO10120",
+                            "GEO10121",
+                            "GEO10122"
+                        ]
+                    }
+                }
+            }   
         }
     },
     "GRADUATION": {

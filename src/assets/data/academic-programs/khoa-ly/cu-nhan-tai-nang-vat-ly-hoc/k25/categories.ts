@@ -107,372 +107,378 @@ export const categories = {
             "PHY10016"
         ]
     },
-    "MAJOR_NUCLEAR_PHYSICS": {
-        "name": "Chuyên ngành Vật lý hạt nhân",
+    "MAJOR": {
+        "name": "Chuyên ngành",
         "total_credits_required": 48,
         "breakdown": {
-            "MANDATORY": {
-                "credits": 18,
+            "MAJOR_NUCLEAR_PHYSICS": {
+                "name": "Chuyên ngành Vật lý hạt nhân",
+                "total_credits_required": 48,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 18,
+                        "courses": [
+                            "PHY10625",
+                            "PHY10331",
+                            "PHY10433",
+                            "PHY10324",
+                            "PHY10628",
+                            "PHY10440"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 30,
+                        "courses": [
+                            "PHY10438",
+                            "PHY10531",
+                            "PHY10316",
+                            "PHY10322",
+                            "PHY10432",
+                            "PHY10441",
+                            "PHY10439",
+                            "PHY10529",
+                            "PHY10614",
+                            "PHY10302",
+                            "PHY10325",
+                            "PHY10326",
+                            "PHY10327",
+                            "PHY10328",
+                            "PHY10307",
+                            "PHY10308",
+                            "PHY10310",
+                            "PHY10315",
+                            "PHY10329",
+                            "PHY10330"
+                        ]
+                    }
+                }
+            },
+            "MAJOR_GEOPHYSICS": {
+                "name": "Chuyên ngành Vật lý địa cầu",
+                "total_credits_required": 48,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 18,
+                        "courses": [
+                            "PHY10625",
+                            "PHY10331",
+                            "PHY10433",
+                            "PHY10324",
+                            "PHY10628",
+                            "PHY10440"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 30,
+                        "courses": [
+                            "PHY10438",
+                            "PHY10531",
+                            "PHY10316",
+                            "PHY10322",
+                            "PHY10432",
+                            "PHY10441",
+                            "PHY10439",
+                            "PHY10529",
+                            "PHY10614",
+                            "PHY10413",
+                            "PHY10423",
+                            "PHY10431",
+                            "PHY10435",
+                            "PHY10436",
+                            "PHY10425",
+                            "PHY10437"
+                        ]
+                    }
+                }
+            },
+            "MAJOR_ELECTRONIC_PHYSICS": {
+                "name": "Chuyên ngành Vật lý điện tử",
+                "total_credits_required": 48,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 19,
+                        "courses": [
+                            "PHY10609",
+                            "PHY10626",
+                            "PHY10237",
+                            "PHY10228",
+                            "PHY10627",
+                            "PHY10727"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 29,
+                        "courses": [
+                            "PHY10625",
+                            "PHY10628",
+                            "PHY10103",
+                            "PHY10124",
+                            "PHY10229",
+                            "PHY10611",
+                            "PHY10614",
+                            "PHY10618",
+                            "PHY10132",
+                            "PHY10630",
+                            "PHY10724",
+                            "PHY10726",
+                            "PHY10634",
+                            "PHY10635",
+                            "PHY10128",
+                            "PHY10136",
+                            "PHY10636",
+                            "PHY10230",
+                            "PHY10231",
+                            "PHY10238",
+                            "PHY10232",
+                            "PHY10105",
+                            "PHY10205",
+                            "PHY10207",
+                            "PHY10227",
+                            "PHY10233",
+                            "PHY10234",
+                            "PHY10235",
+                            "PHY10236"
+                        ]
+                    }
+                }
+            },
+            "MAJOR_SOLID_STATE_PHYSICS": {
+                "name": "Chuyên ngành Vật lý chất rắn",
+                "total_credits_required": 48,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 19,
+                        "courses": [
+                            "PHY10609",
+                            "PHY10626",
+                            "PHY10237",
+                            "PHY10228",
+                            "PHY10627",
+                            "PHY10727"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 29,
+                        "courses": [
+                            "PHY10625",
+                            "PHY10628",
+                            "PHY10103",
+                            "PHY10124",
+                            "PHY10229",
+                            "PHY10611",
+                            "PHY10614",
+                            "PHY10618",
+                            "PHY10132",
+                            "PHY10630",
+                            "PHY10724",
+                            "PHY10726",
+                            "PHY10634",
+                            "PHY10635",
+                            "PHY10128",
+                            "PHY10136",
+                            "PHY10636",
+                            "PHY10230",
+                            "PHY10231",
+                            "PHY10238",
+                            "PHY10232",
+                            "PHY10105",
+                            "PHY10205",
+                            "PHY10207",
+                            "PHY10227",
+                            "PHY10233",
+                            "PHY10234",
+                            "PHY10235",
+                            "PHY10236"
+                        ]
+                    }
+                }
+            },
+            "MAJOR_COMPUTATIONAL_PHYSICS": {
+                "name": "Chuyên ngành Vật lý tin học",
+                "total_credits_required": 48,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 19,
+                        "courses": [
+                            "PHY10609",
+                            "PHY10626",
+                            "PHY10237",
+                            "PHY10228",
+                            "PHY10627",
+                            "PHY10727"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 29,
+                        "courses": [
+                            "PHY10625",
+                            "PHY10628",
+                            "PHY10103",
+                            "PHY10124",
+                            "PHY10229",
+                            "PHY10611",
+                            "PHY10614",
+                            "PHY10618",
+                            "PHY10132",
+                            "PHY10630",
+                            "PHY10724",
+                            "PHY10726",
+                            "PHY10634",
+                            "PHY10635",
+                            "PHY10128",
+                            "PHY10136",
+                            "PHY10636",
+                            "PHY10631",
+                            "PHY10115",
+                            "PHY10610",
+                            "PHY10612",
+                            "PHY10613",
+                            "PHY10615",
+                            "PHY10616",
+                            "PHY10621",
+                            "PHY10623",
+                            "PHY10629",
+                            "PHY10632",
+                            "PHY10633"
+                        ]
+                    }
+                }
+            },
+            "MAJOR_APPLIED_PHYSICS": {
+                "name": "Chuyên ngành Vật lý ứng dụng",
+                "total_credits_required": 48,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 19,
+                        "courses": [
+                            "PHY10609",
+                            "PHY10626",
+                            "PHY10237",
+                            "PHY10228",
+                            "PHY10627",
+                            "PHY10727"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 29,
+                        "courses": [
+                            "PHY10625",
+                            "PHY10628",
+                            "PHY10103",
+                            "PHY10124",
+                            "PHY10128",
+                            "PHY10132",
+                            "PHY10136",
+                            "PHY10229",
+                            "PHY10611",
+                            "PHY10614",
+                            "PHY10618",
+                            "PHY10630",
+                            "PHY10634",
+                            "PHY10635",
+                            "PHY10724",
+                            "PHY10726",
+                            "PHY10703",
+                            "PHY10705",
+                            "PHY10715",
+                            "PHY10719",
+                            "PHY10720",
+                            "PHY10723",
+                            "PHY10725",
+                            "PHY10728",
+                            "PHY10729",
+                            "PHY10730",
+                            "PHY10731",
+                            "PHY10732"
+                        ]
+                    }
+                }
+            },
+            "MAJOR_THEORETICAL_PHYSICS": {
+                "name": "Chuyên ngành Vật lý lý thuyết",
+                "total_credits_required": 48,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 18,
+                        "courses": [
+                            "PHY10532",
+                            "PHY10517",
+                            "PHY10529",
+                            "PHY10528",
+                            "PHY10507",
+                            "PHY10537"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 30,
+                        "courses": [
+                            "PHY10509",
+                            "PHY10531",
+                            "PHY10535",
+                            "PHY10538",
+                            "PHY10539",
+                            "PHY10540",
+                            "PHY10541",
+                            "PHY10542",
+                            "PHY10543",
+                            "PHY10512",
+                            "PHY10533",
+                            "PHY10524",
+                            "PHY10527",
+                            "PHY10544",
+                            "PHY10547"
+                        ]
+                    }
+                }
+            },
+            "MAJOR_QUANTUM_COMPUTING": {
+                "name": "Chuyên ngành Tính toán lượng tử",
+                "total_credits_required": 48,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 18,
+                        "courses": [
+                            "PHY10532",
+                            "PHY10517",
+                            "PHY10529",
+                            "PHY10528",
+                            "PHY10507",
+                            "PHY10537"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 30,
+                        "courses": [
+                            "PHY10509",
+                            "PHY10531",
+                            "PHY10535",
+                            "PHY10538",
+                            "PHY10539",
+                            "PHY10540",
+                            "PHY10541",
+                            "PHY10542",
+                            "PHY10543",
+                            "PHY10545",
+                            "PHY10546",
+                            "PHY10547",
+                            "PHY10548",
+                            "PHY10549",
+                            "PHY10550",
+                            "PHY10551"
+                        ]
+                    }
+                }
+            },
+            "HONORS_COMMON": {
+                "name": "Môn tài năng chung cho tất cả chuyên ngành",
+                "total_credits_required": 4,
+                "mandatory": true,
                 "courses": [
-                    "PHY10625",
-                    "PHY10331",
-                    "PHY10433",
-                    "PHY10324",
-                    "PHY10628",
-                    "PHY10440"
+                    "EDT10029",
+                    "PHY10801"
                 ]
             },
-            "ELECTIVE": {
-                "credits": 30,
-                "courses": [
-                    "PHY10438",
-                    "PHY10531",
-                    "PHY10316",
-                    "PHY10322",
-                    "PHY10432",
-                    "PHY10441",
-                    "PHY10439",
-                    "PHY10529",
-                    "PHY10614",
-                    "PHY10302",
-                    "PHY10325",
-                    "PHY10326",
-                    "PHY10327",
-                    "PHY10328",
-                    "PHY10307",
-                    "PHY10308",
-                    "PHY10310",
-                    "PHY10315",
-                    "PHY10329",
-                    "PHY10330"
-                ]
-            }
-        }
-    },
-    "MAJOR_GEOPHYSICS": {
-        "name": "Chuyên ngành Vật lý địa cầu",
-        "total_credits_required": 48,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 18,
-                "courses": [
-                    "PHY10625",
-                    "PHY10331",
-                    "PHY10433",
-                    "PHY10324",
-                    "PHY10628",
-                    "PHY10440"
-                ]
-            },
-            "ELECTIVE": {
-                "credits": 30,
-                "courses": [
-                    "PHY10438",
-                    "PHY10531",
-                    "PHY10316",
-                    "PHY10322",
-                    "PHY10432",
-                    "PHY10441",
-                    "PHY10439",
-                    "PHY10529",
-                    "PHY10614",
-                    "PHY10413",
-                    "PHY10423",
-                    "PHY10431",
-                    "PHY10435",
-                    "PHY10436",
-                    "PHY10425",
-                    "PHY10437"
-                ]
-            }
-        }
-    },
-    "MAJOR_ELECTRONIC_PHYSICS": {
-        "name": "Chuyên ngành Vật lý điện tử",
-        "total_credits_required": 48,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 19,
-                "courses": [
-                    "PHY10609",
-                    "PHY10626",
-                    "PHY10237",
-                    "PHY10228",
-                    "PHY10627",
-                    "PHY10727"
-                ]
-            },
-            "ELECTIVE": {
-                "credits": 29,
-                "courses": [
-                    "PHY10625",
-                    "PHY10628",
-                    "PHY10103",
-                    "PHY10124",
-                    "PHY10229",
-                    "PHY10611",
-                    "PHY10614",
-                    "PHY10618",
-                    "PHY10132",
-                    "PHY10630",
-                    "PHY10724",
-                    "PHY10726",
-                    "PHY10634",
-                    "PHY10635",
-                    "PHY10128",
-                    "PHY10136",
-                    "PHY10636",
-                    "PHY10230",
-                    "PHY10231",
-                    "PHY10238",
-                    "PHY10232",
-                    "PHY10105",
-                    "PHY10205",
-                    "PHY10207",
-                    "PHY10227",
-                    "PHY10233",
-                    "PHY10234",
-                    "PHY10235",
-                    "PHY10236"
-                ]
-            }
-        }
-    },
-    "MAJOR_SOLID_STATE_PHYSICS": {
-        "name": "Chuyên ngành Vật lý chất rắn",
-        "total_credits_required": 48,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 19,
-                "courses": [
-                    "PHY10609",
-                    "PHY10626",
-                    "PHY10237",
-                    "PHY10228",
-                    "PHY10627",
-                    "PHY10727"
-                ]
-            },
-            "ELECTIVE": {
-                "credits": 29,
-                "courses": [
-                    "PHY10625",
-                    "PHY10628",
-                    "PHY10103",
-                    "PHY10124",
-                    "PHY10229",
-                    "PHY10611",
-                    "PHY10614",
-                    "PHY10618",
-                    "PHY10132",
-                    "PHY10630",
-                    "PHY10724",
-                    "PHY10726",
-                    "PHY10634",
-                    "PHY10635",
-                    "PHY10128",
-                    "PHY10136",
-                    "PHY10636",
-                    "PHY10230",
-                    "PHY10231",
-                    "PHY10238",
-                    "PHY10232",
-                    "PHY10105",
-                    "PHY10205",
-                    "PHY10207",
-                    "PHY10227",
-                    "PHY10233",
-                    "PHY10234",
-                    "PHY10235",
-                    "PHY10236"
-                ]
-            }
-        }
-    },
-    "MAJOR_COMPUTATIONAL_PHYSICS": {
-        "name": "Chuyên ngành Vật lý tin học",
-        "total_credits_required": 48,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 19,
-                "courses": [
-                    "PHY10609",
-                    "PHY10626",
-                    "PHY10237",
-                    "PHY10228",
-                    "PHY10627",
-                    "PHY10727"
-                ]
-            },
-            "ELECTIVE": {
-                "credits": 29,
-                "courses": [
-                    "PHY10625",
-                    "PHY10628",
-                    "PHY10103",
-                    "PHY10124",
-                    "PHY10229",
-                    "PHY10611",
-                    "PHY10614",
-                    "PHY10618",
-                    "PHY10132",
-                    "PHY10630",
-                    "PHY10724",
-                    "PHY10726",
-                    "PHY10634",
-                    "PHY10635",
-                    "PHY10128",
-                    "PHY10136",
-                    "PHY10636",
-                    "PHY10631",
-                    "PHY10115",
-                    "PHY10610",
-                    "PHY10612",
-                    "PHY10613",
-                    "PHY10615",
-                    "PHY10616",
-                    "PHY10621",
-                    "PHY10623",
-                    "PHY10629",
-                    "PHY10632",
-                    "PHY10633"
-                ]
-            }
-        }
-    },
-    "MAJOR_APPLIED_PHYSICS": {
-        "name": "Chuyên ngành Vật lý ứng dụng",
-        "total_credits_required": 48,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 19,
-                "courses": [
-                    "PHY10609",
-                    "PHY10626",
-                    "PHY10237",
-                    "PHY10228",
-                    "PHY10627",
-                    "PHY10727"
-                ]
-            },
-            "ELECTIVE": {
-                "credits": 29,
-                "courses": [
-                    "PHY10625",
-                    "PHY10628",
-                    "PHY10103",
-                    "PHY10124",
-                    "PHY10128",
-                    "PHY10132",
-                    "PHY10136",
-                    "PHY10229",
-                    "PHY10611",
-                    "PHY10614",
-                    "PHY10618",
-                    "PHY10630",
-                    "PHY10634",
-                    "PHY10635",
-                    "PHY10724",
-                    "PHY10726",
-                    "PHY10703",
-                    "PHY10705",
-                    "PHY10715",
-                    "PHY10719",
-                    "PHY10720",
-                    "PHY10723",
-                    "PHY10725",
-                    "PHY10728",
-                    "PHY10729",
-                    "PHY10730",
-                    "PHY10731",
-                    "PHY10732"
-                ]
-            }
-        }
-    },
-    "MAJOR_THEORETICAL_PHYSICS": {
-        "name": "Chuyên ngành Vật lý lý thuyết",
-        "total_credits_required": 48,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 18,
-                "courses": [
-                    "PHY10532",
-                    "PHY10517",
-                    "PHY10529",
-                    "PHY10528",
-                    "PHY10507",
-                    "PHY10537"
-                ]
-            },
-            "ELECTIVE": {
-                "credits": 30,
-                "courses": [
-                    "PHY10509",
-                    "PHY10531",
-                    "PHY10535",
-                    "PHY10538",
-                    "PHY10539",
-                    "PHY10540",
-                    "PHY10541",
-                    "PHY10542",
-                    "PHY10543",
-                    "PHY10512",
-                    "PHY10533",
-                    "PHY10524",
-                    "PHY10527",
-                    "PHY10544",
-                    "PHY10547"
-                ]
-            }
-        }
-    },
-    "MAJOR_QUANTUM_COMPUTING": {
-        "name": "Chuyên ngành Tính toán lượng tử",
-        "total_credits_required": 48,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 18,
-                "courses": [
-                    "PHY10532",
-                    "PHY10517",
-                    "PHY10529",
-                    "PHY10528",
-                    "PHY10507",
-                    "PHY10537"
-                ]
-            },
-            "ELECTIVE": {
-                "credits": 30,
-                "courses": [
-                    "PHY10509",
-                    "PHY10531",
-                    "PHY10535",
-                    "PHY10538",
-                    "PHY10539",
-                    "PHY10540",
-                    "PHY10541",
-                    "PHY10542",
-                    "PHY10543",
-                    "PHY10545",
-                    "PHY10546",
-                    "PHY10547",
-                    "PHY10548",
-                    "PHY10549",
-                    "PHY10550",
-                    "PHY10551"
-                ]
-            }
-        }
-    },
-    "HONORS_COMMON": {
-        "name": "Môn tài năng chung cho tất cả chuyên ngành",
-        "total_credits_required": 4,
-        "mandatory": true,
-        "courses": [
-            "EDT10029",
-            "PHY10801"
-        ]
+        },
     },
     "GRADUATION": {
         "name": "Kiến thức tốt nghiệp",

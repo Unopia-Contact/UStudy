@@ -135,7 +135,8 @@ export const categories = {
     },
     "MAJOR_RESOURCE_ENVIRONMENT_MANAGEMENT": {
         "name": "Kiến thức chuyên ngành",
-        "specializations": {
+        "total_credits_required": 21,
+        "breakdown": {
             "INTEGRATED_RESOURCE_ENVIRONMENT": {
                 "name": "Quản lý tổng hợp tài nguyên và môi trường",
                 "total_credits_required": 21,

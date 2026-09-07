@@ -148,7 +148,8 @@ export const categories = {
     },
     "MAJOR_EDUCATIONAL_TECHNOLOGY": {
         "name": "Kiến thức chuyên ngành",
-        "specializations": {
+        "total_credits_required": 18,
+        "breakdown": {
             "EDUCATION_TRAINING": {
                 "name": "Giáo dục và Đào tạo",
                 "total_credits_required": 18,
