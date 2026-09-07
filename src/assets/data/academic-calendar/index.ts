@@ -1,9 +1,18 @@
-import { ACADEMIC_CALENDAR_2026_2027 } from './2026-2027';
+import {
+    ACADEMIC_CALENDAR_2026_2027_DONG_HOA,
+    ACADEMIC_CALENDAR_2026_2027_CHO_QUAN,
+} from './2026-2027';
 
 export * from './types';
-export { ACADEMIC_CALENDAR_2026_2027 } from './2026-2027';
+export {
+    ACADEMIC_CALENDAR_2026_2027_DONG_HOA,
+    ACADEMIC_CALENDAR_2026_2027_CHO_QUAN,
+} from './2026-2027';
 
-export const ACADEMIC_CALENDARS = [ACADEMIC_CALENDAR_2026_2027];
+export const ACADEMIC_CALENDARS = [
+    ACADEMIC_CALENDAR_2026_2027_DONG_HOA,
+    ACADEMIC_CALENDAR_2026_2027_CHO_QUAN,
+];
 
 export function getAcademicCalendars(campusId: import('../../../../domain/campus').CampusId) {
     return ACADEMIC_CALENDARS.filter((calendar) => calendar.campusId === campusId);

@@ -307,20 +307,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                     disabled={true}
                 />
             </div>
-
-            {currentProgramOffering && (
-                <div className="mt-4 space-y-2 rounded-lg bg-slate-50 px-4 py-3 text-xs text-slate-600">
-                    <p className="flex items-start gap-2">
-                        <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-[#004A98]" aria-hidden="true" />
-                        <span><span className="font-semibold text-slate-700">Cơ sở đào tạo:</span> {programCampusNames}</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                        <CircleDollarSign className="mt-0.5 h-4 w-4 shrink-0 text-[#004A98]" aria-hidden="true" />
-                        <span><span className="font-semibold text-slate-700">Đơn giá áp dụng:</span> {tuitionProfileName} trong toàn bộ chương trình.</span>
-                    </p>
-                </div>
-            )}
-
+            
             {
                 isUsingSharedProgramData && (
                     <p className="mt-2 text-xs text-blue-700 pt-3">

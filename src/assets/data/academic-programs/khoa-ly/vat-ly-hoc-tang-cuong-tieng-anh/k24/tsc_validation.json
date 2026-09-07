@@ -1,0 +1,14 @@
+[
+  {
+    "file": "categories.ts",
+    "ok": true,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "file": "courses.ts",
+    "ok": true,
+    "stdout": "",
+    "stderr": ""
+  }
+]

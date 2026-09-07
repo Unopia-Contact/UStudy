@@ -136,10 +136,10 @@ export function TuitionPage({ selectedSemester }: TuitionPageProps) {
       )}
 
       {/* Summary Cards */}
-      {tuitionRates?.profileName && (
+      {tuitionRates?.profileId === 'tuition-cs1' && (
         <p className="mb-4 flex items-center gap-2 px-1 text-xs text-gray-500">
           <CreditCard className="h-3.5 w-3.5 shrink-0 text-[#004A98]" />
-          Đơn giá học phí đang áp dụng: <span className="font-semibold text-gray-700">{tuitionRates.profileName}</span>
+          Không có đơn giá học phí cho cơ sở 1 - Chợ quán. Vui lòng đợi thông báo chính thức từ nhà trường.
         </p>
       )}
       <TuitionSummaryCard

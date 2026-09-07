@@ -53,7 +53,15 @@ export function getTuitionRateDetails(
     const yearData = tuitionMap[academicYear] || tuitionMap[DEFAULT_ACADEMIC_YEAR];
     const profileData = yearData.profiles[profileId];
     if (!profileData) {
-        throw new Error(`Chưa có dữ liệu ${getTuitionProfileName(profileId)} cho năm học ${academicYear}.`);
+        return {
+            profileId,
+            profileName: getTuitionProfileName(profileId),
+            isAvailable: false,
+            default_price: 0,
+            sharedRates: {},
+            majorRates: {},
+            rates: {},
+        };
     }
 
     const sharedRates = profileData.shared;
@@ -64,6 +72,7 @@ export function getTuitionRateDetails(
     return {
         profileId,
         profileName: getTuitionProfileName(profileId),
+        isAvailable: true,
         default_price: profileData.default_price,
         sharedRates,
         majorRates,
@@ -86,6 +95,6 @@ export function getTuitionRates(
     program: string | TuitionProgramRef,
     profileId: TuitionProfileId = DEFAULT_TUITION_PROFILE_ID,
 ) {
-    const { default_price, rates, profileName } = getTuitionRateDetails(academicYear, program, profileId);
-    return { default_price, rates, profileId, profileName };
+    const { default_price, rates, profileName, isAvailable } = getTuitionRateDetails(academicYear, program, profileId);
+    return { default_price, rates, profileId, profileName, isAvailable };
 }
