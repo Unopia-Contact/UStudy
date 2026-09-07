@@ -1,4 +1,5 @@
 import type { DayOffPreference } from '../../utils/dayOffPreferences';
+import type { CampusId } from '../../domain/campus';
 
 export type ClassPreferenceLevel = 'excluded' | 'preferred' | 'required';
 
@@ -81,6 +82,7 @@ export interface GroupScheduleItem {
   isShared: boolean;
   mask: number[];
   schedule?: string | string[];
+  scheduleEntries?: Array<{ schedule: string[]; campusId: CampusId }>;
   sharingGroupId?: string;
   sharingGroupLabel?: string;
 }

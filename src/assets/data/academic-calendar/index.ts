@@ -5,6 +5,10 @@ export { ACADEMIC_CALENDAR_2026_2027 } from './2026-2027';
 
 export const ACADEMIC_CALENDARS = [ACADEMIC_CALENDAR_2026_2027];
 
-export function getAcademicCalendar(academicYear: string) {
-    return ACADEMIC_CALENDARS.find((calendar) => calendar.academicYear === academicYear) ?? null;
+export function getAcademicCalendars(campusId: import('../../../../domain/campus').CampusId) {
+    return ACADEMIC_CALENDARS.filter((calendar) => calendar.campusId === campusId);
+}
+
+export function getAcademicCalendar(academicYear: string, campusId: import('../../../../domain/campus').CampusId = 'dong-hoa') {
+    return ACADEMIC_CALENDARS.find((calendar) => calendar.academicYear === academicYear && calendar.campusId === campusId) ?? null;
 }

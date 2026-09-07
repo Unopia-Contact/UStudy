@@ -21,6 +21,8 @@ import {
 } from '../logic/scheduler/RegistrationResolver';
 import { maskToSections } from '../logic/scheduler/ScheduleDecoder';
 import type { ClassSection } from '../types';
+import { useCampus } from '../context/CampusContext';
+import { SCHEDULE_MASK_PARTS, resolveCampus } from '../domain/campus';
 
 /** Color dùng cho registered sections — xám tím nhạt, phân biệt với palette solver. */
 const REGISTERED_COLOR = '#6B7280';
@@ -44,6 +46,7 @@ export interface UseRegisteredCoursesResult {
 
 export function useRegisteredCourses(): UseRegisteredCoursesResult {
     const [cacheRevision, setCacheRevision] = useState(0);
+    const { defaultCampusId, campusRevision } = useCampus();
 
     useEffect(() => {
         const refresh = (event: MessageEvent) => {
@@ -52,7 +55,11 @@ export function useRegisteredCourses(): UseRegisteredCoursesResult {
             }
         };
         const refreshFromAnotherTab = (event: StorageEvent) => {
-            if (event.key === STORAGE_KEYS.STUDENT_DB || event.key === STORAGE_KEYS.IMPORT_META) {
+            if (
+                event.key === STORAGE_KEYS.STUDENT_DB
+                || event.key === STORAGE_KEYS.IMPORT_META
+                || event.key === STORAGE_KEYS.COURSE_DB_OFFLINE
+            ) {
                 setCacheRevision((revision) => revision + 1);
             }
         };
@@ -71,6 +78,7 @@ export function useRegisteredCourses(): UseRegisteredCoursesResult {
         // Tham chiếu: visual-schedule/hooks/use-schedule.ts dùng cùng key
         const studentDb = readFromStorage<any>(STORAGE_KEYS.STUDENT_DB, null);
         const importMeta = readFromStorage<any>(STORAGE_KEYS.IMPORT_META, null);
+        const openCourses = readFromStorage<any[]>(STORAGE_KEYS.COURSE_DB_OFFLINE, []);
 
         const rawRegistrations: RawRegistration[] = studentDb?.registrations || [];
 
@@ -78,7 +86,7 @@ export function useRegisteredCourses(): UseRegisteredCoursesResult {
             return {
                 registeredCourses: [],
                 registeredSections: [],
-                registeredMask: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                registeredMask: new Array(SCHEDULE_MASK_PARTS).fill(0),
                 registeredCourseCodes: new Set<string>(),
                 isReady: true,
             };
@@ -93,6 +101,8 @@ export function useRegisteredCourses(): UseRegisteredCoursesResult {
         const matchedCourses = resolveRegistrations(rawRegistrations, {
             currentSemester,
             acceptMissingSemester: true, // Nếu thiếu semester, coi như kỳ hiện tại
+            openCourses,
+            defaultCampusId,
         });
 
         // Metadata của lần cào là phạm vi snapshot hiện tại. Nếu kỳ đó rỗng,
@@ -112,6 +122,15 @@ export function useRegisteredCourses(): UseRegisteredCoursesResult {
                 course.components.map(c => c.classGroup).filter(Boolean).join(' / ') || '---',
                 REGISTERED_COLOR,
                 0, // credits — không dùng cho registered display
+                {
+                    defaultCampusId,
+                    scheduleEntries: course.components.flatMap((component) => {
+                        const schedule = component.schedule.split(/[;,]/).map((value) => value.trim()).filter(Boolean);
+                        return schedule.length > 0
+                            ? [{ schedule, campusId: resolveCampus(component.campus, defaultCampusId).campusId }]
+                            : [];
+                    }),
+                },
             );
 
             // Gắn flag isRegistered cho mỗi section + thêm room info nếu có
@@ -135,5 +154,5 @@ export function useRegisteredCourses(): UseRegisteredCoursesResult {
             registeredCourseCodes,
             isReady: true,
         };
-    }, [cacheRevision]);
+    }, [cacheRevision, campusRevision, defaultCampusId]);
 }

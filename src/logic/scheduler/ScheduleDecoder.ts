@@ -1,144 +1,185 @@
-import { Bitset } from './Bitset';
+import { getCampusPeriods } from '../../assets/data/campuses';
+import {
+  DEFAULT_CAMPUS_ID,
+  resolvePeriodRange,
+  type CampusId,
+} from '../../domain/campus';
 import type { ClassSection } from '../../types';
+import { decodeScheduleTimeRuns } from '../Utils';
 
-/**
- * Domain Core: Giải mã Bitset mask thành danh sách ClassSection.
- * Pure function, không phụ thuộc React.
- *
- * Encoding: bit = day*10 + (period-1), day: 0=T2...5=T7
- */
-export function maskToSections(
-    maskArr: number[],
-    courseCode: string,
-    courseName: string,
-    classId: string,
-    color: string,
-    credits: number
+export interface SectionScheduleEntry {
+  schedule: string[];
+  campusId: CampusId;
+}
+
+export interface MaskToSectionsOptions {
+  scheduleEntries?: SectionScheduleEntry[];
+  defaultCampusId?: CampusId;
+}
+
+function minuteToClock(minute: number): string {
+  return `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`;
+}
+
+function clockToMinute(value: string): number {
+  const [hour, minute] = value.split(':').map(Number);
+  return hour * 60 + minute;
+}
+
+function getClassLabels(classId: string): { pureClassId: string; suffix: string } {
+  let pureClassId = classId;
+  const labels: string[] = [];
+
+  const practical = classId.match(/_TH_([^_]+)/);
+  const exercise = classId.match(/_BT_([^_]+)/);
+  if (practical) labels.push(`TH: ${practical[1]}`);
+  if (exercise) labels.push(`BT: ${exercise[1]}`);
+
+  if (practical || exercise) {
+    pureClassId = classId.split('_TH_')[0].split('_BT_')[0];
+  } else if (classId.includes('_')) {
+    const parts = classId.split('_');
+    pureClassId = parts[0];
+    if (parts[1]) labels.push(`Nhóm ${parts[1]}`);
+  }
+
+  return {
+    pureClassId,
+    suffix: labels.length > 0 ? ` (${labels.join(', ')})` : '',
+  };
+}
+
+function createSection(
+  courseCode: string,
+  courseName: string,
+  classId: string,
+  color: string,
+  credits: number,
+  day: number,
+  startPeriod: number,
+  endPeriod: number,
+  startTime: string,
+  endTime: string,
+  campusId: CampusId,
+  idSuffix: string,
+  phaseLabel = '',
+): ClassSection {
+  const { pureClassId, suffix } = getClassLabels(classId);
+  return {
+    id: `${courseCode}-${classId}-${idSuffix}`,
+    courseCode,
+    courseName,
+    courseNameVi: `${courseName}${suffix}${phaseLabel}`,
+    sectionNumber: pureClassId,
+    selectedClassId: classId,
+    lecturer: 'Chưa cập nhật',
+    room: '---',
+    day,
+    startPeriod,
+    endPeriod,
+    startTime,
+    endTime,
+    campusId,
+    color,
+    isConfirmed: true,
+    credits,
+  };
+}
+
+function minuteToPeriodBoundary(campusId: CampusId, minute: number, edge: 'start' | 'end'): number {
+  const periods = getCampusPeriods(campusId);
+  for (const period of periods) {
+    const start = clockToMinute(period.start);
+    const end = clockToMinute(period.end);
+    const midpoint = Math.round((start + end) / 2);
+    if (edge === 'start') {
+      if (minute === start) return period.period;
+      if (minute === midpoint) return period.period + 0.5;
+    } else {
+      if (minute === end) return period.period;
+      if (minute === midpoint) return period.period - 0.5;
+    }
+  }
+  return edge === 'start' ? 1 : periods[periods.length - 1].period;
+}
+
+function sectionsFromScheduleEntries(
+  entries: SectionScheduleEntry[],
+  courseCode: string,
+  courseName: string,
+  classId: string,
+  color: string,
+  credits: number,
 ): ClassSection[] {
-    let pureClassId = classId;
-    let groupLabels: string[] = [];
+  const sections: ClassSection[] = [];
+  const seen = new Set<string>();
 
-    if (classId.includes('_TH_')) {
-        pureClassId = classId.split('_TH_')[0];
-        const thMatch = classId.match(/_TH_([^_]+)/);
-        if (thMatch) groupLabels.push(`TH: ${thMatch[1]}`);
+  for (const entry of entries) {
+    for (const rawSchedule of entry.schedule) {
+      const match = String(rawSchedule).match(/T(\d|CN)\s*\((\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)\)/i);
+      if (!match) continue;
+      const day = match[1].toUpperCase() === 'CN' ? 8 : Number.parseInt(match[1], 10);
+      const startPeriod = Number.parseFloat(match[2]);
+      const endPeriod = Number.parseFloat(match[3]);
+      const key = `${day}:${startPeriod}:${endPeriod}:${entry.campusId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const range = resolvePeriodRange(entry.campusId, startPeriod, endPeriod);
+      sections.push(createSection(
+        courseCode,
+        courseName,
+        classId,
+        color,
+        credits,
+        day,
+        startPeriod,
+        endPeriod,
+        range.startTime,
+        range.endTime,
+        entry.campusId,
+        `d${day}-p${startPeriod}-${entry.campusId}`,
+      ));
     }
-    if (classId.includes('_BT_')) {
-        pureClassId = classId.split('_BT_')[0]; // since BT comes after TH, this still works or we can just split by _BT_ and take 0, wait, if classId is A_TH_1_BT_2, split(_BT_)[0] is A_TH_1 which is wrong for pureClassId
-        const btMatch = classId.match(/_BT_([^_]+)/);
-        if (btMatch) groupLabels.push(`BT: ${btMatch[1]}`);
-    }
-    
-    // Correct pureClassId extraction if both exist
-    if (classId.includes('_TH_') || classId.includes('_BT_')) {
-        pureClassId = classId.split('_TH_')[0].split('_BT_')[0];
-    } else if (classId.includes('_')) {
-        // Legacy support
-        const parts = classId.split('_');
-        pureClassId = parts[0];
-        groupLabels.push(`Nhóm ${parts[1]}`);
-    }
+  }
 
-    const thGroupText = groupLabels.length > 0 ? ` (${groupLabels.join(', ')})` : '';
+  return sections;
+}
 
-    const sections: ClassSection[] = [];
-    const bs = new Bitset();
-    bs.loadFromData(maskArr);
+export function maskToSections(
+  maskArr: number[],
+  courseCode: string,
+  courseName: string,
+  classId: string,
+  color: string,
+  credits: number,
+  options: MaskToSectionsOptions = {},
+): ClassSection[] {
+  const defaultCampusId = options.defaultCampusId ?? DEFAULT_CAMPUS_ID;
+  if (options.scheduleEntries?.length) {
+    return sectionsFromScheduleEntries(
+      options.scheduleEntries,
+      courseCode,
+      courseName,
+      classId,
+      color,
+      credits,
+    );
+  }
 
-    for (let d = 0; d < 7; d++) { // T2..CN (0..6)
-        let runStart = -1;
-        let runEnd = -1;
-        let runPhase = 0; // 0: None, 1: Phase 1, 2: Phase 2, 3: Full
-
-        for (let p = 0; p < 20; p++) { // 20 half-periods per day
-            const bitP1 = d * 20 + p;
-            const bitP2 = 140 + d * 20 + p;
-            const hasP1 = bs.test(bitP1);
-            const hasP2 = bs.test(bitP2);
-            
-            const active = hasP1 || hasP2;
-            const currentPhase = (hasP1 && hasP2) ? 3 : (hasP1 ? 1 : (hasP2 ? 2 : 0));
-
-            if (active) {
-                if (runStart === -1) {
-                    runStart = p;
-                    runPhase = currentPhase;
-                } else if (currentPhase !== runPhase || p === 10) { 
-                    // Tách đoạn nếu đổi Phase hoặc qua giờ trưa (p=10 là bắt đầu tiết 6)
-                    const viName = courseName + 
-                                   thGroupText + 
-                                   (runPhase === 1 ? ' (Gđ 1)' : (runPhase === 2 ? ' (Gđ 2)' : ''));
-                    
-                    sections.push({
-                        id: `${courseCode}-${classId}-d${d}-p${runStart}`,
-                        courseCode,
-                        courseName,
-                        courseNameVi: viName,
-                        sectionNumber: pureClassId,
-                        selectedClassId: classId,
-                        lecturer: 'Chưa cập nhật',
-                        room: '---',
-                        day: d + 2,
-                        startPeriod: runStart * 0.5 + 1.0,
-                        endPeriod: (runEnd + 1) * 0.5,
-                        color,
-                        isConfirmed: true,
-                        credits,
-                    });
-                    runStart = p;
-                    runPhase = currentPhase;
-                }
-                runEnd = p;
-            } else {
-                // Kết thúc một đoạn liên tục
-                if (runStart !== -1) {
-                    const viName = courseName + 
-                                   thGroupText + 
-                                   (runPhase === 1 ? ' (Gđ 1)' : (runPhase === 2 ? ' (Gđ 2)' : ''));
-                                   
-                    sections.push({
-                        id: `${courseCode}-${classId}-d${d}-p${runStart}`,
-                        courseCode,
-                        courseName,
-                        courseNameVi: viName,
-                        sectionNumber: pureClassId,
-                        selectedClassId: classId,
-                        lecturer: 'Chưa cập nhật',
-                        room: '---',
-                        day: d + 2,         // d+2: 0→T2, 1→T3, ...5→T7, 6→CN
-                        startPeriod: runStart * 0.5 + 1.0,
-                        endPeriod: (runEnd + 1) * 0.5,
-                        color,
-                        isConfirmed: true,
-                        credits,
-                    });
-                    runStart = -1;
-                    runEnd = -1;
-                    runPhase = 0;
-                }
-            }
-        }
-
-        // Flush nếu đoạn chạy tới hết ngày
-        if (runStart !== -1) {
-            sections.push({
-                id: `${courseCode}-${classId}-d${d}-p${runStart}`,
-                courseCode,
-                courseName,
-                courseNameVi: courseName + thGroupText + (runPhase === 1 ? ' (Gđ 1)' : (runPhase === 2 ? ' (Gđ 2)' : '')),
-                sectionNumber: pureClassId,
-                selectedClassId: classId,
-                lecturer: 'Chưa cập nhật',
-                room: '---',
-                day: d + 2,
-                startPeriod: runStart * 0.5 + 1.0,
-                endPeriod: (runEnd + 1) * 0.5,
-                color,
-                isConfirmed: true,
-                credits,
-            });
-        }
-    }
-
-    return sections;
+  return decodeScheduleTimeRuns(maskArr).map((run) => createSection(
+    courseCode,
+    courseName,
+    classId,
+    color,
+    credits,
+    run.day + 2,
+    minuteToPeriodBoundary(defaultCampusId, run.startMinute, 'start'),
+    minuteToPeriodBoundary(defaultCampusId, run.endMinute, 'end'),
+    minuteToClock(run.startMinute),
+    minuteToClock(run.endMinute),
+    defaultCampusId,
+    `d${run.day}-m${run.startMinute}`,
+    run.phase === 1 ? ' (GĐ 1)' : run.phase === 2 ? ' (GĐ 2)' : '',
+  ));
 }

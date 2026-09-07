@@ -27,6 +27,7 @@ import courseDbJson from '../../logic/scheduler/Course_db.json';
 import { cycleDayOffSession, formatDayOffSession, formatDaysOff, getDayOffSession } from '../../utils/dayOffPreferences';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../components/course';
 import { ScheduleOptionSelector } from '../schedule';
+import { useCampus } from '../../context/CampusContext';
 
 type GroupScheduleStep = 1 | 2 | 3;
 
@@ -146,6 +147,7 @@ export function GroupSchedulePage({
     embedded = false,
     modeSwitch,
 }: GroupSchedulePageProps) {
+    const { defaultCampusId } = useCampus();
     const {
         members,
         shareUrl,
@@ -554,7 +556,7 @@ export function GroupSchedulePage({
     const saveSelectedGroupSchedule = () => {
         const fallbackMemberIndex = selectedOption?.schedules[0]?.memberIndex ?? activePreviewMemberIndex;
         const memberIndex = showGroupCalendarPreview ? activePreviewMemberIndex : fallbackMemberIndex;
-        const newSaved = buildSavedGroupSchedule(selectedOption, memberIndex, groupScheduleName);
+        const newSaved = buildSavedGroupSchedule(selectedOption, memberIndex, groupScheduleName, defaultCampusId);
         if (!newSaved) return;
 
         const savedSchedulesRaw = readFromStorage<unknown>(STORAGE_KEYS.SAVED_SCHEDULES, []);

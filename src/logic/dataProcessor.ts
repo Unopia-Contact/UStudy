@@ -9,6 +9,7 @@
  */
 
 import { ScheduleLogic } from './ScheduleLogic';
+import { detectCampusFromOpenClassLocations, type CampusDetection } from '../domain/campus';
 
 // === TYPES ===
 
@@ -126,11 +127,20 @@ interface EnrollmentSnapshot {
     rawEnrolled: string;
 }
 
+interface ProcessedClassMeeting {
+    schedule: string[];
+    rawSchedule: string;
+    locations: string[];
+    campus: CampusDetection;
+}
+
 interface ProcessedClassComponent {
     group: string;
     schedule: string[];
     rawSchedules: string[];
     locations: string[];
+    meetings: ProcessedClassMeeting[];
+    campus: CampusDetection;
     enrollment: EnrollmentSnapshot;
 }
 
@@ -256,12 +266,26 @@ function firstNonEmpty(values: unknown[]): string {
     return values.map(value => String(value ?? '').trim()).find(Boolean) ?? '';
 }
 
+function buildMeeting(rawSchedule: unknown, locations: unknown[]): ProcessedClassMeeting {
+    const normalizedLocations = uniqueStrings(locations);
+    const scheduleText = String(rawSchedule ?? '').trim();
+    return {
+        schedule: ScheduleLogic.parseScheduleSlots(scheduleText),
+        rawSchedule: scheduleText,
+        locations: normalizedLocations,
+        campus: detectCampusFromOpenClassLocations(normalizedLocations),
+    };
+}
+
 function buildTheoryComponent(classID: string, rows: RawOpenClass[], schedule: string[]): ProcessedClassComponent {
+    const locations = uniqueStrings(rows.map(row => row.location));
     return {
         group: classID,
         schedule,
         rawSchedules: uniqueStrings(rows.map(row => row.schedule)),
-        locations: uniqueStrings(rows.map(row => row.location)),
+        locations,
+        meetings: rows.map(row => buildMeeting(row.schedule, [row.location])),
+        campus: detectCampusFromOpenClassLocations(locations),
         enrollment: buildEnrollment(
             firstNonEmpty(rows.map(row => row.capacity)),
             firstNonEmpty(rows.map(row => row.enrolled)),
@@ -270,11 +294,14 @@ function buildTheoryComponent(classID: string, rows: RawOpenClass[], schedule: s
 }
 
 function buildSubClassComponent(group: string, data: GroupedSubClass): ProcessedClassComponent {
+    const locations = uniqueStrings(data.records.flatMap(record => [record.MaDiaDiem, record.DiaDiem]));
     return {
         group,
         schedule: uniqueStrings(data.schedule),
         rawSchedules: uniqueStrings(data.records.map(record => record.LichHoc)),
-        locations: uniqueStrings(data.records.flatMap(record => [record.DiaDiem, record.MaDiaDiem])),
+        locations,
+        meetings: data.records.map(record => buildMeeting(record.LichHoc, [record.MaDiaDiem, record.DiaDiem])),
+        campus: detectCampusFromOpenClassLocations(locations),
         enrollment: buildEnrollment(
             firstNonEmpty(data.records.map(record => record.SiSo)),
             firstNonEmpty(data.records.map(record => record.DaDK)),

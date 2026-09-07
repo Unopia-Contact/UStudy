@@ -4,58 +4,30 @@ import { STORAGE_KEYS } from '../../../config';
 import { UI_COLORS } from '../../../config';
 import type { ClassSection, Course } from '../../../types';
 import type { DraftSelection } from '../types/schedule-builder-types';
+import { maskToSections } from '../../../logic/scheduler/ScheduleDecoder';
+import { getCampusScheduleEntries } from '../../../logic/scheduler/CourseDatabase';
+import { useCampus } from '../../../context/CampusContext';
+import type { CampusId } from '../../../domain/campus';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 const PALETTE = UI_COLORS.SCHEDULE_PALETTE;
 
-/** Parse schedule string "T2(1-3)" → { day: 2, startPeriod: 1, endPeriod: 3 } */
-function parseScheduleEntry(str: string): { day: number; startPeriod: number; endPeriod: number } | null {
-  const match = str.match(/T(\d|CN)\s*\((\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)\)/);
-  if (!match) return null;
-  const day = match[1] === 'CN' ? 8 : parseInt(match[1]);
-  return {
-    day,
-    startPeriod: parseFloat(match[2]),
-    endPeriod: parseFloat(match[3]),
-  };
-}
-
 /** Decode a class from course_db_offline into ClassSection[] for calendar display. */
 function decodeClassToSections(
   courseCode: string,
   courseName: string,
-  classData: { id: string; schedule?: string[]; room?: string },
+  classData: { id: string; schedule?: string[]; room?: string; components?: unknown },
   color: string,
   credits: number,
+  defaultCampusId: CampusId,
 ): ClassSection[] {
-  const scheduleArr = classData.schedule;
-  if (!scheduleArr || !Array.isArray(scheduleArr) || scheduleArr.length === 0) return [];
-
-  const sections: ClassSection[] = [];
-  for (const entry of scheduleArr) {
-    const parsed = parseScheduleEntry(entry);
-    if (!parsed) continue;
-
-    sections.push({
-      id: `${courseCode}-${classData.id}-d${parsed.day}-p${parsed.startPeriod}`,
-      courseCode,
-      courseName,
-      courseNameVi: courseName,
-      sectionNumber: classData.id,
-      selectedClassId: classData.id,
-      lecturer: 'Chưa cập nhật',
-      room: classData.room ?? '---',
-      day: parsed.day,
-      startPeriod: parsed.startPeriod,
-      endPeriod: parsed.endPeriod,
-      color,
-      isConfirmed: true,
-      credits,
-    });
-  }
-
-  return sections;
+  const scheduleEntries = getCampusScheduleEntries(classData, defaultCampusId);
+  const sections = maskToSections([], courseCode, courseName, classData.id, color, credits, {
+    scheduleEntries,
+    defaultCampusId,
+  });
+  return sections.map((section) => ({ ...section, room: classData.room ?? section.room }));
 }
 
 /** Get deterministic color for a course based on its index among selected courses. */
@@ -100,6 +72,7 @@ export interface UseScheduleDraftReturn {
 }
 
 export function useScheduleDraft(): UseScheduleDraftReturn {
+  const { defaultCampusId, campusRevision } = useCampus();
   const [selections, setSelections] = useState<DraftSelection[]>(() => {
     const saved = readFromStorage<PersistedDraft | null>(STORAGE_KEYS.SCHEDULE_BUILDER_DRAFT, null);
     if (!saved?.selections?.length) return [];
@@ -122,6 +95,7 @@ export function useScheduleDraft(): UseScheduleDraftReturn {
           classData,
           color,
           courseData.credits ?? 0,
+          defaultCampusId,
         );
 
         return {
@@ -136,6 +110,26 @@ export function useScheduleDraft(): UseScheduleDraftReturn {
       })
       .filter((s): s is DraftSelection => s !== null);
   });
+
+  useEffect(() => {
+    const courseDb = readFromStorage<any[]>(STORAGE_KEYS.COURSE_DB_OFFLINE, []);
+    setSelections((current) => current.map((selection) => {
+      const courseData = courseDb.find((course: any) => course.id === selection.courseCode);
+      const classData = courseData?.classes?.find((cls: any) => cls.id === selection.classId);
+      if (!classData) return selection;
+      return {
+        ...selection,
+        classSections: decodeClassToSections(
+          selection.courseCode,
+          selection.courseName,
+          classData,
+          selection.classSections[0]?.color ?? getCourseColor(selection.courseCode, current.map((item) => item.courseCode)),
+          courseData.credits ?? selection.classSections[0]?.credits ?? 0,
+          defaultCampusId,
+        ),
+      };
+    }));
+  }, [campusRevision, defaultCampusId]);
 
   // Persist to localStorage
   useEffect(() => {
@@ -173,7 +167,7 @@ export function useScheduleDraft(): UseScheduleDraftReturn {
       const allCourseCodes = Array.from(new Set([...prev.map(s => s.courseCode), courseCode]));
       const color = getCourseColor(courseCode, allCourseCodes);
 
-      const classSections = decodeClassToSections(courseCode, courseName, classData, color, credits);
+      const classSections = decodeClassToSections(courseCode, courseName, classData, color, credits, defaultCampusId);
       if (classSections.length === 0) return prev;
 
       const newSelection: DraftSelection = {
@@ -194,7 +188,7 @@ export function useScheduleDraft(): UseScheduleDraftReturn {
       }
       return [...prev, newSelection];
     });
-  }, []);
+  }, [defaultCampusId]);
 
   const removeSelection = useCallback((courseCode: string) => {
     setSelections(prev => prev.filter(s => s.courseCode !== courseCode));

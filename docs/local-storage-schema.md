@@ -314,6 +314,7 @@ dữ liệu học tập, kể cả khi các danh sách trong gói đều rỗng.
 | Key | Kiểu dữ liệu | Ý nghĩa |
 | --- | --- | --- |
 | `selected_faculty_id` | `string` | Khoa đang chọn |
+| `campus_preferences` | `{ version: 1; defaultCampusId: 'cho-quan' \| 'dong-hoa' }` | Cơ sở mặc định khi lớp chưa có mã địa điểm |
 | `selected_major_id` | `string` | Ngành đang chọn |
 | `selected_cohort_id` | `string` | Khóa tuyển |
 | `selected_academic_year` | `string` | Năm học đang chọn |

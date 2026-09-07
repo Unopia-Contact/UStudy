@@ -21,6 +21,7 @@ import { useScheduleSolver } from './hooks/use-schedule-solver';
 import { GroupSchedulePage } from '../group-schedule';
 import type { Course } from '../../types';
 import { createPortal } from 'react-dom';
+import { useCampus } from '../../context/CampusContext';
 import { APP_ROUTES, STUDY_ROADMAP_TAB_TO_PATH, getStudyRoadmapTabFromPath } from '../../app/routes';
 import { tabs, type Tab } from './types';
 import {
@@ -35,6 +36,7 @@ const isStudyRoadmapTab = (value: unknown): value is Tab =>
     value === tabs.trainingProgram || value === tabs.studyPlan || value === tabs.selection || value === tabs.calendar;
 
 export function StudyRoadmapFeature() {
+    const { defaultCampusId } = useCampus();
     const location = useLocation();
     const navigate = useNavigate();
     const tabFromPath = getStudyRoadmapTabFromPath(location.pathname);
@@ -158,7 +160,7 @@ export function StudyRoadmapFeature() {
     };
 
     const confirmedSections: ClassSection[] = currentSections;
-    const handleGetConflicts = (section: ClassSection) => getConflicts(section, [...registeredSections, ...confirmedSections]);
+    const handleGetConflicts = (section: ClassSection) => getConflicts(section, [...registeredSections, ...confirmedSections], defaultCampusId);
     
     // ---- Mobile Basket Drawer (portal vào body) ----
     const MobileBasketDrawer = createPortal(

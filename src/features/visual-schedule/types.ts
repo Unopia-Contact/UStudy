@@ -1,3 +1,5 @@
+import type { CampusDaySession, CampusId, ResolvedCampusSource } from '../../domain/campus';
+
 export interface ScheduleSession {
     id: string;
     courseCode: string;
@@ -14,7 +16,10 @@ export interface ScheduleSession {
     endTime: string;
     color: string; // Hex color or predefined key
     note?: string;
-    session: 'morning' | 'afternoon';
+    session: CampusDaySession;
+    campusId?: CampusId;
+    campusSource?: ResolvedCampusSource;
+    isCampusFallback?: boolean;
     duration: number; // Số tiết: 2, 2.5, etc.
     totalWeeks: number;
     startDate: string;
@@ -29,6 +34,7 @@ export interface ScheduleSession {
         endPeriod: number;
         note?: string;
         color: string;
+        campusId?: CampusId;
     };
 }
 
@@ -78,6 +84,7 @@ export interface SessionOverride {
     dayOfWeek?: 2 | 3 | 4 | 5 | 6 | 7 | 8;
     note?: string;
     color?: string;
+    campusId?: CampusId;
 }
 
 export interface ScheduleOverrides {

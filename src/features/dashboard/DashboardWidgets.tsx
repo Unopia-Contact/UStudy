@@ -27,6 +27,7 @@ import {
   prepareCalendarNotificationPermission,
   syncCalendarNotifications,
 } from '../../mobile/calendar-notifications';
+import { useCampus } from '../../context/CampusContext';
 
 const WIDGET_SPANS: Record<DashboardWidgetId, string> = {
   gpa: 'md:col-span-2',
@@ -37,6 +38,7 @@ const WIDGET_SPANS: Record<DashboardWidgetId, string> = {
 };
 
 export function DashboardWidgets() {
+  const { defaultCampusId } = useCampus();
   const [isMounted, setIsMounted] = useState(false);
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCalendarSettingsOpen, setIsCalendarSettingsOpen] = useState(false);
@@ -67,8 +69,8 @@ export function DashboardWidgets() {
     [academicYear, semesterNumber],
   );
   const tuitionDueDate = useMemo(
-    () => formatTuitionDeadline(getTuitionDeadline(tuitionSemesterKey)),
-    [tuitionSemesterKey],
+    () => formatTuitionDeadline(getTuitionDeadline(tuitionSemesterKey, defaultCampusId)),
+    [defaultCampusId, tuitionSemesterKey],
   );
   const gpaStatus = useMemo(
     () => GPACalculator.getClassification(currentGPA),

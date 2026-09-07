@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Calendar, Clock, BookOpen, GraduationCap, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 
 import { DAYS } from '../types';
@@ -9,16 +9,27 @@ import { PageShell } from '../../../components/layout/page-shell';
 import { ColorLegend } from './ColorLegend';
 import { HolidayManagerDialog } from './HolidayManagerDialog';
 import { CourseDetailCard } from './CourseDetailCard';
-import { PeriodRow } from './PeriodRow';
+import { CourseCard } from './EditSessionDialog';
 import { QuickStatsCard } from './QuickStatsCard';
-import { timePeriods } from '../../../constants';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../../components/course';
+import { getOverlappingSessions } from '../services/schedule-helpers';
+import { useCampus } from '../../../context/CampusContext';
+import {
+  buildScheduleAxis,
+  getScheduleAxisBreakLabel,
+  getScheduleAxisContext,
+  getScheduleAxisHeader,
+  getScheduleAxisHint,
+  getScheduleAxisPosition,
+  getScheduleAxisTimeBreakSummary,
+} from '../../../components/schedule/schedule-axis';
 
 interface VisualScheduleMainProps {
   selectedSemester?: string;
 }
 
 export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps) {
+  const { defaultCampusId } = useCampus();
   const [isHolidayManagerOpen, setIsHolidayManagerOpen] = useState(false);
   const [openClassDetails, setOpenClassDetails] = useState<OpenClassDetailTarget | null>(null);
   const {
@@ -39,6 +50,25 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     handleNextWeek,
     handleExport
   } = useVisualSchedule({ selectedSemester });
+
+  const scheduleAxis = useMemo(
+    () => buildScheduleAxis(displaySessions, defaultCampusId),
+    [displaySessions, defaultCampusId],
+  );
+
+  const calendarBlocks = useMemo(() => {
+    const visited = new Set<string>();
+    return displaySessions.flatMap((session) => {
+      if (visited.has(session.id)) return [];
+      const sessions = [session, ...getOverlappingSessions(session, displaySessions)]
+        .filter((candidate, index, values) => values.findIndex((value) => value.id === candidate.id) === index);
+      sessions.forEach((candidate) => visited.add(candidate.id));
+      return [{
+        sessions,
+        day: session.dayOfWeek,
+      }];
+    });
+  }, [displaySessions]);
 
   if (!isReady) {
     return (
@@ -182,68 +212,91 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
       )}
 
       {/* Weekly Calendar Grid */}
+      {scheduleAxis.mode === 'time' && (
+        <p className="mb-2 text-xs text-slate-500" title={getScheduleAxisTimeBreakSummary(scheduleAxis) ?? undefined}>
+          {getScheduleAxisHint(scheduleAxis)} {getScheduleAxisTimeBreakSummary(scheduleAxis)}
+        </p>
+      )}
       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto mb-4 md:mb-6">
-        <table className="w-full border-collapse table-fixed min-w-[560px] md:min-w-[1000px]">
-          <thead>
-            <tr className="bg-[#004A98]">
-              <th className="sticky left-0 bg-[#004A98] z-20 border border-gray-300 p-0.5 md:p-1 text-white text-[10px] md:text-xs font-semibold w-10 md:w-16 min-w-[40px] md:min-w-[64px]">
-                Tiết
-              </th>
-              {DAYS.map((day) => (
-                <th key={day.value} className={`border border-gray-300 p-0.5 md:p-1 text-white text-[10px] md:text-[13px] font-semibold min-w-[80px] md:min-w-[165px] ${isToday(day.value) ? 'bg-green-600' : ''
-                  }`}>
-                  {day.label}
-                  {isToday(day.value) && (
-                    <div className="text-[9px] md:text-[11px] font-normal mt-0.5">Hôm nay</div>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {/* BUỔI SÁNG */}
-            <tr className="bg-green-50">
-              <td colSpan={7} className="text-center font-semibold py-1.5 text-xs text-gray-700 border border-gray-200">
-                SÁNG
-              </td>
-            </tr>
-
-            {timePeriods.slice(0, 5).map((period) => (
-              <PeriodRow
-                key={period.period}
-                period={period.period}
-                time={period.start}
-                schedule={{ ...schedule, weekNumber: currentWeek, sessions: displaySessions }}
-                isToday={isToday}
-                currentPeriod={currentPeriod}
-                overrides={schedule.overrides}
-                onSave={schedule.updateOverrides}
-                onOpenClassDetails={setOpenClassDetails}
-              />
+        <div className="min-w-[560px] md:min-w-[1000px]">
+          <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns: '64px repeat(6, 1fr)' }}>
+            <div className="sticky left-0 z-30 flex h-11 flex-col items-center justify-center border-r border-white/20 bg-[#004A98] text-[10px] font-semibold text-white md:h-12 md:text-xs">
+              <span>{getScheduleAxisHeader(scheduleAxis)}</span>
+              <span className="text-[8px] font-medium text-white/70">{getScheduleAxisContext(scheduleAxis)}</span>
+            </div>
+            {DAYS.map((day) => (
+              <div key={day.value} className={`flex h-11 flex-col items-center justify-center border-l border-white/15 px-1 text-[10px] font-semibold text-white md:h-12 md:text-[13px] ${isToday(day.value) ? 'bg-green-600' : 'bg-[#004A98]'}`}>
+                {day.label}
+                {isToday(day.value) && <span className="mt-0.5 text-[9px] font-normal md:text-[11px]">Hôm nay</span>}
+              </div>
             ))}
+          </div>
 
-            {/* BUỔI CHIỀU */}
-            <tr className="bg-orange-50">
-              <td colSpan={7} className="text-center font-semibold py-1.5 text-xs text-gray-700 border border-gray-200">
-                <span>CHIỀU</span>
-              </td>
-            </tr>
+          <div className="relative isolate">
+            <div className="relative">
+              {scheduleAxis.rows.map((row) => {
+                const isBreak = row.kind === 'break';
+                const label = row.kind === 'period'
+                  ? row.period
+                  : row.kind === 'time' && row.minute % 60 === 0
+                    ? `${String(Math.floor(row.minute / 60)).padStart(2, '0')}:00`
+                    : '';
 
-            {timePeriods.slice(5, 10).map((period) => (
-              <PeriodRow
-                key={period.period}
-                period={period.period}
-                time={period.start}
-                schedule={{ ...schedule, weekNumber: currentWeek, sessions: displaySessions }}
-                isToday={isToday}
-                currentPeriod={currentPeriod}
-                overrides={schedule.overrides}
-                onSave={schedule.updateOverrides}
-                onOpenClassDetails={setOpenClassDetails}
-              />
-            ))}
-          </tbody>
-        </table>
+                return (
+                  <div
+                    key={row.kind === 'period' ? `period-${row.period}` : row.kind === 'break' ? `break-${row.afterPeriod}` : `time-${row.minute}`}
+                    className="grid"
+                    style={{ gridTemplateColumns: '64px repeat(6, 1fr)', height: row.height }}
+                  >
+                    <div className={`sticky left-0 z-[4] flex items-center justify-center border-b border-r text-[9px] font-medium md:text-[10px] ${isBreak ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
+                      {row.kind === 'period' ? <><span className="sr-only">Tiết </span>{label}</> : isBreak ? 'Trưa' : label}
+                    </div>
+                    {isBreak ? (
+                      <div className="col-span-6 flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700 md:text-xs">
+                        {getScheduleAxisBreakLabel(row)}
+                      </div>
+                    ) : DAYS.map((day) => (
+                      <div key={`${day.value}-${label}`} className={`border-b border-l border-gray-200 ${isToday(day.value) ? 'bg-green-50/30' : 'bg-white'}`} />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pointer-events-none absolute inset-0 z-[2]">
+              {calendarBlocks.map((block) => {
+                const dayIndex = DAYS.findIndex((day) => day.value === block.day);
+                if (dayIndex < 0) return null;
+                const positions = block.sessions.map((session) => getScheduleAxisPosition(session, scheduleAxis, defaultCampusId));
+                const top = Math.min(...positions.map((position) => position.top));
+                const bottom = Math.max(...positions.map((position) => position.top + position.height));
+                const position = { top, height: bottom - top };
+                return (
+                  <div
+                    key={block.sessions.map((session) => session.id).join(':')}
+                    className="pointer-events-auto absolute p-0.5"
+                    style={{
+                      top: position.top,
+                      height: position.height,
+                      left: `calc(64px + ${dayIndex} * ((100% - 64px) / 6))`,
+                      width: 'calc((100% - 64px) / 6)',
+                    }}
+                  >
+                    <CourseCard
+                      sessions={block.sessions}
+                      hasConflict={block.sessions.length > 1}
+                      weekNumber={currentWeek}
+                      overrides={schedule.overrides}
+                      onSave={schedule.updateOverrides}
+                      onOpenClassDetails={setOpenClassDetails}
+                      timelineMode
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Course Details Section */}

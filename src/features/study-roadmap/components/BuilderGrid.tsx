@@ -1,10 +1,22 @@
 import { useMemo } from 'react';
 import { AlertTriangle, Lock, Bot } from 'lucide-react';
-import { weekDays, timePeriods } from '../../../constants';
+import { weekDays } from '../../../constants';
 import type { ClassSection } from '../../../types';
 import { getConflicts } from '../../../logic/ScheduleValidator';
 import { getScheduleConflictLabel, ScheduleConflictHoverCard } from '../../../components/schedule/schedule-conflict-hover-card';
+import { getCompactCampusLabel } from '../../../components/schedule/campus-label';
 import type { DraftSelection, ScheduleConflict } from '../types/schedule-builder-types';
+import { useCampus } from '../../../context/CampusContext';
+import { getClassSectionTimeRange } from '../../../components/schedule/schedule-timeline';
+import {
+  buildScheduleAxis,
+  getScheduleAxisBreakLabel,
+  getScheduleAxisContext,
+  getScheduleAxisHeader,
+  getScheduleAxisHint,
+  getScheduleAxisPosition,
+  getScheduleAxisTimeBreakSummary,
+} from '../../../components/schedule/schedule-axis';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -36,9 +48,14 @@ export function BuilderGrid({
   focusedCourseCode,
   onClickSection,
 }: BuilderGridProps) {
+  const { defaultCampusId } = useCampus();
+  const scheduleAxis = useMemo(
+    () => buildScheduleAxis(allSections, defaultCampusId),
+    [allSections, defaultCampusId],
+  );
   const conflictsBySectionId = useMemo(() => new Map(
-    allSections.map((section) => [section.id, getConflicts(section, allSections)]),
-  ), [allSections]);
+    allSections.map((section) => [section.id, getConflicts(section, allSections, defaultCampusId)]),
+  ), [allSections, defaultCampusId]);
 
   const selectionMap = useMemo(() => {
     const map = new Map<string, DraftSelection>();
@@ -50,13 +67,19 @@ export function BuilderGrid({
   const periodsPerDay = useMemo(() => {
     const counts: Record<number, number> = {};
     for (const s of allSections) {
-      counts[s.day] = (counts[s.day] ?? 0) + Math.round(s.endPeriod - s.startPeriod + 1);
+      const range = getClassSectionTimeRange(s, defaultCampusId);
+      counts[s.day] = (counts[s.day] ?? 0) + (range.endMinute - range.startMinute) / 50;
     }
     return counts;
-  }, [allSections]);
+  }, [allSections, defaultCampusId]);
 
   return (
     <div className="ustudy-card overflow-hidden flex flex-col h-full">
+      {scheduleAxis.mode === 'time' && (
+        <div className="border-b border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] text-slate-500">
+          {getScheduleAxisHint(scheduleAxis)} {getScheduleAxisTimeBreakSummary(scheduleAxis)}
+        </div>
+      )}
       <div className="overflow-auto flex-1">
         <div className="min-w-[560px] md:min-w-[700px]">
           {/* Column headers */}
@@ -64,8 +87,9 @@ export function BuilderGrid({
             className="sticky top-0 z-20 grid bg-[#004A98]"
             style={{ gridTemplateColumns: '56px repeat(6, 1fr)' }}
           >
-            <div className="sticky left-0 z-30 flex h-10 items-center justify-center border-r border-white/20 bg-[#004A98]">
-              <span className="text-[10px] font-semibold text-white">Tiết</span>
+            <div className="sticky left-0 z-30 flex h-10 flex-col items-center justify-center border-r border-white/20 bg-[#004A98]">
+              <span className="text-[10px] font-semibold text-white">{getScheduleAxisHeader(scheduleAxis)}</span>
+              <span className="text-[8px] font-medium text-white/70">{getScheduleAxisContext(scheduleAxis)}</span>
             </div>
             {weekDays.map(day => (
               <div
@@ -86,49 +110,30 @@ export function BuilderGrid({
           <div style={{ position: 'relative', isolation: 'isolate' }}>
             {/* Layer 1: grid lines */}
             <div style={{ position: 'relative' }}>
-              {timePeriods.map(period => {
-                const isFirstAfternoon = period.period === 6;
-                return (
-                  <div key={period.period}>
-                    {isFirstAfternoon && (
-                      <div
-                        className="grid items-stretch border-y border-orange-200 bg-orange-50"
-                        style={{ gridTemplateColumns: '56px 1fr', height: '28px' }}
-                      >
-                        <div
-                          className="sticky left-0 flex items-center justify-center border-r border-orange-200 bg-orange-50"
-                          style={{ zIndex: 4 }}
-                        >
-                          <span className="text-[9px] font-semibold uppercase tracking-wide text-orange-700">Trưa</span>
-                        </div>
-                        <div className="flex items-center justify-center px-3">
-                          <span className="text-[10px] font-semibold text-orange-700">
-                            Nghỉ trưa 11:50 - 12:40
-                          </span>
-                        </div>
-                      </div>
-                    )}
+              {scheduleAxis.rows.map((row) => {
+                const isBreak = row.kind === 'break';
+                const label = row.kind === 'period'
+                  ? row.period
+                  : row.kind === 'time' && row.minute % 60 === 0
+                    ? `${String(Math.floor(row.minute / 60)).padStart(2, '0')}:00`
+                    : '';
 
-                    <div
-                      className={`grid ${period.period <= 5 ? 'bg-sky-50/20' : ''}`}
-                      style={{ gridTemplateColumns: '56px repeat(6, 1fr)', height: '52px' }}
-                    >
-                      <div
-                        className="sticky left-0 flex flex-col items-center justify-center border-b border-r border-gray-200 bg-gray-50 px-1 text-center"
-                        style={{ zIndex: 4 }}
-                      >
-                        <div className="text-[11px] font-semibold text-gray-700">{period.period}</div>
-                        <span className="text-[8px] text-gray-500 leading-tight">
-                          {period.time.split(' - ')[0]}
-                        </span>
-                      </div>
-                      {weekDays.map(day => (
-                        <div
-                          key={`${day.day}-${period.period}`}
-                          className="border-b border-l border-gray-200 bg-white"
-                        />
-                      ))}
+                return (
+                  <div
+                    key={row.kind === 'period' ? `period-${row.period}` : row.kind === 'break' ? `break-${row.afterPeriod}` : `time-${row.minute}`}
+                    className="grid"
+                    style={{ gridTemplateColumns: '56px repeat(6, 1fr)', height: row.height }}
+                  >
+                    <div className={`sticky left-0 z-[4] flex items-center justify-center border-b border-r text-[9px] font-medium ${isBreak ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
+                      {row.kind === 'period' ? <><span className="sr-only">Tiết </span>{label}</> : isBreak ? 'Trưa' : label}
                     </div>
+                    {isBreak ? (
+                      <div className="col-span-6 flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700">
+                        {getScheduleAxisBreakLabel(row)}
+                      </div>
+                    ) : weekDays.map((day) => (
+                      <div key={`${day.day}-${label}`} className="border-b border-l border-gray-200 bg-white" />
+                    ))}
                   </div>
                 );
               })}
@@ -145,12 +150,8 @@ export function BuilderGrid({
                 const isLocked = draft?.locked ?? false;
                 const isSolver = draft?.source === 'solver';
 
-                const rowH = 52;
-                const lunchOffset = section.startPeriod >= 6 ? 28 : 0;
-                const topPx = (section.startPeriod - 1) * rowH + lunchOffset;
-                const heightPeriods = section.endPeriod - section.startPeriod + 1;
-                const spansLunch = section.startPeriod < 6 && section.endPeriod >= 6;
-                const heightPx = heightPeriods * rowH + (spansLunch ? 28 : 0);
+                const timeRange = getClassSectionTimeRange(section, defaultCampusId);
+                const { top: topPx, height: heightPx } = getScheduleAxisPosition(section, scheduleAxis, defaultCampusId);
                 const dayColIndex = section.day - 2;
 
                 const baseColor = hasConflict ? '#EF4444' : section.color;
@@ -159,14 +160,15 @@ export function BuilderGrid({
                 const subTextColor = hasConflict ? '#B91C1C' : '#6B7280';
 
                 const isCompact = heightPx < 72;
-                const startTime = timePeriods.find(p => p.period === section.startPeriod)?.time.split(' - ')[0] ?? '';
-                const endTime = timePeriods.find(p => p.period === section.endPeriod)?.time.split(' - ')[1] ?? '';
+                const startTime = timeRange.startTime;
+                const endTime = timeRange.endTime;
 
                 return (
                   <ScheduleConflictHoverCard
                     key={section.id}
                     section={section}
                     conflictingSections={conflictingSections}
+                    defaultCampusId={defaultCampusId}
                   >
                     <div
                     role="button"
@@ -228,7 +230,7 @@ export function BuilderGrid({
                       {section.courseCode}
                       {isCompact && (
                         <span style={{ fontWeight: 500, color: subTextColor, fontSize: 8, marginLeft: 3 }}>
-                          · {section.sectionNumber}
+                          · {section.sectionNumber} · {getCompactCampusLabel(section.campusId)}
                         </span>
                       )}
                     </p>
@@ -272,6 +274,12 @@ export function BuilderGrid({
                             {startTime}–{endTime}
                           </span>
                         )}
+                        <span
+                          title={section.campusId === 'cho-quan' ? 'Cơ sở 1 - Chợ Quán' : 'Cơ sở 2 - Đông Hòa'}
+                          style={{ fontSize: 7, fontWeight: 700, color: subTextColor }}
+                        >
+                          {getCompactCampusLabel(section.campusId)}
+                        </span>
 
                         {/* Lock / Solver badges */}
                         <div style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>

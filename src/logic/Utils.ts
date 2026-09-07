@@ -1,101 +1,145 @@
-import { SPLIT_SEMESTER_CONFIG } from "../config";
+import { SPLIT_SEMESTER_CONFIG } from '../config';
+import {
+  DEFAULT_CAMPUS_ID,
+  SCHEDULE_DAY_COUNT,
+  SCHEDULE_MASK_PARTS,
+  SCHEDULE_PHASE_BIT_COUNT,
+  SCHEDULE_SLOTS_PER_DAY,
+  getScheduleBitIndex,
+  isTimeInsideScheduleAxis,
+  minuteToScheduleSlot,
+  resolvePeriodRange,
+  tryResolvePeriodRange,
+  scheduleSlotToMinute,
+  type CampusId,
+} from '../domain/campus';
+import { getCampusPeriods } from '../assets/data/campuses';
 
-// Hàm encode mới hỗ trợ 2 Phase
-// Tham số thứ 2 (subjectID) dùng để check xem môn này thuộc phase nào
-export function encodeScheduleToMask(scheduleInput: string | string[], subjectID = "") {
-    // Mở rộng mảng mask lên 10 phần tử (320 bit)
-    let mask = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    const scheduleArr = Array.isArray(scheduleInput) ? scheduleInput : [scheduleInput];
+function getSubjectPhase(subjectID: string): 0 | 1 | 2 {
+  const cleanID = subjectID.trim().toUpperCase();
+  if (!cleanID) return 0;
+  if (SPLIT_SEMESTER_CONFIG.PHASE_1.some((id) => cleanID.includes(id))) return 1;
+  if (SPLIT_SEMESTER_CONFIG.PHASE_2.some((id) => cleanID.includes(id))) return 2;
+  return 0;
+}
 
-    // Xác định Phase: 0 (Full), 1 (Đầu), 2 (Sau)
-    let phase = 0; // Mặc định cả kỳ
-    if (subjectID) {
-        const cleanID = subjectID.trim().toUpperCase();
-        // Check Phase 1
-        if (SPLIT_SEMESTER_CONFIG.PHASE_1.some(id => cleanID.includes(id))) {
-            phase = 1;
-        }
-        // Check Phase 2 (Nếu lỡ trùng cả 2 list thì ưu tiên phase 2)
-        else if (SPLIT_SEMESTER_CONFIG.PHASE_2.some(id => cleanID.includes(id))) {
-            phase = 2;
-        }
+function setMaskBit(mask: number[], bitIndex: number): void {
+  mask[Math.floor(bitIndex / 32)] |= 1 << (bitIndex % 32);
+}
+
+export function encodeScheduleToMask(
+  scheduleInput: string | string[],
+  subjectID = '',
+  campusId: CampusId = DEFAULT_CAMPUS_ID,
+) {
+  const mask = new Array(SCHEDULE_MASK_PARTS).fill(0);
+  const scheduleArr = Array.isArray(scheduleInput) ? scheduleInput : [scheduleInput];
+  const phase = getSubjectPhase(subjectID);
+
+  scheduleArr.forEach((value) => {
+    if (!value) return;
+    const match = String(value).match(/T(\d|CN)\s*\((\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)\)/i);
+    if (!match) return;
+
+    const day = match[1].toUpperCase() === 'CN' ? 6 : Number.parseInt(match[1], 10) - 2;
+    if (day < 0 || day >= SCHEDULE_DAY_COUNT) return;
+
+    const resolved = tryResolvePeriodRange(
+      campusId,
+      Number.parseFloat(match[2]),
+      Number.parseFloat(match[3]),
+    );
+    if (!resolved) {
+      console.warn(`[schedule] Bỏ qua khoảng tiết không hợp lệ "${value}" tại cơ sở "${campusId}".`);
+      return;
+    }
+    if (!isTimeInsideScheduleAxis(resolved.startMinute) || !isTimeInsideScheduleAxis(resolved.endMinute)) {
+      throw new RangeError(`Lich ${value} nam ngoai truc thoi gian ho tro.`);
     }
 
-    const PHASE_OFFSET = 140; // 7 ngày * 10 tiết * 2 bit/tiết = 140 bit
+    const startSlot = minuteToScheduleSlot(resolved.startMinute);
+    const endSlot = minuteToScheduleSlot(resolved.endMinute);
+    for (let slot = startSlot; slot < endSlot; slot++) {
+      if (phase === 0 || phase === 1) setMaskBit(mask, getScheduleBitIndex(day, slot, 1));
+      if (phase === 0 || phase === 2) setMaskBit(mask, getScheduleBitIndex(day, slot, 2));
+    }
+  });
 
-    scheduleArr.forEach(str => {
-        if (!str) return;
-        const match = str.match(/T(\d|CN)\s*\((\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)\)/);
-
-        if (match) {
-            let day = match[1] === 'CN' ? 6 : parseInt(match[1]) - 2;
-            // 2 bit per period: bit 0,1 for P1, bit 2,3 for P2...
-            // Start bit = (start - 1) * 2
-            // End bit = (end * 2) - 1
-            const startBitIdx = Math.round((parseFloat(match[2]) - 1) * 2);
-            const endBitIdx = Math.round(parseFloat(match[3]) * 2 - 1);
-
-            if (day >= 0 && day <= 6) {
-                const dayOffset = day * 20; // 20 bits per day
-                for (let i = startBitIdx; i <= endBitIdx; i++) {
-                    const baseBitIndex = dayOffset + i;
-
-                    // Nếu là Phase 1 hoặc Cả kỳ -> Bật bit ở vùng 1 (0-139)
-                    if (phase === 0 || phase === 1) {
-                        mask[Math.floor(baseBitIndex / 32)] |= (1 << (baseBitIndex % 32));
-                    }
-
-                    // Nếu là Phase 2 hoặc Cả kỳ -> Bật bit ở vùng 2 (140-279)
-                    if (phase === 0 || phase === 2) {
-                        const phase2BitIndex = baseBitIndex + PHASE_OFFSET;
-                        mask[Math.floor(phase2BitIndex / 32)] |= (1 << (phase2BitIndex % 32));
-                    }
-                }
-            }
-        }
-    });
-
-    return { parts: mask };
+  return { parts: mask };
 }
 
 export interface ScheduleSlot {
-    day: number;
-    period: number;
+  day: number;
+  period: number;
 }
 
-export function decodeScheduleMask(parts: number[]) {
-    let slots: ScheduleSlot[] = [];
-    const PHASE_OFFSET = 140;
+function maskHasBit(parts: number[], bitIndex: number): boolean {
+  return (((parts[Math.floor(bitIndex / 32)] ?? 0) | 0) & (1 << (bitIndex % 32))) !== 0;
+}
 
-    // Quét vùng Phase 1 (0-139)
-    // Logic mới: Quét cả 2 vùng để xác định
-    for (let i = 0; i < 10; i++) {
-        const part = (parts && parts[i] !== undefined) ? parts[i] : 0;
-        if (part === 0) continue;
+export function decodeScheduleMask(
+  parts: number[],
+  campusId: CampusId = DEFAULT_CAMPUS_ID,
+): ScheduleSlot[] {
+  const slots: ScheduleSlot[] = [];
+  const periods = getCampusPeriods(campusId);
 
-        for (let bit = 0; bit < 32; bit++) {
-            if ((part & (1 << bit)) !== 0) {
-                let totalBit = i * 32 + bit;
+  for (let day = 0; day < SCHEDULE_DAY_COUNT; day++) {
+    for (const period of periods) {
+      const resolved = resolvePeriodRange(campusId, period.period, period.period);
+      const startSlot = minuteToScheduleSlot(resolved.startMinute);
+      const endSlot = minuteToScheduleSlot(resolved.endMinute);
+      let active = false;
 
-                let actualBit = totalBit;
-                if (totalBit >= PHASE_OFFSET) {
-                    actualBit = totalBit - PHASE_OFFSET;
-                }
+      for (let slot = startSlot; slot < endSlot && !active; slot++) {
+        const firstPhaseBit = day * SCHEDULE_SLOTS_PER_DAY + slot;
+        active = maskHasBit(parts, firstPhaseBit)
+          || maskHasBit(parts, firstPhaseBit + SCHEDULE_PHASE_BIT_COUNT);
+      }
 
-                if (actualBit >= 140) continue; // Bỏ qua rác
-
-                let day = Math.floor(actualBit / 20);
-                let bitInDay = actualBit % 20;
-                let period = Math.floor(bitInDay / 2) + 1;
-
-                // Chỉ push 1 slot cho mỗi tiết (nếu bit 0 hoặc 1 của tiết đó bật)
-                // NewUI hiện tại chỉ vẽ theo tiết nguyên, nên ta gom lại.
-                if (day < 7) {
-                    const exists = slots.some(s => s.day === day && s.period === period);
-                    if (!exists) slots.push({ day, period });
-                }
-            }
-        }
+      if (active) slots.push({ day, period: period.period });
     }
-    return slots;
+  }
+
+  return slots;
+}
+
+export interface DecodedTimeRun {
+  day: number;
+  phase: 1 | 2 | 3;
+  startMinute: number;
+  endMinute: number;
+}
+
+export function decodeScheduleTimeRuns(parts: number[]): DecodedTimeRun[] {
+  const runs: DecodedTimeRun[] = [];
+
+  for (let day = 0; day < SCHEDULE_DAY_COUNT; day++) {
+    let runStart = -1;
+    let runPhase: 0 | 1 | 2 | 3 = 0;
+
+    for (let slot = 0; slot <= SCHEDULE_SLOTS_PER_DAY; slot++) {
+      const firstPhase = slot < SCHEDULE_SLOTS_PER_DAY
+        && maskHasBit(parts, getScheduleBitIndex(day, slot, 1));
+      const secondPhase = slot < SCHEDULE_SLOTS_PER_DAY
+        && maskHasBit(parts, getScheduleBitIndex(day, slot, 2));
+      const phase: 0 | 1 | 2 | 3 = firstPhase && secondPhase ? 3 : firstPhase ? 1 : secondPhase ? 2 : 0;
+
+      if (phase !== 0 && runStart === -1) {
+        runStart = slot;
+        runPhase = phase;
+      } else if (runStart !== -1 && phase !== runPhase) {
+        runs.push({
+          day,
+          phase: runPhase as 1 | 2 | 3,
+          startMinute: scheduleSlotToMinute(runStart),
+          endMinute: scheduleSlotToMinute(slot),
+        });
+        runStart = phase === 0 ? -1 : slot;
+        runPhase = phase;
+      }
+    }
+  }
+
+  return runs;
 }

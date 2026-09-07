@@ -4,8 +4,10 @@ import {
     readSecure,
     populateSecureCache,
     clearSecureCache,
+    migrateLegacyPlaintextSecureData,
     SECURE_DATA_KEYS,
 } from '../helpers/localStorage/save';
+import { migrateCourseDatabaseCampusMetadata } from '../logic/course-db-campus-migration';
 
 /**
  * CryptoContext - RAM-only Master Data Key manager
@@ -68,6 +70,13 @@ export function CryptoProvider({ children }: { children: React.ReactNode }) {
 
         // Decrypt toàn bộ secure data và đưa vào RAM cache
         (async () => {
+            try {
+                await migrateLegacyPlaintextSecureData(cryptoKey);
+                await migrateCourseDatabaseCampusMetadata(cryptoKey);
+            } catch (error) {
+                console.error('[crypto] Không thể hoàn tất migration dữ liệu cục bộ.', error);
+            }
+
             await Promise.all(
                 SECURE_DATA_KEYS.map(async (key) => {
                     try {

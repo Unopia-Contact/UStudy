@@ -5,6 +5,7 @@ import { AppRouter } from './app/AppRouter';
 import { AppDialog } from './components/ui/overlays/app-dialog';
 import { SecurityGate, SecurityLock } from './components/security';
 import { CryptoProvider, CACHE_POPULATED_EVENT, useCrypto } from './context/CryptoContext';
+import { CampusProvider } from './context/CampusContext';
 import { DepartmentProvider } from './context/DepartmentContext';
 import { NotificationProvider, useAppNotification } from './context/NotificationContext';
 import { createImportRollbackSnapshot, readFromStorage, saveSecure, populateSecureCache } from './helpers/localStorage/save';
@@ -434,9 +435,11 @@ export default function App() {
       <Analytics />
       <SecurityGate>
         <NotificationProvider>
-          <DepartmentProvider>
-            <AppContent />
-          </DepartmentProvider>
+          <CampusProvider>
+            <DepartmentProvider>
+              <AppContent />
+            </DepartmentProvider>
+          </CampusProvider>
         </NotificationProvider>
       </SecurityGate>
     </CryptoProvider>

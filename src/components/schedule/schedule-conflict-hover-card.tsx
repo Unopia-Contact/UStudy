@@ -1,19 +1,24 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { ClassSection } from '../../types';
-import { timePeriods } from '../../constants';
+import { DEFAULT_CAMPUS_ID, type CampusId } from '../../domain/campus';
+import { getClassSectionTimeRange } from './schedule-timeline';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/overlays/hover-card';
 
 interface ScheduleConflictHoverCardProps {
     section: ClassSection;
     conflictingSections: ClassSection[];
     children: ReactNode;
+    defaultCampusId?: CampusId;
 }
 
-function getSectionTime(section: ClassSection): string {
-    const start = timePeriods.find((period) => period.period === section.startPeriod)?.time.split(' - ')[0];
-    const end = timePeriods.find((period) => period.period === section.endPeriod)?.time.split(' - ')[1];
-    return start && end ? `${start} - ${end}` : `Tiết ${section.startPeriod} - ${section.endPeriod}`;
+function getSectionTime(section: ClassSection, defaultCampusId: CampusId): string {
+    try {
+        const range = getClassSectionTimeRange(section, defaultCampusId);
+        return `${range.startTime} - ${range.endTime}`;
+    } catch {
+        return `Tiết ${section.startPeriod} - ${section.endPeriod}`;
+    }
 }
 
 export function getScheduleConflictLabel(section: ClassSection, conflictingSections: ClassSection[]): string {
@@ -26,6 +31,7 @@ export function ScheduleConflictHoverCard({
     section,
     conflictingSections,
     children,
+    defaultCampusId = DEFAULT_CAMPUS_ID,
 }: ScheduleConflictHoverCardProps) {
     if (conflictingSections.length === 0) return <>{children}</>;
 
@@ -56,7 +62,7 @@ export function ScheduleConflictHoverCard({
                                 <span className="shrink-0 text-xs font-medium text-slate-500">Lớp {item.sectionNumber || item.selectedClassId || '-'}</span>
                             </div>
                             <p className="mt-0.5 truncate text-sm font-medium text-gray-900">{item.courseNameVi || item.courseName}</p>
-                            <p className="mt-1 truncate text-xs text-slate-500">{getSectionTime(item)} · {item.room || 'Chưa có phòng'}</p>
+                            <p className="mt-1 truncate text-xs text-slate-500">{getSectionTime(item, defaultCampusId)} · {item.room || 'Chưa có phòng'}</p>
                         </div>
                     ))}
                 </div>

@@ -6,6 +6,7 @@ import { getHolidayDateRange, getScheduleCalendarWeekCount, isSessionActiveInWee
 import { exportCalendar } from '../services/schedule-export';
 import { getCurrentDayAndTime } from '../services/schedule-helpers';
 import { type ScheduleSession } from '../types';
+import { tryResolvePeriodRange } from '../../../domain/campus';
 
 interface UseVisualScheduleProps {
     selectedSemester?: string;
@@ -60,14 +61,21 @@ export function useVisualSchedule({ selectedSemester }: UseVisualScheduleProps =
                 let sP = weekOverride.startPeriod !== undefined ? weekOverride.startPeriod : session.startPeriod;
                 let eP = weekOverride.endPeriod !== undefined ? weekOverride.endPeriod : session.endPeriod;
                 const adjusted = ScheduleLogic.adjustPeriodsForPractical(session.type, sP, eP);
+                const campusId = weekOverride.campusId ?? session.campusId ?? 'dong-hoa';
+                const periodRange = tryResolvePeriodRange(
+                    campusId,
+                    adjusted.startPeriod,
+                    adjusted.endPeriod,
+                );
 
                 return {
                     ...session,
                     ...weekOverride,
                     startPeriod: adjusted.startPeriod,
                     endPeriod: adjusted.endPeriod,
-                    startTime: ScheduleLogic.periodToTimeString(adjusted.startPeriod, true),
-                    endTime: ScheduleLogic.periodToTimeString(adjusted.endPeriod, false),
+                    startTime: periodRange?.startTime ?? ScheduleLogic.periodToTimeString(adjusted.startPeriod, true, campusId),
+                    endTime: periodRange?.endTime ?? ScheduleLogic.periodToTimeString(adjusted.endPeriod, false, campusId),
+                    session: periodRange?.session ?? session.session,
                     duration: adjusted.duration,
                 };
             }

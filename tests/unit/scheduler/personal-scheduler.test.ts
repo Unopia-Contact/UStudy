@@ -38,4 +38,43 @@ describe('personal schedule solver', () => {
     ))
       .toThrow(/CSC10009|Database/);
   });
+
+  it('uses actual campus times and keeps NVC periods 11-15 in the conflict mask', () => {
+    const mixedCampusDatabase = [{
+      id: 'CSC20001',
+      name: 'Mixed campus',
+      classes: [
+        {
+          id: 'NVC-11',
+          schedule: ['T2(11-11)'],
+          components: {
+            theory: {
+              schedule: ['T2(11-11)'],
+              meetings: [{ schedule: ['T2(11-11)'], campus: { status: 'matched', campusId: 'cho-quan', source: 'open-class', confidence: 'exact' } }],
+            },
+          },
+        },
+        {
+          id: 'NVC-13',
+          schedule: ['T2(13-15)'],
+          components: {
+            theory: {
+              schedule: ['T2(13-15)'],
+              meetings: [{ schedule: ['T2(13-15)'], campus: { status: 'matched', campusId: 'cho-quan', source: 'open-class', confidence: 'exact' } }],
+            },
+          },
+        },
+      ],
+    }];
+    const courseDatabase = new CourseDatabase();
+    courseDatabase.loadData(mixedCampusDatabase, 'dong-hoa');
+    const registeredLtPeriod10 = encodeScheduleToMask('T2(10-10)', '', 'dong-hoa').parts;
+    const filtered = filterCoursesAgainstRegisteredMask(
+      [courseDatabase.getCourse('CSC20001')],
+      registeredLtPeriod10,
+    );
+
+    expect(filtered[0].classes.map((courseClass: any) => courseClass.id)).toEqual(['NVC-13']);
+    expect(courseDatabase.getCourse('CSC20001').classes[1].scheduleMask.parts.some((part: number) => part !== 0)).toBe(true);
+  });
 });
