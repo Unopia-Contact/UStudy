@@ -6,6 +6,16 @@
  * chuong trinh cua khoa do dung lai khoa cu, khai bao defaultProgramDataSource.
  */
 
+import type { CampusId } from '../../../domain/campus';
+import { DEFAULT_TUITION_PROFILE_ID, type TuitionProfileId } from '../tuition';
+
+const CAMPUS_TWO_ONLY: CampusId[] = ['dong-hoa'];
+const BOTH_CAMPUSES: CampusId[] = ['cho-quan', 'dong-hoa'];
+const DUAL_CAMPUS_MAJOR_IDS = new Set([
+    'cu-nhan-tai-nang',
+    'cu-nhan-tai-nang-vat-ly-hoc',
+]);
+
 export interface CohortInfo {
     id: string;
     name: string;
@@ -14,14 +24,25 @@ export interface CohortInfo {
 export interface CohortMajorInfo {
     id: string;
     name: string;
+    campusIds: CampusId[];
+    tuitionProfileId: TuitionProfileId;
     /** Nguồn chương trình riêng, dùng để ghi đè nguồn mặc định của khóa. */
     dataSourceCohort?: string;
 }
+
+type CohortMajorDefinition = Omit<CohortMajorInfo, 'campusIds' | 'tuitionProfileId'> & {
+    campusIds?: CampusId[];
+    tuitionProfileId?: TuitionProfileId;
+};
 
 export interface CohortFacultyInfo {
     id: string;
     name: string;
     majors: CohortMajorInfo[];
+}
+
+interface CohortFacultyDefinition extends Omit<CohortFacultyInfo, 'majors'> {
+    majors: CohortMajorDefinition[];
 }
 
 export interface AcademicYearMajorCatalog {
@@ -31,11 +52,17 @@ export interface AcademicYearMajorCatalog {
     faculties: CohortFacultyInfo[];
 }
 
+interface AcademicYearMajorCatalogDefinition extends Omit<AcademicYearMajorCatalog, 'faculties'> {
+    faculties: CohortFacultyDefinition[];
+}
+
 export interface MajorInfo {
     id: string;
     name: string;
     cohorts: CohortInfo[];
     dataSource?: Record<string, string>;
+    campusIdsByCohort: Record<string, CampusId[]>;
+    tuitionProfileId: TuitionProfileId;
 }
 
 export interface FacultyInfo {
@@ -44,7 +71,7 @@ export interface FacultyInfo {
     majors: MajorInfo[];
 }
 
-export const ACADEMIC_YEAR_MAJOR_CATALOGS: AcademicYearMajorCatalog[] = [
+const ACADEMIC_YEAR_MAJOR_CATALOG_DEFINITIONS: AcademicYearMajorCatalogDefinition[] = [
     {
         cohortId: 'k24',
         label: 'Khóa 2024 (K24)',
@@ -333,6 +360,26 @@ export const ACADEMIC_YEAR_MAJOR_CATALOGS: AcademicYearMajorCatalog[] = [
     },
 ];
 
+function normalizeMajorDefinition(major: CohortMajorDefinition): CohortMajorInfo {
+    return {
+        ...major,
+        campusIds: [...(
+            major.campusIds
+            ?? (DUAL_CAMPUS_MAJOR_IDS.has(major.id) ? BOTH_CAMPUSES : CAMPUS_TWO_ONLY)
+        )],
+        tuitionProfileId: major.tuitionProfileId ?? DEFAULT_TUITION_PROFILE_ID,
+    };
+}
+
+export const ACADEMIC_YEAR_MAJOR_CATALOGS: AcademicYearMajorCatalog[] =
+    ACADEMIC_YEAR_MAJOR_CATALOG_DEFINITIONS.map((catalog) => ({
+        ...catalog,
+        faculties: catalog.faculties.map((faculty) => ({
+            ...faculty,
+            majors: faculty.majors.map(normalizeMajorDefinition),
+        })),
+    }));
+
 export const COHORTS: CohortInfo[] = ACADEMIC_YEAR_MAJOR_CATALOGS.map(({ cohortId, label }) => ({
     id: cohortId,
     name: label,
@@ -353,11 +400,22 @@ export const FACULTIES: FacultyInfo[] = (() => {
             catalogFaculty.majors.forEach((catalogMajor) => {
                 let major = faculty.majors.find((item) => item.id === catalogMajor.id);
                 if (!major) {
-                    major = { id: catalogMajor.id, name: catalogMajor.name, cohorts: [] };
+                    major = {
+                        id: catalogMajor.id,
+                        name: catalogMajor.name,
+                        cohorts: [],
+                        campusIdsByCohort: {},
+                        tuitionProfileId: catalogMajor.tuitionProfileId,
+                    };
                     faculty.majors.push(major);
                 }
 
+                if (major.tuitionProfileId !== catalogMajor.tuitionProfileId) {
+                    throw new Error(`Ngành ${catalogFaculty.id}/${catalogMajor.id} có nhiều nhóm học phí khác nhau giữa các khóa.`);
+                }
+
                 major.cohorts.push({ id: catalog.cohortId, name: catalog.label });
+                major.campusIdsByCohort[catalog.cohortId] = [...catalogMajor.campusIds];
                 const sourceCohort = catalogMajor.dataSourceCohort ?? catalog.defaultProgramDataSource;
                 if (sourceCohort && sourceCohort !== catalog.cohortId) {
                     major.dataSource = { ...major.dataSource, [catalog.cohortId]: sourceCohort };
@@ -378,12 +436,39 @@ export function getProgramDataSourceCohort(cohortId: string, facultyId?: string,
     return getAcademicYearMajorCatalog(cohortId)?.defaultProgramDataSource;
 }
 
-export function getFacultiesForCohort(cohortId: string): CohortFacultyInfo[] {
-    return getAcademicYearMajorCatalog(cohortId)?.faculties ?? [];
+export function getFacultiesForCohort(cohortId: string, campusId?: CampusId): CohortFacultyInfo[] {
+    const faculties = getAcademicYearMajorCatalog(cohortId)?.faculties ?? [];
+    if (!campusId) return faculties;
+
+    return faculties.flatMap((faculty) => {
+        const majors = faculty.majors.filter((major) => major.campusIds.includes(campusId));
+        return majors.length > 0 ? [{ ...faculty, majors }] : [];
+    });
 }
 
-export function getMajorsForCohort(facultyId: string, cohortId: string): CohortMajorInfo[] {
-    return getFacultiesForCohort(cohortId).find((faculty) => faculty.id === facultyId)?.majors ?? [];
+export function getMajorsForCohort(facultyId: string, cohortId: string, campusId?: CampusId): CohortMajorInfo[] {
+    return getFacultiesForCohort(cohortId, campusId).find((faculty) => faculty.id === facultyId)?.majors ?? [];
+}
+
+export function getProgramOffering(facultyId: string, majorId: string, cohortId: string): CohortMajorInfo | null {
+    return getMajorsForCohort(facultyId, cohortId).find((major) => major.id === majorId) ?? null;
+}
+
+export function isProgramAvailableAtCampus(
+    facultyId: string,
+    majorId: string,
+    cohortId: string,
+    campusId: CampusId,
+): boolean {
+    return getProgramOffering(facultyId, majorId, cohortId)?.campusIds.includes(campusId) ?? false;
+}
+
+export function getProgramTuitionProfileId(
+    facultyId: string,
+    majorId: string,
+    cohortId: string,
+): TuitionProfileId {
+    return getProgramOffering(facultyId, majorId, cohortId)?.tuitionProfileId ?? DEFAULT_TUITION_PROFILE_ID;
 }
 
 export const DEFAULT_FACULTY_ID = 'khoa-cntt';

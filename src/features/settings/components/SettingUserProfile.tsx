@@ -1,9 +1,10 @@
 import { AppSelect } from "../../../components/ui/form";
-import { COHORTS, getProgramDataSourceCohort } from "../../../assets/data/academic-programs/registry";
+import { COHORTS, getProgramDataSourceCohort, getProgramOffering } from "../../../assets/data/academic-programs/registry";
+import { getTuitionProfileName } from "../../../assets/data/tuition";
 import { useDepartmentData } from "../../../context/DepartmentContext";
 import { useCampus } from "../../../context/CampusContext";
-import { CAMPUS_OPTIONS } from "../../../domain/campus";
-import { CheckCircle, GraduationCap, Upload, Shield } from "lucide-react";
+import { CAMPUS_OPTIONS, getCampusDefinition } from "../../../domain/campus";
+import { Building2, CheckCircle, CircleDollarSign, GraduationCap, Upload, Shield } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppNotification } from "../../../context/NotificationContext";
 import { useCrypto } from "../../../context/CryptoContext";
@@ -37,6 +38,15 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
     const programDataSourceCohort = getProgramDataSourceCohort(cohortId, facultyId, majorId);
     const programDataSourceLabel = COHORTS.find((cohort) => cohort.id === programDataSourceCohort)?.name ?? programDataSourceCohort;
     const isUsingSharedProgramData = Boolean(programDataSourceCohort && programDataSourceCohort !== cohortId);
+    const currentProgramOffering = currentFaculty && currentMajor
+        ? getProgramOffering(currentFaculty.id, currentMajor.id, cohortId)
+        : null;
+    const programCampusNames = currentProgramOffering?.campusIds
+        .map((campusId) => getCampusDefinition(campusId).name)
+        .join(' và ');
+    const tuitionProfileName = currentProgramOffering
+        ? getTuitionProfileName(currentProgramOffering.tuitionProfileId)
+        : null;
 
     /** Lưu dữ liệu nhạy cảm đã mã hóa + populate RAM cache */
     const saveImportedSecure = async (rawData: any, metaData: any, key: CryptoKey) => {
@@ -267,20 +277,6 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                     onChange={(value) => setDefaultCampusId(value as typeof defaultCampusId)}
                 />
 
-                {defaultCampusId === 'cho-quan' && (
-                    <div>
-                        <p className="text-xs leading-5 text-gray-500">
-                            Chương trình đào tạo cho Cơ sở 1 – Chợ Quán hiện đang được cập nhật.
-                        </p>
-
-                        <p className="mt-3 text-xs leading-5 text-gray-500">
-                            Hiện tại, UStudy chưa có dữ liệu chương trình đào tạo của bất kỳ ngành nào
-                            tại cơ sở này. Bạn vẫn có thể sử dụng các tính năng khác của UStudy trong
-                            thời gian chờ dữ liệu được bổ sung.
-                        </p>
-                    </div>
-                )}
-
                 <AppSelect
                     label="Khóa tuyển"
                     value={cohortId}
@@ -311,6 +307,19 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                     disabled={true}
                 />
             </div>
+
+            {currentProgramOffering && (
+                <div className="mt-4 space-y-2 rounded-lg bg-slate-50 px-4 py-3 text-xs text-slate-600">
+                    <p className="flex items-start gap-2">
+                        <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-[#004A98]" aria-hidden="true" />
+                        <span><span className="font-semibold text-slate-700">Cơ sở đào tạo:</span> {programCampusNames}</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                        <CircleDollarSign className="mt-0.5 h-4 w-4 shrink-0 text-[#004A98]" aria-hidden="true" />
+                        <span><span className="font-semibold text-slate-700">Đơn giá áp dụng:</span> {tuitionProfileName} trong toàn bộ chương trình.</span>
+                    </p>
+                </div>
+            )}
 
             {
                 isUsingSharedProgramData && (

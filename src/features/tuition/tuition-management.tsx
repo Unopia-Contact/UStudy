@@ -17,6 +17,7 @@ import { Payment } from './components/payment';
 import { TuitionDeskTopCardList } from './components/tuition-desktop-card-list';
 import { TuitionMobileCardList } from './components/tuition-mobile-card-list';
 import { TuitionSummaryCard } from './components/tuition-summary-card';
+import { useDepartmentData } from '../../context/DepartmentContext';
 
 interface TuitionPageProps {
   selectedSemester?: string;
@@ -65,6 +66,7 @@ const formatDate = (dateString: string) => {
 // ==================== MAIN COMPONENT ====================
 
 export function TuitionPage({ selectedSemester }: TuitionPageProps) {
+  const { data: { tuitionRates } } = useDepartmentData();
   const {
     isReady,
     hasData,
@@ -134,6 +136,12 @@ export function TuitionPage({ selectedSemester }: TuitionPageProps) {
       )}
 
       {/* Summary Cards */}
+      {tuitionRates?.profileName && (
+        <p className="mb-4 flex items-center gap-2 px-1 text-xs text-gray-500">
+          <CreditCard className="h-3.5 w-3.5 shrink-0 text-[#004A98]" />
+          Đơn giá học phí đang áp dụng: <span className="font-semibold text-gray-700">{tuitionRates.profileName}</span>
+        </p>
+      )}
       <TuitionSummaryCard
         currentSemesterData={currentSemesterData}
         currentSemesterSummary={currentSemesterSummary}

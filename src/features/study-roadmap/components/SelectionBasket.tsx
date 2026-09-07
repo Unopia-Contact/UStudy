@@ -4,6 +4,7 @@ import type { Course } from '../../../types';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 import { FinancialLogic } from '../../../logic/FinancialLogic';
 import { getTuitionRates } from '../../../assets/data/tuition';
+import { getProgramTuitionProfileId } from '../../../assets/data/academic-programs/registry';
 import { CourseClassFilterModal } from './CourseClassFilterModal';
 import type { ClassPreferenceSelection } from '../../group-schedule/types';
 import type React from 'react';
@@ -44,7 +45,9 @@ export function SelectionBasket({
     const [filterModalCourse, setFilterModalCourse] = useState<Course | null>(null);
     const {
         data: { tuitionRates: tuition_rates, courses: allCoursesMeta },
+        facultyId,
         majorId,
+        cohortId,
         academicYear,
     } = useDepartmentData();
     const selectedCourseCodes = new Set(selectedCourses.map(course => normalizeCourseCode(course.code || course.id)));
@@ -106,7 +109,11 @@ export function SelectionBasket({
         : forecastAcademicYear;
     const comparisonTuition = FinancialLogic.calculateTotalTuition(
         allTuitionCourses,
-        getTuitionRates(comparisonAcademicYear, majorId),
+        getTuitionRates(
+            comparisonAcademicYear,
+            { facultyId, majorId },
+            getProgramTuitionProfileId(facultyId, majorId, cohortId),
+        ),
         allCoursesMeta,
     );
 
@@ -220,6 +227,11 @@ export function SelectionBasket({
                                     {formatCurrency(estimatedTuition)} VNĐ
                                 </p>
                             </div>
+                            {tuition_rates?.profileName && (
+                                <p className="mt-1 text-[10px] font-medium text-gray-500">
+                                    Đơn giá áp dụng: {tuition_rates.profileName}
+                                </p>
+                            )}
                             <div className="mt-1 flex items-center justify-between gap-3 border-t border-blue-100 pt-1.5 text-[11px]">
                                 <span className="font-medium text-gray-600">
                                     {academicYear === forecastAcademicYear
