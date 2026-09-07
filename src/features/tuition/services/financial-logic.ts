@@ -63,7 +63,7 @@ export const FinancialLogic = {
         courseId: string,
         credits: number,
         tuitionRates: TuitionRates | null,
-        allCoursesMeta: CourseMeta[]
+        allCoursesMeta: CourseMeta[],
     ): CourseFeeResult => {
         const meta = allCoursesMeta.find(m => m.course_id === courseId.trim().toUpperCase())
             || allCoursesMeta.find(m => m.course_id === courseId);
@@ -252,7 +252,8 @@ export const FinancialLogic = {
         studentDb: any,
         importMeta: any,
         tuitionRates: TuitionRates | null,
-        allCoursesMeta: CourseMeta[]
+        allCoursesMeta: CourseMeta[],
+        campusId: import('../../../domain/campus').CampusId = 'dong-hoa',
     ): {
         courses: TuitionCourse[],
         summary: TuitionSummary,
@@ -270,7 +271,7 @@ export const FinancialLogic = {
             totalFee: 0,
             advancePayment: 0,
             amountDue: 0,
-            dueDate: getTuitionDeadline(targetSemester),
+            dueDate: getTuitionDeadline(targetSemester, campusId),
             status: 'unpaid',
             lastUpdated: new Date().toLocaleString('vi-VN'),
             hasAdvancePayment: false,

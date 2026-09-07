@@ -5,6 +5,7 @@ import {
   deriveKek,
   getCryptoVersion,
   importBackupWithCurrentKey,
+  migrateLegacyPlaintextSecureData,
   readImportRollbackValue,
   readSecure,
   saveSecure,
@@ -143,6 +144,25 @@ describe('secure storage v2', () => {
     expect(masterKey).not.toBeNull();
     expect(getCryptoVersion()).toBe(2);
     await expect(readSecure('gpa_projected_grades', masterKey!, null)).resolves.toEqual(historicalProjection);
+  });
+
+  it('migrates newly secured v2 preferences exactly once', async () => {
+    const masterKey = await setupPin('current-pin');
+    const preferences = { preferredDaysOff: [1, 4] };
+    const allowedClasses = { CSC10001: ['01'] };
+    localStorage.setItem('solver_preferences', JSON.stringify(preferences));
+    localStorage.setItem('allowed_classes_map', JSON.stringify(allowedClasses));
+
+    await migrateLegacyPlaintextSecureData(masterKey);
+
+    expect(localStorage.getItem('__secure_data_schema_version__')).toBe('2');
+    expect(localStorage.getItem('solver_preferences')).not.toContain('preferredDaysOff');
+    await expect(readSecure('solver_preferences', masterKey, null)).resolves.toEqual(preferences);
+    await expect(readSecure('allowed_classes_map', masterKey, null)).resolves.toEqual(allowedClasses);
+
+    localStorage.setItem('allowed_classes_map', JSON.stringify({ injected: true }));
+    await migrateLegacyPlaintextSecureData(masterKey);
+    await expect(readSecure('allowed_classes_map', masterKey, null)).rejects.toThrow('INVALID_PAYLOAD');
   });
 
   it('keeps legacy data usable when migration cannot stage every secure entry', async () => {

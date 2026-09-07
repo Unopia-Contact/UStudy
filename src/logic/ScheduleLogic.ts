@@ -5,7 +5,7 @@
  * Không phụ thuộc React - có thể test/import độc lập.
  */
 
-import { timePeriods } from '../constants/timetable';
+import { resolvePeriodBoundary, type CampusId } from '../domain/campus';
 import { type ScheduleSession, type WeeklySchedule, type ScheduleOverrides, type Holiday } from '../types/Schedule';
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -137,18 +137,20 @@ export const ScheduleLogic = {
     /**
      * Tính duration thực tế từ startPeriod và endPeriod.
      * Trong ký hiệu VN: T2(1-5) = tiết 1 đến 5 bao gồm cả tiết 5 → duration = 5.
-     * Tiết lẻ T2(3.5-5.5) → duration = 2 (thực tế 2 tiết học).
+     * Tiết lẻ là ranh giới nửa tiết: 1-2.5 và 3.5-5 đều dài 2.5 tiết.
      */
     adjustPeriodsForPractical: (
         _courseType: string,
         startPeriod: number,
         endPeriod: number
     ): { startPeriod: number; endPeriod: number; duration: number } => {
-        // endPeriod nguyên = inclusive (T2(1-5) có 5 tiết)
-        // endPeriod lẻ = exclusive-end (T2(3.5-5.5) có 2 tiết)
-        const duration = Number.isInteger(endPeriod)
-            ? endPeriod - startPeriod + 1
-            : endPeriod - startPeriod;
+        const startBoundary = Number.isInteger(startPeriod)
+            ? startPeriod - 1
+            : Math.floor(startPeriod) - 0.5;
+        const endBoundary = Number.isInteger(endPeriod)
+            ? endPeriod
+            : Math.floor(endPeriod) + 0.5;
+        const duration = endBoundary - startBoundary;
         return { startPeriod, endPeriod, duration };
     },
 
@@ -156,18 +158,11 @@ export const ScheduleLogic = {
      * Chuyển đổi tiết học (period) thành chuỗi giờ (ví dụ "07:30").
      * Hỗ trợ các tiết lẻ 3.5 và 8.5 cho lớp TH/BT.
      */
-    periodToTimeString: (period: number, isStart: boolean): string => {
-        // Các tiết đặc biệt cho TH/BT
-        if (isStart) {
-            if (period === 3.5) return '09:45';
-            if (period === 8.5) return '14:55';
-            const obj = timePeriods.find(p => p.period === Math.floor(period));
-            return obj ? obj.time.split(' - ')[0].trim() : '00:00';
-        } else {
-            if (period === 2.5) return '09:35';
-            if (period === 7.5) return '14:45';
-            const obj = timePeriods.find(p => p.period === Math.ceil(period));
-            return obj ? obj.time.split(' - ')[1].trim() : '00:00';
+    periodToTimeString: (period: number, isStart: boolean, campusId: CampusId = 'dong-hoa'): string => {
+        try {
+            return resolvePeriodBoundary(campusId, period, isStart ? 'start' : 'end');
+        } catch {
+            return '00:00';
         }
     },
 

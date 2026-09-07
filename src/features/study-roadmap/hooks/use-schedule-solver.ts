@@ -10,6 +10,7 @@ import type { ClassSection } from '../../../types';
 import type { Course } from '../../../types';
 import { STORAGE_KEYS, UI_COLORS } from '../../../config';
 import type { DayOffPreference } from '../../../utils/dayOffPreferences';
+import { useCampus } from '../../../context/CampusContext';
 
 // Tải dữ liệu DB tĩnh (fallback khi chưa có course_db_offline)
 import courseDbJson from '../../../logic/scheduler/Course_db.json';
@@ -30,6 +31,7 @@ export interface SolverPreferences {
 const PALETTE = UI_COLORS.SCHEDULE_PALETTE;
 
 export function useScheduleSolver() {
+    const { defaultCampusId } = useCampus();
     const [solving, setSolving] = useState(false);
     const [options, setOptions] = useState<ScheduleOption[]>([]);
     const [activeOption, setActiveOption] = useState(0);
@@ -67,7 +69,7 @@ export function useScheduleSolver() {
                     strategy: prefs.strategy || 'compress',
                     noGaps: prefs.noGaps ?? false,
                     preferredClassesMap: prefs.preferredClassesMap,
-                }, registeredMask);
+                }, registeredMask, defaultCampusId);
 
                 if (!results || results.length === 0) {
                     setError('Không tìm được phương án xếp lịch phù hợp. Thử chọn ít môn hơn hoặc kiểm tra lại dữ liệu lớp học.');
@@ -93,7 +95,11 @@ export function useScheduleSolver() {
                                 name,
                                 item.classID,
                                 color,
-                                course?.credits || 0
+                                course?.credits || 0,
+                                {
+                                    scheduleEntries: item.scheduleEntries,
+                                    defaultCampusId,
+                                },
                             );
                             sections.push(...newSections);
                         }
@@ -116,7 +122,7 @@ export function useScheduleSolver() {
                 setSolving(false);
             }
         }, 50);
-    }, []);
+    }, [defaultCampusId]);
 
     const currentSections = options[activeOption]?.classSections || [];
 

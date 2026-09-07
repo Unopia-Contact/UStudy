@@ -5,6 +5,7 @@ import { STORAGE_KEYS } from '../../config';
 import { readFromStorage } from '../../helpers/localStorage/save';
 import courseDbJson from '../../logic/scheduler/Course_db.json';
 import { AppDialog } from '../ui/overlays/app-dialog';
+import { getCampusDefinition, type CampusDetection } from '../../domain/campus';
 
 export interface OpenClassDetailTarget {
   courseCode: string;
@@ -27,6 +28,7 @@ interface ClassComponent {
   rawSchedules?: string[];
   locations?: string[];
   enrollment?: EnrollmentSnapshot | null;
+  campus?: CampusDetection;
 }
 
 interface StoredOpenClass {
@@ -79,13 +81,24 @@ function ClassComponentRow({ label, component }: { label: string; component?: Cl
   if (!component) return null;
   const schedule = component.rawSchedules?.length ? component.rawSchedules : component.schedule ?? [];
   const locations = component.locations?.filter(Boolean) ?? [];
+  const detectedCampus = component.campus?.status === 'matched'
+    ? getCampusDefinition(component.campus.campusId)
+    : null;
 
   return (
     <div className="grid gap-2 px-1 py-3 sm:grid-cols-[minmax(0,1fr)_112px] sm:items-center">
       <div className="min-w-0">
         <p className="text-sm font-semibold text-gray-900">{label}{component.group ? ` · ${component.group}` : ''}</p>
         <p className="mt-0.5 text-xs leading-5 text-gray-500">{schedule.length ? schedule.join(' · ') : 'Chưa có lịch học'}</p>
-        {locations.length > 0 && <p className="mt-1.5 flex items-center gap-1.5 text-xs text-gray-600"><MapPin className="h-3.5 w-3.5 shrink-0 text-gray-400" />{locations.join(' · ')}</p>}
+        {(detectedCampus || locations.length > 0) && (
+          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-gray-600">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+            <span className="truncate">
+              {detectedCampus?.name ?? locations.join(' · ')}
+              {detectedCampus && locations.length > 0 ? ` · ${locations.join(' · ')}` : ''}
+            </span>
+          </p>
+        )}
       </div>
       <div className="border-l border-gray-200 pl-3 text-left sm:text-right">
         <p className="text-sm font-bold tabular-nums text-[#004A98]">{getEnrollmentLabel(component.enrollment)}</p>
@@ -102,19 +115,21 @@ export function OpenClassDetailContent({ target }: { target: OpenClassDetailTarg
     (courseDbJson as any[]).forEach(item => mergedMap.set(item.id, item));
     if (courses && Array.isArray(courses)) {
         courses.forEach(item => {
-            const existing = mergedMap.get(item.id);
+            const itemId = normalize(item.id || item.code || item.course_id);
+            if (!itemId) return;
+            const existing = mergedMap.get(itemId);
             if (existing && (!item.classes || item.classes.length === 0) && existing.classes && existing.classes.length > 0) {
                 item.classes = existing.classes;
             }
-            mergedMap.set(item.id, item);
+            mergedMap.set(itemId, item);
         });
     }
     const mergedCourses = Array.from(mergedMap.values());
     const courseCode = normalize(target.courseCode);
     const foundCourse = mergedCourses.find((item) => normalize(item.id || item.code || item.course_id) === courseCode);
     const classId = normalize(target.classId);
-    const foundClass = foundCourse?.classes?.find((item) => normalize(item.id) === classId)
-      ?? foundCourse?.classes?.find((item) => normalize(item.id).startsWith(`${classId}_`));
+    const foundClass = foundCourse?.classes?.find((item: StoredOpenClass) => normalize(item.id) === classId)
+      ?? foundCourse?.classes?.find((item: StoredOpenClass) => normalize(item.id).startsWith(`${classId}_`));
     return { course: foundCourse, selectedClass: foundClass };
   }, [target.classId, target.courseCode]);
 

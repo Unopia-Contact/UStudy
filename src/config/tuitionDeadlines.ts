@@ -10,9 +10,15 @@
  *
  * Khi nha truong thong bao han moi, chi can sua/thêm trong object nay.
  */
-export const TUITION_DEADLINES_BY_SEMESTER: Record<string, string> = {
-    '25-26/7': '2026-08-20',
+export const TUITION_DEADLINES_BY_CAMPUS: Record<import('../domain/campus').CampusId, Record<string, string>> = {
+    'cho-quan': {},
+    'dong-hoa': {
+        '25-26/7': '2026-08-20',
+    },
 };
+
+/** @deprecated Dùng TUITION_DEADLINES_BY_CAMPUS khi bổ sung dữ liệu mới. */
+export const TUITION_DEADLINES_BY_SEMESTER = TUITION_DEADLINES_BY_CAMPUS['dong-hoa'];
 
 export function normalizeTuitionSemesterKey(value: string | undefined | null): string {
     const raw = String(value || '').trim();
@@ -44,9 +50,12 @@ export function buildTuitionSemesterKey(academicYear: string, semesterNumber: nu
 }
 
 /** Chi tra ve han da duoc nha truong cong bo trong bang cau hinh. */
-export function getTuitionDeadline(semester: string | undefined | null): string | null {
+export function getTuitionDeadline(
+    semester: string | undefined | null,
+    campusId: import('../domain/campus').CampusId = 'dong-hoa',
+): string | null {
     const key = normalizeTuitionSemesterKey(semester);
-    return TUITION_DEADLINES_BY_SEMESTER[key] ?? null;
+    return TUITION_DEADLINES_BY_CAMPUS[campusId][key] ?? null;
 }
 
 export function formatTuitionDeadline(dateString: string | null | undefined): string {

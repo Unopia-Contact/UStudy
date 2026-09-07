@@ -19,6 +19,7 @@ import { ScheduleOptionSelector } from '../../schedule/components/ScheduleOption
 import { MobileBottomSheet } from '../../../components/ui/overlays/mobile-bottom-sheet';
 import type { Tab } from '../types';
 import { createCourseCodeSet, excludeRegisteredSections, normalizeCourseCode } from '../../../logic/course-identity';
+import { useCampus } from '../../../context/CampusContext';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -77,6 +78,7 @@ export function ScheduleBuilder({
   onDraftStateChange,
   clearDraftRef,
 }: ScheduleBuilderProps) {
+  const { defaultCampusId } = useCampus();
   const draft = useScheduleDraft();
   const registeredCourseCodeSet = useMemo(
     () => createCourseCodeSet(registeredCourses.map((course) => course.courseCode)),
@@ -96,7 +98,7 @@ export function ScheduleBuilder({
     () => [...registeredSections, ...activeDraftSections],
     [registeredSections, activeDraftSections],
   );
-  const { conflicts } = useConflictValidator(activeDraftSelections, displaySections);
+  const { conflicts } = useConflictValidator(activeDraftSelections, displaySections, defaultCampusId);
   const [focusedCourseCode, setFocusedCourseCode] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 

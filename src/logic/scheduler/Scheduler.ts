@@ -2,6 +2,7 @@ import CourseDatabase from './CourseDatabase.js';
 import GeneticSolver from './GeneticSolver.js';
 import { FitnessEvaluator } from './FitnessValuator.js';
 import { Bitset } from './Bitset.js';
+import { DEFAULT_CAMPUS_ID, type CampusId } from '../../domain/campus';
 
 export function filterCoursesAgainstRegisteredMask(selectedCourses: any[], registeredMask?: number[]) {
     if (!registeredMask || !registeredMask.some((value) => value !== 0)) return selectedCourses;
@@ -37,10 +38,11 @@ export function runScheduleSolver(
     fixedClasses: any,
     preferences: any,
     registeredMask?: number[],
+    defaultCampusId: CampusId = DEFAULT_CAMPUS_ID,
 ) {
     const db = new CourseDatabase();
     const data = (typeof dbData === 'string') ? JSON.parse(dbData) : dbData;
-    db.loadData(data);
+    db.loadData(data, defaultCampusId);
 
     const selectedCourses: any[] = [];
 
@@ -99,7 +101,8 @@ export function runScheduleSolver(
                     subjectID: course.id,
                     classID: classObj.id,
                     mask: visualMask || [0, 0, 0, 0],
-                    schedule: classObj.schedule
+                    schedule: classObj.schedule,
+                    scheduleEntries: classObj.scheduleEntries,
                 });
             }
         });

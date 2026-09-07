@@ -43,10 +43,27 @@ export function getOverlappingSessions(
     session: ScheduleSession,
     sessions: ScheduleSession[],
 ): ScheduleSession[] {
+    const toMinute = (time: string) => {
+        const match = time.match(/^(\d{2}):(\d{2})$/);
+        return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+    };
+    const sessionStartMinute = toMinute(session.startTime);
+    const sessionEndMinute = toMinute(session.endTime);
     const sessionEnd = getDisplayEnd(session);
 
     return sessions.filter((candidate) => {
         if (candidate.id === session.id || candidate.dayOfWeek !== session.dayOfWeek) return false;
+
+        const candidateStartMinute = toMinute(candidate.startTime);
+        const candidateEndMinute = toMinute(candidate.endTime);
+        if (
+            sessionStartMinute !== null
+            && sessionEndMinute !== null
+            && candidateStartMinute !== null
+            && candidateEndMinute !== null
+        ) {
+            return sessionStartMinute < candidateEndMinute && candidateStartMinute < sessionEndMinute;
+        }
 
         const candidateEnd = getDisplayEnd(candidate);
         return session.startPeriod < candidateEnd && candidate.startPeriod < sessionEnd;

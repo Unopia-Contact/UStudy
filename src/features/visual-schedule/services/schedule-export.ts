@@ -1,6 +1,7 @@
 import { ScheduleLogic } from './schedule-logic';
 import { getScheduleCalendarWeekCount, isSessionActiveInWeek } from './holiday-logic';
 import type { ScheduleSession, WeeklySchedule } from '../types';
+import { tryResolvePeriodRange } from '../../../domain/campus';
 
 interface CalendarOccurrence {
     calendarWeek: number;
@@ -32,14 +33,17 @@ function getSessionForWeek(schedule: WeeklySchedule, session: ScheduleSession, c
     const startPeriod = weekOverride.startPeriod ?? session.startPeriod;
     const endPeriod = weekOverride.endPeriod ?? session.endPeriod;
     const adjusted = ScheduleLogic.adjustPeriodsForPractical(session.type, startPeriod, endPeriod);
+    const campusId = weekOverride.campusId ?? session.campusId ?? 'dong-hoa';
+    const periodRange = tryResolvePeriodRange(campusId, adjusted.startPeriod, adjusted.endPeriod);
 
     return {
         ...session,
         ...weekOverride,
         startPeriod: adjusted.startPeriod,
         endPeriod: adjusted.endPeriod,
-        startTime: ScheduleLogic.periodToTimeString(adjusted.startPeriod, true),
-        endTime: ScheduleLogic.periodToTimeString(adjusted.endPeriod, false),
+        startTime: periodRange?.startTime ?? ScheduleLogic.periodToTimeString(adjusted.startPeriod, true, campusId),
+        endTime: periodRange?.endTime ?? ScheduleLogic.periodToTimeString(adjusted.endPeriod, false, campusId),
+        session: periodRange?.session ?? session.session,
         duration: adjusted.duration,
     };
 }

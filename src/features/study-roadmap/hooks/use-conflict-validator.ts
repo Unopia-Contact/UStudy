@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { getConflicts } from '../../../logic/ScheduleValidator';
 import type { ClassSection } from '../../../types';
+import type { CampusId } from '../../../domain/campus';
 import type { DraftSelection, ScheduleConflict } from '../types/schedule-builder-types';
 
 // ─── Hook ───────────────────────────────────────────────────────────────────
@@ -14,6 +15,7 @@ export interface UseConflictValidatorReturn {
 export function useConflictValidator(
   selections: DraftSelection[],
   allSections: ClassSection[],
+  defaultCampusId: CampusId,
 ): UseConflictValidatorReturn {
   const conflicts = useMemo(() => {
     const result: ScheduleConflict[] = [];
@@ -21,7 +23,7 @@ export function useConflictValidator(
 
     // 1. Time overlap detection
     for (const section of allSections) {
-      const overlapping = getConflicts(section, allSections);
+      const overlapping = getConflicts(section, allSections, defaultCampusId);
       for (const other of overlapping) {
         // Create a stable key so we don't duplicate A↔B and B↔A
         const key = [
@@ -53,7 +55,7 @@ export function useConflictValidator(
     // For now, we skip this check as course_db_offline structure varies. Can be added in Phase 2.
 
     return result;
-  }, [selections, allSections]);
+  }, [selections, allSections, defaultCampusId]);
 
   const hasErrors = conflicts.some(c => c.severity === 'error');
 

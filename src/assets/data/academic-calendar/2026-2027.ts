@@ -2,6 +2,7 @@ import type { AcademicCalendar } from './types';
 
 export const ACADEMIC_CALENDAR_2026_2027: AcademicCalendar = {
   "id": "hcmus-2026-2027-undergraduate-regular",
+  "campusId": "dong-hoa",
   "academicYear": "2026-2027",
   "title": "Kế hoạch giảng dạy và học tập năm học 2026 - 2027",
   "issuer": "Đại học Quốc gia TP.HCM - Trường Đại học Khoa học Tự nhiên",

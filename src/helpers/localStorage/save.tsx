@@ -24,6 +24,12 @@ const MIGRATION_STAGE_KEY = '__crypto_v2_migration_stage__';
 const MIGRATION_LEGACY_PREFIX = '__crypto_v2_legacy__:';
 const MIGRATION_DATA_PREFIX = '__crypto_v2_data__:';
 const PIN_CHANGE_STAGE_KEY = '__crypto_v2_pin_change_stage__';
+const SECURE_DATA_SCHEMA_KEY = '__secure_data_schema_version__';
+const SECURE_DATA_SCHEMA_VERSION = 2;
+const LEGACY_PLAINTEXT_SECURE_KEYS = [
+    'solver_preferences',
+    'allowed_classes_map',
+] as const;
 
 /** Keys nội bộ của hệ thống bảo mật, không export ra STORAGE_KEYS */
 const INTERNAL_KEYS = {
@@ -388,6 +394,33 @@ export async function readSecure<T>(key: string, cryptoKey: CryptoKey, fallback:
     const raw = localStorage.getItem(key);
     if (raw === null) return fallback;
     return await decryptWithKey(raw, cryptoKey) as T;
+}
+
+/**
+ * Older v2 installations stored these preferences as plain JSON before they
+ * became secure keys. Migrate only that exact allowlist once; later reads must
+ * still pass authenticated AES-GCM decryption.
+ */
+export async function migrateLegacyPlaintextSecureData(cryptoKey: CryptoKey): Promise<void> {
+    const schemaVersion = Number(localStorage.getItem(SECURE_DATA_SCHEMA_KEY) || 0);
+    if (schemaVersion >= SECURE_DATA_SCHEMA_VERSION) return;
+
+    for (const key of LEGACY_PLAINTEXT_SECURE_KEYS) {
+        const raw = localStorage.getItem(key);
+        if (raw === null || decodePayload(raw)) continue;
+
+        let value: unknown;
+        try {
+            value = JSON.parse(raw);
+        } catch {
+            throw new Error(`INVALID_LEGACY_PLAINTEXT:${key}`);
+        }
+
+        const encrypted = await encryptWithKey(value, cryptoKey);
+        localStorage.setItem(key, encrypted);
+    }
+
+    localStorage.setItem(SECURE_DATA_SCHEMA_KEY, String(SECURE_DATA_SCHEMA_VERSION));
 }
 
 // ─── PIN Management ───────────────────────────────────────────────────────────
