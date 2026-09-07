@@ -133,130 +133,180 @@ export const categories = {
                 "credits_required": 24,
                 "courses": [
                     "MTH10441",
+                    "MTH10403",
                     "MTH10131",
                     "MTH10109",
-                    "MTH10405",
-                    "MTH10407",
-                    "MTH10312",
-                    "MTH10442"
+                    "MTH10412",
+                    "MTH10426",
+                    "MTH10433"
                 ]
             },
             "ELECTIVE": {
                 "credits_required": 8,
                 "courses": [
+                    "MTH10312",
+                    "MTH10405",
+                    "MTH10442",
+                    "MTH10201",
+                    "MTH10001",
+                    "MTH10428",
                     "MTH10449",
-                    "MTH10450",
-                    "MTH10566",
-                    "MTH10619",
-                    "MTH10708",
-                    "MTH10412",
-                    "MTH10439",
-                    "MTH10433",
+                    "MTH10004",
                     "MTH10003"
                 ]
             }
         }
     },
-    "MAJOR_MATHEMATICS_AND_CS": {
-        "name": "Kiến thức chuyên ngành Toán tin",
+    "MAJOR_MATHEMATICS": {
+        "name": "Kiến thức chuyên ngành Toán học",
         "total_credits_required": 29,
         "note": "Chọn 1 chuyên ngành để xét tốt nghiệp.",
         "breakdown": {
-            "DATA_SCIENCE": {
-                "name": "Chuyên ngành Khoa học dữ liệu",
+            "ALGEBRA": {
+                "name": "Chuyên ngành Đại số",
                 "total_credits_required": 29,
-                "mandatory_credits": 16,
-                "elective_credits": 13,
-                "mandatory_courses": [
-                    "MTH10318",
-                    "MTH10353",
-                    "MTH10605",
-                    "MTH10358"
-                ],
-                "elective_courses": [
-                    "MTH10519",
-                    "MTH10315",
-                    "MTH10325",
-                    "MTH10332",
-                    "MTH10317",
-                    "MTH10322",
-                    "MTH10323",
-                    "MTH10344",
-                    "MTH10354",
-                    "MTH10359",
-                    "MTH10607",
-                    "MTH10623",
-                    "MTH10628",
-                    "MTH10620"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10419",
+                            "MTH10420",
+                            "MTH10421",
+                            "MTH10422"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Học phần tự chọn gồm seminar nêu tại mục 7.2.2 và các học phần được gắn nhãn chuyên ngành tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10418",
+                            "MTH10492",
+                            "MTH10497",
+                            "MTH10498",
+                            "MTH10503",
+                            "MTH10505",
+                            "MTH10507",
+                            "MTH10525",
+                            "MTH10564",
+                            "MTH10596",
+                            "MTH10601",
+                            "MTH10603",
+                            "MTH10501"
+                        ]
+                    }
+                }
             },
-            "MATHEMATICAL_METHODS_CS": {
-                "name": "Chuyên ngành Phương pháp toán trong tin học",
+
+            "ANALYSIS": {
+                "name": "Chuyên ngành Giải tích",
                 "total_credits_required": 29,
-                "mandatory_credits": 16,
-                "elective_credits": 13,
-                "mandatory_courses": [
-                    "MTH10318",
-                    "MTH10353",
-                    "MTH10325",
-                    "MTH10324"
-                ],
-                "elective_courses": [
-                    "MTH10315",
-                    "MTH10319",
-                    "MTH10321",
-                    "MTH10332",
-                    "MTH10347",
-                    "MTH10355",
-                    "MTH10317",
-                    "MTH10322",
-                    "MTH10323",
-                    "MTH10354",
-                    "MTH10358",
-                    "MTH10359",
-                    "MTH10605",
-                    "MTH10607",
-                    "MTH10623",
-                    "MTH10628",
-                    "MTH10346"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10443",
+                            "MTH10436",
+                            "MTH10413",
+                            "MTH10417"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Học phần tự chọn gồm seminar nêu tại mục 7.2.2 và các học phần được gắn nhãn chuyên ngành tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10478",
+                            "MTH10480",
+                            "MTH10492",
+                            "MTH10564",
+                            "MTH10409",
+                            "MTH10414",
+                            "MTH10438",
+                            "MTH10439",
+                            "MTH10444",
+                            "MTH10461",
+                            "MTH10473",
+                            "MTH10555",
+                            "MTH10556",
+                            "MTH10604",
+                            "MTH10607",
+                            "MTH10451"
+                        ]
+                    }
+                }
             },
-            "APPLIED_MATH_CS": {
-                "name": "Chuyên ngành Toán tin ứng dụng",
+
+            "NUMERICAL_ANALYSIS": {
+                "name": "Chuyên ngành Giải tích số",
                 "total_credits_required": 29,
-                "mandatory_credits": 16,
-                "elective_credits": 13,
-                "mandatory_courses": [
-                    "MTH10360",
-                    "MTH10311",
-                    "MTH10315",
-                    "MTH10313"
-                ],
-                "elective_courses": [
-                    "MTH10308",
-                    "MTH10309",
-                    "MTH10310",
-                    "MTH10314",
-                    "MTH10332",
-                    "MTH10333",
-                    "MTH10334",
-                    "MTH10335",
-                    "MTH10337",
-                    "MTH10341",
-                    "MTH10345",
-                    "MTH10318",
-                    "MTH10322",
-                    "MTH10331",
-                    "MTH10344",
-                    "MTH10353",
-                    "MTH10359",
-                    "MTH10623",
-                    "MTH10628",
-                    "MTH10326"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10438",
+                            "MTH10555",
+                            "MTH10604",
+                            "MTH10556"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Học phần tự chọn gồm seminar nêu tại mục 7.2.2 và các học phần được gắn nhãn chuyên ngành tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10417",
+                            "MTH10478",
+                            "MTH10480",
+                            "MTH10492",
+                            "MTH10564",
+                            "MTH10409",
+                            "MTH10413",
+                            "MTH10414",
+                            "MTH10436",
+                            "MTH10439",
+                            "MTH10443",
+                            "MTH10444",
+                            "MTH10461",
+                            "MTH10473",
+                            "MTH10607",
+                            "MTH10532"
+                        ]
+                    }
+                }
+            },
+
+            "PROBABILITY_STATISTICS": {
+                "name": "Chuyên ngành Xác suất - Thống kê",
+                "total_credits_required": 29,
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10423",
+                            "MTH10424",
+                            "MTH10619",
+                            "MTH10485"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Học phần tự chọn gồm seminar nêu tại mục 7.2.2 và các học phần được gắn nhãn chuyên ngành tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10564",
+                            "MTH10510",
+                            "MTH10511",
+                            "MTH10512",
+                            "MTH10515",
+                            "MTH10518",
+                            "MTH10519",
+                            "MTH10554",
+                            "MTH10557",
+                            "MTH10558",
+                            "MTH10565",
+                            "MTH10566",
+                            "MTH10708",
+                            "MTH10508"
+                        ]
+                    }
+                }
             }
         }
     },

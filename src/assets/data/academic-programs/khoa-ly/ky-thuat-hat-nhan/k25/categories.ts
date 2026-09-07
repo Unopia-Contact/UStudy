@@ -109,110 +109,116 @@ export const categories = {
             "NTE10001"
         ]
     },
-    "MAJOR_NUCLEAR_ENGINEERING": {
-        "name": "Chuyên ngành Kỹ thuật hạt nhân",
-        "total_credits_required": 41,
+    "MAJOR": {
+        "name": "Chuyên ngành",
+        "total_credits_required": 48,
         "breakdown": {
-            "MANDATORY": {
-                "credits": 35,
-                "courses": [
-                    "NTE10101",
-                    "NTE10102",
-                    "NTE10103",
-                    "NTE10104",
-                    "NTE10105",
-                    "NTE10108",
-                    "NTE10111",
-                    "NTE10112",
-                    "NTE10113",
-                    "NTE10114",
-                    "NTE10115",
-                    "NTE10116",
-                    "NTE10117",
-                    "PHY10426"
-                ]
+            "MAJOR_NUCLEAR_ENGINEERING": {
+                "name": "Chuyên ngành Kỹ thuật hạt nhân",
+                "total_credits_required": 41,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 35,
+                        "courses": [
+                            "NTE10101",
+                            "NTE10102",
+                            "NTE10103",
+                            "NTE10104",
+                            "NTE10105",
+                            "NTE10108",
+                            "NTE10111",
+                            "NTE10112",
+                            "NTE10113",
+                            "NTE10114",
+                            "NTE10115",
+                            "NTE10116",
+                            "NTE10117",
+                            "PHY10426"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 6,
+                        "courses": [
+                            "MPH10109",
+                            "NTE10107",
+                            "NTE10109",
+                            "NTE10110",
+                            "NTE10118",
+                            "NTE10119",
+                            "NTE10120",
+                            "NTE10121",
+                            "NTE10122",
+                            "NTE10123",
+                            "NTE10124",
+                            "PHY10322",
+                            "PHY10801",
+                            "MPH10106",
+                            "MPH10108",
+                            "MPH10120",
+                            "NTE10106",
+                            "NTE10125",
+                            "NTE10127",
+                            "NTE10129",
+                            "NTE10130",
+                            "NTE10131",
+                            "PHY10531"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 6,
-                "courses": [
-                    "MPH10109",
-                    "NTE10107",
-                    "NTE10109",
-                    "NTE10110",
-                    "NTE10118",
-                    "NTE10119",
-                    "NTE10120",
-                    "NTE10121",
-                    "NTE10122",
-                    "NTE10123",
-                    "NTE10124",
-                    "PHY10322",
-                    "PHY10801",
-                    "MPH10106",
-                    "MPH10108",
-                    "MPH10120",
-                    "NTE10106",
-                    "NTE10125",
-                    "NTE10127",
-                    "NTE10129",
-                    "NTE10130",
-                    "NTE10131",
-                    "PHY10531"
-                ]
-            }
-        }
-    },
-    "MAJOR_NUCLEAR_ENERGY_ELECTRONICS": {
-        "name": "Chuyên ngành Năng lượng và điện hạt nhân",
-        "total_credits_required": 41,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 35,
-                "courses": [
-                    "NTE10101",
-                    "NTE10102",
-                    "NTE10103",
-                    "NTE10104",
-                    "NTE10105",
-                    "NTE10110",
-                    "NTE10111",
-                    "NTE10112",
-                    "NTE10201",
-                    "NTE10202",
-                    "NTE10203",
-                    "NTE10204",
-                    "NTE10206",
-                    "NTE10125"
-                ]
+            "MAJOR_NUCLEAR_ENERGY_ELECTRONICS": {
+                "name": "Chuyên ngành Năng lượng và điện hạt nhân",
+                "total_credits_required": 41,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 35,
+                        "courses": [
+                            "NTE10101",
+                            "NTE10102",
+                            "NTE10103",
+                            "NTE10104",
+                            "NTE10105",
+                            "NTE10110",
+                            "NTE10111",
+                            "NTE10112",
+                            "NTE10201",
+                            "NTE10202",
+                            "NTE10203",
+                            "NTE10204",
+                            "NTE10206",
+                            "NTE10125"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 6,
+                        "courses": [
+                            "NTE10107",
+                            "NTE10108",
+                            "NTE10109",
+                            "NTE10116",
+                            "NTE10117",
+                            "NTE10121",
+                            "NTE10122",
+                            "NTE10123",
+                            "NTE10124",
+                            "PHY10322",
+                            "PHY10801",
+                            "MPH10106",
+                            "MPH10108",
+                            "NTE10106",
+                            "NTE10126",
+                            "NTE10127",
+                            "NTE10128",
+                            "NTE10129",
+                            "NTE10130",
+                            "NTE10131",
+                            "PHY10426",
+                            "PHY10531"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 6,
-                "courses": [
-                    "NTE10107",
-                    "NTE10108",
-                    "NTE10109",
-                    "NTE10116",
-                    "NTE10117",
-                    "NTE10121",
-                    "NTE10122",
-                    "NTE10123",
-                    "NTE10124",
-                    "PHY10322",
-                    "PHY10801",
-                    "MPH10106",
-                    "MPH10108",
-                    "NTE10106",
-                    "NTE10126",
-                    "NTE10127",
-                    "NTE10128",
-                    "NTE10129",
-                    "NTE10130",
-                    "NTE10131",
-                    "PHY10426",
-                    "PHY10531"
-                ]
-            }
-        }
+        },
     },
     "GRADUATION": {
         "name": "Kiến thức tốt nghiệp",

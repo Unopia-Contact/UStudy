@@ -146,53 +146,66 @@ export const categories = {
             "FINANCIAL_DATA_ANALYSIS": {
                 "name": "Chuyên ngành Phân tích dữ liệu Tài chính",
                 "total_credits_required": 33,
-                "mandatory_credits": 20,
-                "elective_credits": 13,
-                "mandatory_courses": [
-                    "MTH10511",
-                    "MTH10701",
-                    "MTH10708",
-                    "MTH10558",
-                    "MTH10201"
-                ],
-                "elective_courses": [
-                    "MTH10519",
-                    "MTH10702",
-                    "MTH10703",
-                    "MTH10704",
-                    "MTH10705",
-                    "MTH10706",
-                    "MTH10707",
-                    "MTH10209",
-                    "MTH10220",
-                    "MTH10508"
-                ],
-                "note": "Phải tích lũy tối thiểu 13 tín chỉ tự chọn theo đúng danh sách chỉ định của chuyên ngành."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 20,
+                        "courses": [
+                            "MTH10511",
+                            "MTH10701",
+                            "MTH10708",
+                            "MTH10558",
+                            "MTH10201"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Phải tích lũy tối thiểu 13 tín chỉ tự chọn theo đúng danh sách chỉ định của chuyên ngành.",
+                        "courses": [
+                            "MTH10519",
+                            "MTH10702",
+                            "MTH10703",
+                            "MTH10704",
+                            "MTH10705",
+                            "MTH10706",
+                            "MTH10707",
+                            "MTH10209",
+                            "MTH10220",
+                            "MTH10508"
+                        ]
+                    }
+                }
             },
+
             "STAT_ML_AI": {
                 "name": "Chuyên ngành Thống kê cho Máy học và AI",
                 "total_credits_required": 33,
-                "mandatory_credits": 20,
-                "elective_credits": 13,
-                "mandatory_courses": [
-                    "MTH10558",
-                    "MTH10318",
-                    "MTH10701",
-                    "MTH10708",
-                    "MTH10565"
-                ],
-                "elective_courses": [
-                    "MTH10702",
-                    "MTH10703",
-                    "MTH10801",
-                    "MTH10606",
-                    "MTH10515",
-                    "MTH10605",
-                    "MTH10358",
-                    "MTH10511",
-                    "MTH10508"
-                ],
-                "note": "Phải tích lũy tối thiểu 13 tín chỉ tự chọn theo đúng danh sách chỉ định của chuyên ngành."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 20,
+                        "courses": [
+                            "MTH10558",
+                            "MTH10318",
+                            "MTH10701",
+                            "MTH10708",
+                            "MTH10565"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Phải tích lũy tối thiểu 13 tín chỉ tự chọn theo đúng danh sách chỉ định của chuyên ngành.",
+                        "courses": [
+                            "MTH10702",
+                            "MTH10703",
+                            "MTH10801",
+                            "MTH10606",
+                            "MTH10515",
+                            "MTH10605",
+                            "MTH10358",
+                            "MTH10511",
+                            "MTH10508"
+                        ]
+                    }
+                }
             }
         }
     },

@@ -109,41 +109,47 @@ export const categories = {
             "MPH10001"
         ]
     },
-    "MAJOR_MEDICAL_PHYSICS": {
-        "name": "Kiến thức chuyên ngành Vật lý y khoa",
-        "total_credits_required": 40,
+    "MAJOR": {
+        "name": "Chuyên ngành",
+        "total_credits_required": 48,
         "breakdown": {
-            "MANDATORY": {
-                "credits": 34,
-                "courses": [
-                    "MPH10101",
-                    "MPH10102",
-                    "MPH10103",
-                    "MPH10104",
-                    "MPH10105",
-                    "MPH10106",
-                    "MPH10107",
-                    "MPH10108",
-                    "MPH10109",
-                    "MPH10110",
-                    "MPH10111",
-                    "MPH10112"
-                ]
+            "MAJOR_MEDICAL_PHYSICS": {
+                "name": "Kiến thức chuyên ngành Vật lý y khoa",
+                "total_credits_required": 40,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 34,
+                        "courses": [
+                            "MPH10101",
+                            "MPH10102",
+                            "MPH10103",
+                            "MPH10104",
+                            "MPH10105",
+                            "MPH10106",
+                            "MPH10107",
+                            "MPH10108",
+                            "MPH10109",
+                            "MPH10110",
+                            "MPH10111",
+                            "MPH10112"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 6,
+                        "courses": [
+                            "MPH10113",
+                            "MPH10114",
+                            "MPH10115",
+                            "MPH10116",
+                            "MPH10117",
+                            "MPH10118",
+                            "MPH10119",
+                            "MPH10120"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 6,
-                "courses": [
-                    "MPH10113",
-                    "MPH10114",
-                    "MPH10115",
-                    "MPH10116",
-                    "MPH10117",
-                    "MPH10118",
-                    "MPH10119",
-                    "MPH10120"
-                ]
-            }
-        }
+        },
     },
     "GRADUATION": {
         "name": "Kiến thức tốt nghiệp",

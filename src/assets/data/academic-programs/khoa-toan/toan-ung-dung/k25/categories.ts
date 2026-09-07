@@ -166,100 +166,127 @@ export const categories = {
             "MECHANICS": {
                 "name": "Chuyên ngành Cơ học",
                 "total_credits_required": 27,
-                "mandatory_credits": 16,
-                "elective_credits": 11,
-                "mandatory_courses": [
-                    "MTH10433",
-                    "MTH10427",
-                    "MTH10428",
-                    "MTH10429"
-                ],
-                "elective_courses": [
-                    "MTH10434",
-                    "MTH10560",
-                    "MTH10561",
-                    "MTH10562",
-                    "MTH10563",
-                    "MTH10520"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1. MTH10435 được Phụ lục 1 đánh dấu ở cột bắt buộc chuyên ngành nhưng không nằm trong danh sách bắt buộc mục 7.2.2.1, nên file này không tự ý xếp MTH10435 vào nhóm bắt buộc hoặc tự chọn."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10433",
+                            "MTH10427",
+                            "MTH10428",
+                            "MTH10429"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 11,
+                        "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1. MTH10435 được Phụ lục 1 đánh dấu ở cột bắt buộc chuyên ngành nhưng không nằm trong danh sách bắt buộc mục 7.2.2.1, nên file này không tự ý xếp MTH10435 vào nhóm bắt buộc hoặc tự chọn.",
+                        "courses": [
+                            "MTH10434",
+                            "MTH10560",
+                            "MTH10561",
+                            "MTH10562",
+                            "MTH10563",
+                            "MTH10520"
+                        ]
+                    }
+                }
             },
+
             "MATH_EDUCATION": {
                 "name": "Chuyên ngành Giáo dục toán học",
                 "total_credits_required": 27,
-                "mandatory_credits": 15,
-                "elective_credits": 12,
-                "mandatory_courses": [
-                    "MTH10104",
-                    "MTH10132",
-                    "MTH10133",
-                    "MTH10001",
-                    "MTH10134"
-                ],
-                "elective_courses": [
-                    "MTH10002",
-                    "MTH10102",
-                    "MTH10123",
-                    "MTH10135",
-                    "MTH10136",
-                    "MTH10137",
-                    "MTH10138",
-                    "MTH10139",
-                    "MTH10140",
-                    "MTH10126"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 15,
+                        "courses": [
+                            "MTH10104",
+                            "MTH10132",
+                            "MTH10133",
+                            "MTH10001",
+                            "MTH10134"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 12,
+                        "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10002",
+                            "MTH10102",
+                            "MTH10123",
+                            "MTH10135",
+                            "MTH10136",
+                            "MTH10137",
+                            "MTH10138",
+                            "MTH10139",
+                            "MTH10140",
+                            "MTH10126"
+                        ]
+                    }
+                }
             },
+
             "QUANT_FINANCE": {
                 "name": "Chuyên ngành Tài chính định lượng",
                 "total_credits_required": 27,
-                "mandatory_credits": 16,
-                "elective_credits": 11,
-                "mandatory_courses": [
-                    "MTH10214",
-                    "MTH10202",
-                    "MTH10203",
-                    "MTH10209"
-                ],
-                "elective_courses": [
-                    "MTH10519",
-                    "MTH10558",
-                    "MTH10204",
-                    "MTH10215",
-                    "MTH10216",
-                    "MTH10217",
-                    "MTH10219",
-                    "MTH10220",
-                    "MTH10221",
-                    "MTH10625",
-                    "MTH10218"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10214",
+                            "MTH10202",
+                            "MTH10203",
+                            "MTH10209"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 11,
+                        "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10519",
+                            "MTH10558",
+                            "MTH10204",
+                            "MTH10215",
+                            "MTH10216",
+                            "MTH10217",
+                            "MTH10219",
+                            "MTH10220",
+                            "MTH10221",
+                            "MTH10625",
+                            "MTH10218"
+                        ]
+                    }
+                }
             },
+
             "OPTIMIZATION": {
                 "name": "Chuyên ngành Tối ưu",
                 "total_credits_required": 27,
-                "mandatory_credits": 16,
-                "elective_credits": 11,
-                "mandatory_courses": [
-                    "MTH10446",
-                    "MTH10447",
-                    "MTH10450",
-                    "MTH10543"
-                ],
-                "elective_courses": [
-                    "MTH10538",
-                    "MTH10539",
-                    "MTH10540",
-                    "MTH10541",
-                    "MTH10544",
-                    "MTH10545",
-                    "MTH10553",
-                    "MTH10614",
-                    "MTH10615",
-                    "MTH10616"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10446",
+                            "MTH10447",
+                            "MTH10450",
+                            "MTH10543"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 11,
+                        "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10538",
+                            "MTH10539",
+                            "MTH10540",
+                            "MTH10541",
+                            "MTH10544",
+                            "MTH10545",
+                            "MTH10553",
+                            "MTH10614",
+                            "MTH10615",
+                            "MTH10616"
+                        ]
+                    }
+                }
             }
         }
     },

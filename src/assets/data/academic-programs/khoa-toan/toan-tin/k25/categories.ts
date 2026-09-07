@@ -165,98 +165,118 @@ export const categories = {
             "DATA_SCIENCE": {
                 "name": "Chuyên ngành Khoa học dữ liệu",
                 "total_credits_required": 29,
-                "mandatory_credits": 16,
-                "elective_credits": 13,
-                "mandatory_courses": [
-                    "MTH10318",
-                    "MTH10353",
-                    "MTH10605",
-                    "MTH10358"
-                ],
-                "elective_courses": [
-                    "MTH10519",
-                    "MTH10315",
-                    "MTH10325",
-                    "MTH10332",
-                    "MTH10317",
-                    "MTH10322",
-                    "MTH10323",
-                    "MTH10344",
-                    "MTH10354",
-                    "MTH10359",
-                    "MTH10607",
-                    "MTH10623",
-                    "MTH10628",
-                    "MTH10620"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10318",
+                            "MTH10353",
+                            "MTH10605",
+                            "MTH10358"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10519",
+                            "MTH10315",
+                            "MTH10325",
+                            "MTH10332",
+                            "MTH10317",
+                            "MTH10322",
+                            "MTH10323",
+                            "MTH10344",
+                            "MTH10354",
+                            "MTH10359",
+                            "MTH10607",
+                            "MTH10623",
+                            "MTH10628",
+                            "MTH10620"
+                        ]
+                    }
+                }
             },
+
             "MATHEMATICAL_METHODS_CS": {
                 "name": "Chuyên ngành Phương pháp toán trong tin học",
                 "total_credits_required": 29,
-                "mandatory_credits": 16,
-                "elective_credits": 13,
-                "mandatory_courses": [
-                    "MTH10318",
-                    "MTH10353",
-                    "MTH10325",
-                    "MTH10324"
-                ],
-                "elective_courses": [
-                    "MTH10315",
-                    "MTH10319",
-                    "MTH10321",
-                    "MTH10332",
-                    "MTH10347",
-                    "MTH10355",
-                    "MTH10317",
-                    "MTH10322",
-                    "MTH10323",
-                    "MTH10354",
-                    "MTH10358",
-                    "MTH10359",
-                    "MTH10605",
-                    "MTH10607",
-                    "MTH10623",
-                    "MTH10628",
-                    "MTH10346"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10318",
+                            "MTH10353",
+                            "MTH10325",
+                            "MTH10324"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10315",
+                            "MTH10319",
+                            "MTH10321",
+                            "MTH10332",
+                            "MTH10347",
+                            "MTH10355",
+                            "MTH10317",
+                            "MTH10322",
+                            "MTH10323",
+                            "MTH10354",
+                            "MTH10358",
+                            "MTH10359",
+                            "MTH10605",
+                            "MTH10607",
+                            "MTH10623",
+                            "MTH10628",
+                            "MTH10346"
+                        ]
+                    }
+                }
             },
+
             "APPLIED_MATH_CS": {
                 "name": "Chuyên ngành Toán tin ứng dụng",
                 "total_credits_required": 29,
-                "mandatory_credits": 16,
-                "elective_credits": 13,
-                "mandatory_courses": [
-                    "MTH10360",
-                    "MTH10311",
-                    "MTH10315",
-                    "MTH10313"
-                ],
-                "elective_courses": [
-                    "MTH10308",
-                    "MTH10309",
-                    "MTH10310",
-                    "MTH10314",
-                    "MTH10332",
-                    "MTH10333",
-                    "MTH10334",
-                    "MTH10335",
-                    "MTH10337",
-                    "MTH10341",
-                    "MTH10345",
-                    "MTH10318",
-                    "MTH10322",
-                    "MTH10331",
-                    "MTH10344",
-                    "MTH10353",
-                    "MTH10359",
-                    "MTH10623",
-                    "MTH10628",
-                    "MTH10326"
-                ],
-                "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 16,
+                        "courses": [
+                            "MTH10360",
+                            "MTH10311",
+                            "MTH10315",
+                            "MTH10313"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 13,
+                        "note": "Nhóm tự chọn gồm seminar ở mục 7.2.2 và các học phần gắn nhãn tương ứng trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10308",
+                            "MTH10309",
+                            "MTH10310",
+                            "MTH10314",
+                            "MTH10332",
+                            "MTH10333",
+                            "MTH10334",
+                            "MTH10335",
+                            "MTH10337",
+                            "MTH10341",
+                            "MTH10345",
+                            "MTH10318",
+                            "MTH10322",
+                            "MTH10331",
+                            "MTH10344",
+                            "MTH10353",
+                            "MTH10359",
+                            "MTH10623",
+                            "MTH10628",
+                            "MTH10326"
+                        ]
+                    }
+                }
             }
         }
     },
