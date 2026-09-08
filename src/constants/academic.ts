@@ -53,9 +53,6 @@ export const ACADEMIC_RULES = {
     /** Điểm tối đa của GPA */
     MAX_GPA: 10.0,
 
-    /** Tổng số tín chỉ yêu cầu tốt nghiệp */
-    TOTAL_CREDITS: 138,
-
     /** Điểm hệ 10 tối thiểu để qua môn */
     PASS_GRADE_DECIMAL: 5.0,
 

@@ -1,4 +1,3 @@
-import { ACADEMIC_RULES } from '../../../constants';
 import { STORAGE_KEYS } from '../../../config';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { AcademicRulesEngine } from '../../grades';
@@ -149,7 +148,9 @@ export function getDistributionTotal(items: CreditDistributionItem[]) {
   return items.reduce((sum, item) => sum + item.credits, 0);
 }
 
-export function getDistributionCompletionPercent(items: CreditDistributionItem[]) {
-  const total = getDistributionTotal(items);
-  return Math.min(100, Math.round((total / ACADEMIC_RULES.TOTAL_CREDITS) * 100));
+export function getDistributionCompletionPercent(items: CreditDistributionItem[], totalRequiredCredits: number) {
+    const total = getDistributionTotal(items);
+    return totalRequiredCredits > 0
+        ? Math.min(100, Math.round((total / totalRequiredCredits) * 100))
+        : 0;
 }

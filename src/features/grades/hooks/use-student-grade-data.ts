@@ -2,13 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { hasImportedData } from '../../../helpers/localStorage/data-import-status';
 import { STORAGE_KEYS } from '../../../config';
-import { ACADEMIC_RULES } from '../../../constants';
+import { getProgramRequiredCredits } from '../../../assets/data/academic-programs/category-credits';
 import { AcademicRulesEngine } from '../services/academic-rules-engine';
 import { FinancialLogic } from '../../tuition';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 
 export function useStudentGradeData() {
-    const { data: { tuitionRates, courses: allCoursesMeta }, academicYear, semesterNumber } = useDepartmentData();
+    const { data: { tuitionRates, courses: allCoursesMeta, categories }, academicYear, semesterNumber } = useDepartmentData();
+    const totalProgramCredits = getProgramRequiredCredits(categories);
     const [stamp, setStamp] = useState(Date.now());
     const [isReady, setIsReady] = useState(false);
     const [hasData, setHasData] = useState(false);
@@ -49,7 +50,7 @@ export function useStudentGradeData() {
                 currentGPA: 0,
                 currentGPA4: 0,
                 accumulatedCredits: 0,
-                totalCredits: ACADEMIC_RULES.TOTAL_CREDITS,
+                totalCredits: totalProgramCredits,
                 estimatedTuition: 0,
                 tuitionSource: 'none' as const,
                 gpaPerSemester: [],
@@ -91,7 +92,7 @@ export function useStudentGradeData() {
         const ghostCourses = AcademicRulesEngine.buildExemptedGhostCourses(effectiveGrades, hasBLMExemption);
         gradesHistory.push(...ghostCourses);
 
-        const totalCredits = ACADEMIC_RULES.TOTAL_CREDITS;
+        const totalCredits = totalProgramCredits;
 
         // ── Tuition estimation: delegate to FinancialLogic ──
         const importMeta = readFromStorage<any>(STORAGE_KEYS.IMPORT_META, null);
@@ -124,7 +125,7 @@ export function useStudentGradeData() {
         };
 
     // selectedSemesterKey added so memo re-runs when user changes semester
-    }, [stamp, tuitionRates, allCoursesMeta, selectedSemesterKey]);
+    }, [stamp, tuitionRates, allCoursesMeta, selectedSemesterKey, totalProgramCredits]);
 
     return { ...gradeData, isReady, hasData };
 }

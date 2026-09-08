@@ -204,7 +204,7 @@ export function useGPAPull({
     const currentSemesterCredits = useMemo(() => {
         return simulatorCourses.reduce((sum, course) => sum + (course.credits ?? 0), 0);
     }, [simulatorCourses]);
-    const scopedTotalCredits = isFoundationMajorScopeActive ? foundationMajorTotalCredits : (ACADEMIC_RULES.TOTAL_CREDITS ?? totalCredits);
+    const scopedTotalCredits = isFoundationMajorScopeActive ? foundationMajorTotalCredits : totalCredits;
     const displayCurrentGPA = isFoundationMajorScopeActive ? scopedCurrentSnapshot.gpa : currentGPA;
     const displayAccumulatedCredits = isFoundationMajorScopeActive ? scopedCurrentSnapshot.earnedCredits : accumulatedCredits;
     const scopeLabelSuffix = isFoundationMajorScopeActive ? ' (Cơ sở ngành)' : '';

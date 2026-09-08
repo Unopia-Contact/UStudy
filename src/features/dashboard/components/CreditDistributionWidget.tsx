@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { ChartPie } from 'lucide-react';
 
-import { ACADEMIC_RULES } from '../../../constants';
+import { getProgramRequiredCredits } from '../../../assets/data/academic-programs/category-credits';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 import {
   buildCreditDistribution,
@@ -36,7 +36,8 @@ export function CreditDistributionWidget() {
     [categories, courses],
   );
   const totalCredits = getDistributionTotal(distribution);
-  const remainingCredits = Math.max(ACADEMIC_RULES.TOTAL_CREDITS - totalCredits, 0);
+  const totalRequiredCredits = getProgramRequiredCredits(categories);
+  const remainingCredits = Math.max(totalRequiredCredits - totalCredits, 0);
   const chartDistribution = useMemo(
     () => {
       const completedItems = distribution.filter((item) => item.credits > 0);
@@ -55,7 +56,7 @@ export function CreditDistributionWidget() {
     },
     [distribution, remainingCredits],
   );
-  const completionPercent = getDistributionCompletionPercent(distribution);
+  const completionPercent = getDistributionCompletionPercent(distribution, totalRequiredCredits);
 
   return (
     <section className="ustudy-card ustudy-panel-padding">

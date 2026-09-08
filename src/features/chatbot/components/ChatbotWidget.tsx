@@ -224,7 +224,7 @@ Bạn cần hỗ trợ gì, hãy nhắn cho mình nhé!`,
                 name: name || 'Người dùng',
                 gpa10: currentGPA || 0,
                 accumulatedCredits: accumulatedCredits || 0,
-                totalCreditsRequired: totalCredits || 138,
+                totalCreditsRequired: totalCredits,
                 estimatedTuition: estimatedTuition || 0,
                 gradesHistory: (gradesHistory || [])
                     .filter(g => g.status !== 'ongoing')

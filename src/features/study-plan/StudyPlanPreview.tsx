@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowLeft, BookOpen, CheckCircle2, Route, Sigma } from '
 import { Bar, BarChart, CartesianGrid, Line, Cell, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getRequiredCredits } from './credit-progress';
 import type { CourseMeta, StudyPlanStorage } from './types';
-import { ACADEMIC_RULES } from '../../constants/academic'
+import { getProgramRequiredCredits } from '../../assets/data/academic-programs/category-credits';
 
     
 
@@ -278,9 +278,10 @@ export function StudyPlanPreview({
         });
     }, [categories, coursePlanState, getAccumulationCredits]);
 
-    const totalProgramCredits = useMemo(() => {
-        return knowledgeBlockRows.reduce((sum, block) => sum + block.requiredCredits, 0);
-    }, [knowledgeBlockRows]);
+    const totalProgramCredits = useMemo(
+        () => getProgramRequiredCredits(categories),
+        [categories],
+    );
     
     const summary = useMemo(() => {
         const totalCourses = semesterRows.reduce((sum, row) => sum + row.courseIds.length, 0);
@@ -341,11 +342,11 @@ export function StudyPlanPreview({
                                     <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
                                         <h3 className="mb-3 text-sm font-bold text-gray-900">Tiến độ tích lũy</h3>
                                         <div className="grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[132px_minmax(0,1fr)]">
-                                            <ProgressRing value={summary.earnedCredits} plannedValue={summary.plannedCredits} total={ACADEMIC_RULES.TOTAL_CREDITS} />
+                                            <ProgressRing value={summary.earnedCredits} plannedValue={summary.plannedCredits} total={totalProgramCredits} />
                                             <div className="divide-y divide-gray-100 text-sm sm:space-y-3 sm:divide-y-0">
-                                                <div className="pb-2 sm:pb-0"><p className="text-[11px] text-gray-500 sm:text-xs">Đã tích lũy</p><p className="mt-0.5 font-bold text-gray-900">{summary.earnedCredits} / {ACADEMIC_RULES.TOTAL_CREDITS} TC</p></div>
+                                                <div className="pb-2 sm:pb-0"><p className="text-[11px] text-gray-500 sm:text-xs">Đã tích lũy</p><p className="mt-0.5 font-bold text-gray-900">{summary.earnedCredits} / {totalProgramCredits} TC</p></div>
                                                 <div className="py-2 sm:py-0"><p className="text-[11px] text-gray-500 sm:text-xs">Đã lên kế hoạch</p><p className="mt-0.5 font-bold text-[#004A98]">{summary.plannedCredits} TC</p></div>
-                                                <div className="pt-2 sm:pt-0"><p className="text-[11px] text-gray-500 sm:text-xs">Còn lại</p><p className="mt-0.5 font-bold text-gray-900">{Math.max(0, ACADEMIC_RULES.TOTAL_CREDITS - summary.earnedCredits - summary.plannedCredits)} TC</p></div>
+                                                <div className="pt-2 sm:pt-0"><p className="text-[11px] text-gray-500 sm:text-xs">Còn lại</p><p className="mt-0.5 font-bold text-gray-900">{Math.max(0, totalProgramCredits - summary.earnedCredits - summary.plannedCredits)} TC</p></div>
                                             </div>
                                         </div>
                                     </div>
@@ -445,7 +446,7 @@ export function StudyPlanPreview({
                                                     orientation="right"
                                                     allowDecimals={false}
                                                     tick={{ fontSize: 11 }}
-                                                    domain={[0, ACADEMIC_RULES.TOTAL_CREDITS]}
+                                                    domain={[0, Math.max(totalProgramCredits, 1)]}
                                                     label={{
                                                         value: "TC tích lũy",
                                                         angle: 90,
@@ -673,12 +674,14 @@ export function StudyPlanPreview({
                                         <div className="absolute left-6 right-6 top-[21px] h-px bg-gray-200" />
 
                                         {semesterRows.map((row) => {
-                                            const progressPercent = Math.min(
-                                                100,
-                                                Math.round(
-                                                    (row.cumulativeCredits / ACADEMIC_RULES.TOTAL_CREDITS) * 100
+                                            const progressPercent = totalProgramCredits > 0
+                                                ? Math.min(
+                                                    100,
+                                                    Math.round(
+                                                        (row.cumulativeCredits / totalProgramCredits) * 100
+                                                    )
                                                 )
-                                            );
+                                                : 0;
 
                                             const isActive =
                                                 row.semester.id === activeRow?.semester.id;
