@@ -1,8 +1,6 @@
 import { AppSelect } from "../../../components/ui/form";
 import { COHORTS, getProgramDataSourceCohort } from "../../../assets/data/academic-programs/registry";
 import { useDepartmentData } from "../../../context/DepartmentContext";
-import { useCampus } from "../../../context/CampusContext";
-import { CAMPUS_OPTIONS } from "../../../domain/campus";
 import { CheckCircle, GraduationCap, Upload, Shield } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppNotification } from "../../../context/NotificationContext";
@@ -29,7 +27,6 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
         setFaculty, setMajor, setCohort, setAcademicYear,
         isConfigured, setIsConfigured
     } = useDepartmentData();
-    const { defaultCampusId, setDefaultCampusId } = useCampus();
     const { addNotification } = useAppNotification();
     const { cryptoKey, unlock, refreshHasData, hasData } = useCrypto();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -256,31 +253,10 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                 </div>
             }
             <h2 className="ustudy-settings-title"><GraduationCap className="ustudy-settings-title-icon" />Chương trình đào tạo</h2>
-            <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành và Năm học để hiển thị đúng dữ liệu của bạn.</p>
+            <p className="ustudy-settings-description">Chọn Khóa tuyển, Khoa, Ngành và Năm học để hiển thị đúng dữ liệu của bạn.</p>
 
 
             <div className="w grid grid-cols-1 md:grid-cols-1 gap-6">
-                <AppSelect
-                    label="Cơ sở mặc định"
-                    value={defaultCampusId}
-                    options={CAMPUS_OPTIONS}
-                    onChange={(value) => setDefaultCampusId(value as typeof defaultCampusId)}
-                />
-
-                {defaultCampusId === 'cho-quan' && (
-                    <div>
-                        <p className="text-xs leading-5 text-gray-500">
-                            Chương trình đào tạo cho Cơ sở 1 – Chợ Quán hiện đang được cập nhật.
-                        </p>
-
-                        <p className="mt-3 text-xs leading-5 text-gray-500">
-                            Hiện tại, UStudy chưa có dữ liệu chương trình đào tạo của bất kỳ ngành nào
-                            tại cơ sở này. Bạn vẫn có thể sử dụng các tính năng khác của UStudy trong
-                            thời gian chờ dữ liệu được bổ sung.
-                        </p>
-                    </div>
-                )}
-
                 <AppSelect
                     label="Khóa tuyển"
                     value={cohortId}
