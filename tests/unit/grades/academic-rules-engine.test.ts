@@ -27,6 +27,11 @@ describe('AcademicRulesEngine', () => {
       creditsForGPA: 0,
       earnedCredits: 0,
     });
+    expect(AcademicRulesEngine.calculateAccumulationParams('CSC00003', 3, 9, 'passed')).toEqual({
+      pointsForGPA: 0,
+      creditsForGPA: 0,
+      earnedCredits: 0,
+    });
   });
 
   it('uses the improvement record as the effective course attempt', () => {

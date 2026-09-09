@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config';
+import { minifiedBookmarkletSource } from './scripts/vite-bookmarklet-source';
 
 export default defineConfig({
+  plugins: [minifiedBookmarkletSource()],
   test: {
     environment: 'node',
     globals: true,
