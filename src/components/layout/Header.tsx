@@ -29,6 +29,7 @@ export function Header({
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const isNativeApp = isNativePortalSyncAvailable();
   const { academicYear, semesterNumber, setAcademicYear, setSemesterNumber } = useDepartmentData();
 
   // lấy dữ liệu sinh viên
@@ -246,7 +247,7 @@ export function Header({
                 <button
                   onClick={() => void handleLogin()}
                   disabled={isOpeningPortal}
-                  className="flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-[#004A98] text-white rounded-lg hover:bg-[#003A78] transition-all shadow-sm focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                  className={`${isNativeApp ? 'flex' : 'hidden md:flex'} items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-[#004A98] text-white rounded-lg hover:bg-[#003A78] transition-all shadow-sm focus:ring-2 focus:ring-blue-600 focus:ring-offset-2`}
                 >
                   {isOpeningPortal
                     ? <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={2.5} />
