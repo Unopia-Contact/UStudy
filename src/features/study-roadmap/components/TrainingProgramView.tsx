@@ -8,6 +8,7 @@ import { STORAGE_KEYS } from '../../../config';
 import { AcademicRulesEngine } from '../../grades';
 import { PrerequisiteFlowchart } from './PrerequisiteFlowchart';
 import type { Course } from '../../../types';
+import { getProgramCategoryCreditProgress } from '../../study-plan/credit-progress';
 
 export function TrainingProgramView() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -134,6 +135,11 @@ export function TrainingProgramView() {
 
     }, [searchTerm, getCourseStatus, courses, categories]);
 
+    const creditProgressByPath = useMemo(
+        () => getProgramCategoryCreditProgress(preprocessedCategories, new Set<string>()),
+        [preprocessedCategories]
+    );
+
     return (
         <div className="animate-in fade-in duration-500">
             {courses.length === 0 ? (
@@ -195,7 +201,9 @@ export function TrainingProgramView() {
                         {Object.entries(preprocessedCategories).map(([key, category]) => (
                             <CategoryNode
                                 key={key}
+                                categoryKey={key}
                                 category={category}
+                                creditProgressByPath={creditProgressByPath}
                                 isCategoryExcludedFromAccumulation={isCategoryExcludedFromAccumulation}
                                 onShowFlowchart={handleShowFlowchart}
                             />

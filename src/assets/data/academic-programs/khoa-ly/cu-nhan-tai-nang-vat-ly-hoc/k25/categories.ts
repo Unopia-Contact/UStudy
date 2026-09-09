@@ -109,7 +109,8 @@ export const categories = {
     },
     "MAJOR": {
         "name": "Chuyên ngành",
-        "total_credits_required": 48,
+        "total_credits_required": 52,
+        "note": "Mỗi chuyên ngành 48 tín chỉ học thêm 1 môn chung CNTN",
         "breakdown": {
             "MAJOR_NUCLEAR_PHYSICS": {
                 "name": "Chuyên ngành Vật lý hạt nhân",
@@ -472,6 +473,7 @@ export const categories = {
             "HONORS_COMMON": {
                 "name": "Môn tài năng chung cho tất cả chuyên ngành",
                 "total_credits_required": 4,
+                "include_in_parent_total": true,
                 "mandatory": true,
                 "courses": [
                     "EDT10029",

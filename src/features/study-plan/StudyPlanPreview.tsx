@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ElementType } from 'react';
 import { AlertTriangle, ArrowLeft, BookOpen, CheckCircle2, Route, Sigma } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Line, Cell, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { getRequiredCredits } from './credit-progress';
+import { getProgramCategoryCreditProgress, getRequiredCredits } from './credit-progress';
 import type { CourseMeta, StudyPlanStorage } from './types';
 import { getProgramRequiredCredits } from '../../assets/data/academic-programs/category-credits';
 
@@ -12,6 +12,7 @@ interface StudyPlanPreviewProps {
     studyPlan: StudyPlanStorage;
     courseById: Map<string, CourseMeta>;
     categories: Record<string, any>;
+    manuallyPlannedCourseIds: Set<string>;
     getAccumulationCredits: (courseId: string) => number;
     getMissingPrerequisites: (courseId: string, semesterIndex: number) => string[];
     onBackToPlan: () => void;
@@ -127,6 +128,7 @@ export function StudyPlanPreview({
     studyPlan,
     courseById,
     categories,
+    manuallyPlannedCourseIds,
     getAccumulationCredits,
     getMissingPrerequisites,
     onBackToPlan,
@@ -177,27 +179,6 @@ export function StudyPlanPreview({
         });
     }, [studyPlan.plan, studyPlan.semesters, firstEditableSemesterId, getAccumulationCredits, getMissingPrerequisites, hasImportedCurrentSemester]);
 
-    const coursePlanState = useMemo(() => {
-        const earned = new Set<string>();
-        const planned = new Set<string>();
-
-        semesterRows.forEach((semesterRow) => {
-            semesterRow.courseIds.forEach((courseId) => {
-                if (semesterRow.semester.isHistorical) {
-                    earned.add(courseId);
-                    planned.delete(courseId);
-                    return;
-                }
-
-                if (!earned.has(courseId)) {
-                    planned.add(courseId);
-                }
-            });
-        });
-
-        return { earned, planned };
-    }, [semesterRows]);
-
     const collectCategoryCourseIds = (category: any, courseIds = new Set<string>()) => {
         if (Array.isArray(category.courses)) {
             category.courses.forEach((courseId: string) => courseIds.add(courseId));
@@ -217,6 +198,11 @@ export function StudyPlanPreview({
 
         return courseIds;
     };
+
+    const programCreditProgress = useMemo(
+        () => getProgramCategoryCreditProgress(categories, manuallyPlannedCourseIds),
+        [categories, manuallyPlannedCourseIds]
+    );
 
     const knowledgeBlockRows = useMemo(() => {
         return Object.entries(categories)
@@ -238,20 +224,9 @@ export function StudyPlanPreview({
                 courseIds: Set<string>;
             } => block !== null)
             .map((block) => {
-                let earnedCredits = 0;
-                let plannedCredits = 0;
-
-                block.courseIds.forEach((courseId) => {
-                    const credits = getAccumulationCredits(courseId);
-                    if (coursePlanState.earned.has(courseId)) {
-                        earnedCredits += credits;
-                        return;
-                    }
-
-                    if (coursePlanState.planned.has(courseId)) {
-                        plannedCredits += credits;
-                    }
-                });
+                const progress = programCreditProgress[block.key]?.display;
+                const earnedCredits = progress?.earnedCredits ?? 0;
+                const plannedCredits = progress?.plannedCredits ?? 0;
 
             const remainingCredits = Math.max(
                 0,
@@ -276,7 +251,7 @@ export function StudyPlanPreview({
                 progressPercent,
             };
         });
-    }, [categories, coursePlanState, getAccumulationCredits]);
+    }, [categories, programCreditProgress]);
 
     const totalProgramCredits = useMemo(
         () => getProgramRequiredCredits(categories),

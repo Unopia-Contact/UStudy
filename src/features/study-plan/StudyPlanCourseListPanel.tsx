@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Info, Search, X } from 'lucide-react';
 import { StudyPlanCategoryNode } from './StudyPlanCategoryNode';
 import { STORAGE_KEYS } from '../../config';
 import { readFromStorage, saveToStorage } from '../../helpers/localStorage/save';
 import type { CourseDragStartHandler, MobilePlannerOpenHandler } from './types';
+import { getProgramCategoryCreditProgress } from './credit-progress';
 
 interface StudyPlanCourseListPanelProps {
     mobileVisible: boolean;
@@ -40,6 +41,11 @@ export function StudyPlanCourseListPanel({
             [categoryKey]: expanded,
         }));
     };
+
+    const creditProgressByPath = useMemo(
+        () => getProgramCategoryCreditProgress(categories, manuallyPlannedCourseIds),
+        [categories, manuallyPlannedCourseIds]
+    );
 
     return (
         <section className={`${mobileVisible ? 'block' : 'hidden'} min-w-0 lg:block lg:pr-3`}>
@@ -90,6 +96,7 @@ export function StudyPlanCourseListPanel({
                         expandedCategories={expandedCategories}
                         onCategoryExpandedChange={handleCategoryExpandedChange}
                         manuallyPlannedCourseIds={manuallyPlannedCourseIds}
+                        creditProgressByPath={creditProgressByPath}
                         onDragStart={onDragStart}
                         onRemoveFromPlan={onRemoveFromPlan}
                         onOpenMobilePlanner={onOpenMobilePlanner}
