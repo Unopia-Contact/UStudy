@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { Bookmark, MousePointerClick } from 'lucide-react';
-import bookmarkletSource from '../../logic/Bookmarklet.js?raw';
+import bookmarkletSource from 'virtual:ustudy-bookmarklet-source';
 import { APP_CONFIG } from '../../config';
 import { PORTAL_SYNC_PROTOCOL_VERSION } from '../../portal-sync/protocol';
 import { AppDialog } from '../ui/overlays/app-dialog';
