@@ -10,11 +10,14 @@ const passedCourse = (courseId: string, credits: number) => ({
 });
 
 describe('getCategoryCreditProgress', () => {
-  it('counts CSC00003 in its own group but not in General Education', () => {
+  it('excludes only CSC00003 from the parent while preserving other IT credits', () => {
     const informationTechnology = {
-      name: 'Tin học cơ sở',
-      credits: 3,
-      coursesData: [passedCourse('CSC00003', 3)],
+      name: 'Tin học',
+      credits: 7,
+      coursesData: [
+        passedCourse('CSC00003', 3),
+        passedCourse('CSC10001', 4),
+      ],
     };
     const generalEducation = {
       name: 'Giáo dục đại cương',
@@ -22,18 +25,18 @@ describe('getCategoryCreditProgress', () => {
         GENERAL_IT: informationTechnology,
         GENERAL_OTHER: {
           name: 'Kiến thức chung',
-          credits: 4,
-          coursesData: [passedCourse('BAA00001', 4)],
+          credits: 2,
+          coursesData: [passedCourse('BAA00001', 2)],
         },
       },
     };
 
     expect(getCategoryCreditProgress(informationTechnology, new Set())).toEqual({
-      earnedCredits: 3,
+      earnedCredits: 7,
       plannedCredits: 0,
     });
     expect(getCategoryCreditProgress(generalEducation, new Set())).toEqual({
-      earnedCredits: 4,
+      earnedCredits: 6,
       plannedCredits: 0,
     });
   });

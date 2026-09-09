@@ -92,7 +92,7 @@ export const AcademicRulesEngine = {
      */
     isCategoryExcludedFromAccumulation: (categoryName: string): boolean => {
         return ACADEMIC_RULES.ACCUMULATION_EXCLUDED_COURSE_PREFIXES.some(prefix =>
-            categoryName.startsWith(prefix.name)
+            typeof prefix.name === 'string' && categoryName.startsWith(prefix.name)
         );
     },
 

@@ -42,7 +42,7 @@ export const ACADEMIC_RULES = {
         { id: 'BAA0002', name: 'Giáo dục thể chất' },
         { id: 'ADD0003', name: 'Ngoại ngữ' },
         { id: 'BAA0003', name: 'Giáo dục quốc phòng - An ninh' },
-        { id: 'CSC00003', name: 'Tin học' }
+        { id: 'CSC00003' }
     ],
 
     /** Số chữ số sau dấu phẩy của GPA */
