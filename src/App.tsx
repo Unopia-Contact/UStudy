@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BookOpen, CheckCircle2, ChevronUp, Eye, FileUp, RefreshCw, Trash2 } from 'lucide-react';
 import { AppRouter } from './app/AppRouter';
 import { AppDialog } from './components/ui/overlays/app-dialog';
@@ -433,6 +434,7 @@ export default function App() {
   return (
     <CryptoProvider>
       <Analytics />
+      <SpeedInsights />
       <SecurityGate>
         <NotificationProvider>
           <CampusProvider>
