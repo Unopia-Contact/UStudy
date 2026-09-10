@@ -66,4 +66,15 @@ describe('GPACalculator', () => {
 
     expect(result).toBeCloseTo((3.5 * 2 + 4 * 4) / 6, 8);
   });
+
+  it('applies GPA exclusions and pass rules to projected cumulative grades', () => {
+    const history = [grade({ code: 'CSC10001', credits: 4, grade: 8 })];
+    const projections = [
+      { code: 'CSC10002', credits: 4, projectedGrade: 4 },
+      { code: 'ADD00031', credits: 3, projectedGrade: 10 },
+    ];
+
+    expect(GPACalculator.calculateProjectedGPA(history, projections)).toBe(8);
+    expect(GPACalculator.calculateProjectedFourPointGPA(history, projections)).toBe(3.5);
+  });
 });

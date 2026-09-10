@@ -51,4 +51,31 @@ describe('semester grade projection', () => {
       source: 'official',
     });
   });
+
+  it('keeps failed courses in simulated semester GPA but excludes special courses', () => {
+    const semester = '25-26/3';
+    const [projection] = buildProjectionSemesters({
+      rawGrades: [
+        { id: 'CSC10001', name: 'Regular course', credits: '4', score: '', semester },
+        { id: 'ADD00031', name: 'English', credits: '3', score: '', semester },
+        { id: 'CSC10002', name: 'Failed course', credits: '4', score: '', semester },
+      ],
+      registrations: [],
+      gradesHistory: [],
+      allCoursesMeta: [],
+      projectedGrades: {
+        [createGradeAttemptKey(semester, 'CSC10001')]: 8,
+        [createGradeAttemptKey(semester, 'ADD00031')]: 10,
+        [createGradeAttemptKey(semester, 'CSC10002')]: 4,
+      },
+    });
+
+    expect(projection).toMatchObject({
+      totalCredits: 11,
+      knownCredits: 11,
+      projectedCredits: 11,
+      semesterGPA: 6,
+    });
+    expect(projection.courses).toHaveLength(3);
+  });
 });
