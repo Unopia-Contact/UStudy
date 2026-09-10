@@ -1,16 +1,24 @@
 /**
  * Tuition Registry: Đăng ký bảng giá theo năm học.
- * getTuitionRates(year, majorId) trả về bảng giá đã merge (shared + major).
+ * getTuitionRates(year, program, profile) trả về bảng giá đã merge (shared + program).
  */
-import { tuition_2024_2025 } from './2024-2025';
-import { tuition_2025_2026 } from './2025-2026';
-import { tuition_2026_2027 } from './2026-2027';
+import { tuition_2024_2025 } from './campus-2/2024-2025';
+import { tuition_2025_2026 } from './campus-2/2025-2026';
+import { tuition_2026_2027 } from './campus-2/2026-2027';
+import type { TuitionProfileDefinition, TuitionProfileId, TuitionProgramRef, TuitionRateTable } from './types';
+
+export type { TuitionProfileId, TuitionProgramRef, TuitionRateTable } from './types';
 
 interface TuitionYear {
-    default_price: number;
-    shared: Record<string, number>;
-    majors: Record<string, Record<string, number>>;
+    profiles: Partial<Record<TuitionProfileId, TuitionRateTable>>;
 }
+
+export const TUITION_PROFILES: TuitionProfileDefinition[] = [
+    { id: 'tuition-cs1', name: 'Bảng học phí Cơ sở 1 - Chợ Quán' },
+    { id: 'tuition-cs2', name: 'Bảng học phí Cơ sở 2 - Đông Hòa' },
+];
+
+export const DEFAULT_TUITION_PROFILE_ID: TuitionProfileId = 'tuition-cs2';
 
 import { APP_CONFIG } from '../../../config/appConfig';
 
@@ -23,18 +31,49 @@ export const ACADEMIC_YEARS = [
 export const DEFAULT_ACADEMIC_YEAR = APP_CONFIG.DEFAULT_ACADEMIC_YEAR;
 
 const tuitionMap: Record<string, TuitionYear> = {
-    '2026-2027': tuition_2026_2027,
-    '2025-2026': tuition_2025_2026,
-    '2024-2025': tuition_2024_2025,
+    '2026-2027': { profiles: { 'tuition-cs2': tuition_2026_2027 } },
+    '2025-2026': { profiles: { 'tuition-cs2': tuition_2025_2026 } },
+    '2024-2025': { profiles: { 'tuition-cs2': tuition_2024_2025 } },
 };
 
-export function getTuitionRateDetails(academicYear: string, majorId: string) {
+function resolveProgramKeys(program: string | TuitionProgramRef): string[] {
+    if (typeof program === 'string') return [program];
+    return [`${program.facultyId}/${program.majorId}`, program.majorId];
+}
+
+export function getTuitionProfileName(profileId: TuitionProfileId): string {
+    return TUITION_PROFILES.find((profile) => profile.id === profileId)?.name ?? profileId;
+}
+
+export function getTuitionRateDetails(
+    academicYear: string,
+    program: string | TuitionProgramRef,
+    profileId: TuitionProfileId = DEFAULT_TUITION_PROFILE_ID,
+) {
     const yearData = tuitionMap[academicYear] || tuitionMap[DEFAULT_ACADEMIC_YEAR];
-    const sharedRates = yearData.shared;
-    const majorRates = yearData.majors[majorId] || {};
+    const profileData = yearData.profiles[profileId];
+    if (!profileData) {
+        return {
+            profileId,
+            profileName: getTuitionProfileName(profileId),
+            isAvailable: false,
+            default_price: 0,
+            sharedRates: {},
+            majorRates: {},
+            rates: {},
+        };
+    }
+
+    const sharedRates = profileData.shared;
+    const majorRates = resolveProgramKeys(program)
+        .map((key) => profileData.majors[key])
+        .find(Boolean) ?? {};
 
     return {
-        default_price: yearData.default_price,
+        profileId,
+        profileName: getTuitionProfileName(profileId),
+        isAvailable: true,
+        default_price: profileData.default_price,
         sharedRates,
         majorRates,
         rates: {
@@ -51,7 +90,11 @@ export function getTuitionRateDetails(academicYear: string, majorId: string) {
  *
  * @returns { default_price, rates } - rates đã được merge
  */
-export function getTuitionRates(academicYear: string, majorId: string) {
-    const { default_price, rates } = getTuitionRateDetails(academicYear, majorId);
-    return { default_price, rates };
+export function getTuitionRates(
+    academicYear: string,
+    program: string | TuitionProgramRef,
+    profileId: TuitionProfileId = DEFAULT_TUITION_PROFILE_ID,
+) {
+    const { default_price, rates, profileName, isAvailable } = getTuitionRateDetails(academicYear, program, profileId);
+    return { default_price, rates, profileId, profileName, isAvailable };
 }

@@ -1,6 +1,9 @@
 import { AppSelect } from "../../../components/ui/form";
-import { COHORTS, getProgramDataSourceCohort } from "../../../assets/data/academic-programs/registry";
+import { COHORTS, getProgramDataSourceCohort, getProgramOffering } from "../../../assets/data/academic-programs/registry";
+import { getTuitionProfileName } from "../../../assets/data/tuition";
 import { useDepartmentData } from "../../../context/DepartmentContext";
+import { useCampus } from "../../../context/CampusContext";
+import { CAMPUS_OPTIONS, getCampusDefinition } from "../../../domain/campus";
 import { CheckCircle, GraduationCap, Upload, Shield } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppNotification } from "../../../context/NotificationContext";
@@ -27,6 +30,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
         setFaculty, setMajor, setCohort, setAcademicYear,
         isConfigured, setIsConfigured
     } = useDepartmentData();
+    const { defaultCampusId, setDefaultCampusId } = useCampus();
     const { addNotification } = useAppNotification();
     const { cryptoKey, unlock, refreshHasData, hasData } = useCrypto();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,6 +38,15 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
     const programDataSourceCohort = getProgramDataSourceCohort(cohortId, facultyId, majorId);
     const programDataSourceLabel = COHORTS.find((cohort) => cohort.id === programDataSourceCohort)?.name ?? programDataSourceCohort;
     const isUsingSharedProgramData = Boolean(programDataSourceCohort && programDataSourceCohort !== cohortId);
+    const currentProgramOffering = currentFaculty && currentMajor
+        ? getProgramOffering(currentFaculty.id, currentMajor.id, cohortId)
+        : null;
+    const programCampusNames = currentProgramOffering?.campusIds
+        .map((campusId) => getCampusDefinition(campusId).name)
+        .join(' và ');
+    const tuitionProfileName = currentProgramOffering
+        ? getTuitionProfileName(currentProgramOffering.tuitionProfileId)
+        : null;
 
     /** Lưu dữ liệu nhạy cảm đã mã hóa + populate RAM cache */
     const saveImportedSecure = async (rawData: any, metaData: any, key: CryptoKey) => {
@@ -253,10 +266,25 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                 </div>
             }
             <h2 className="ustudy-settings-title"><GraduationCap className="ustudy-settings-title-icon" />Chương trình đào tạo</h2>
-            <p className="ustudy-settings-description">Chọn Khóa tuyển, Khoa, Ngành và Năm học để hiển thị đúng dữ liệu của bạn.</p>
+            <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành và Năm học để hiển thị đúng dữ liệu của bạn.</p>
 
 
             <div className="w grid grid-cols-1 md:grid-cols-1 gap-6">
+                <AppSelect
+                    label="Cơ sở mặc định"
+                    value={defaultCampusId}
+                    options={CAMPUS_OPTIONS}
+                    onChange={(value) => setDefaultCampusId(value as typeof defaultCampusId)}
+                />
+
+                {defaultCampusId === 'cho-quan' && (
+                    <div>
+                        <p className="text-xs leading-5 text-gray-500">
+                            Hiện tại chương trình đào tạo và học phí cơ sở 1 - Chợ Quán vẫn chưa hoàn thiện. Các tính năng khác vẫn sử dụng bình thường.
+                        </p>
+                    </div>
+                )}
+
                 <AppSelect
                     label="Khóa tuyển"
                     value={cohortId}
@@ -287,7 +315,6 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                     disabled={true}
                 />
             </div>
-
             {
                 isUsingSharedProgramData && (
                     <p className="mt-2 text-xs text-blue-700 pt-3">

@@ -2,12 +2,15 @@ import {
     FACULTIES,
     getAcademicYearMajorCatalog,
     getProgramDataSourceCohort,
+    getProgramOffering,
+    getProgramTuitionProfileId,
     resolveDataCohort,
     type CohortInfo,
     type FacultyInfo,
     type MajorInfo,
 } from '../../../assets/data/academic-programs/registry';
-import { ACADEMIC_YEARS, getTuitionRates } from '../../../assets/data/tuition';
+import { ACADEMIC_YEARS, getTuitionProfileName, getTuitionRates, type TuitionProfileId } from '../../../assets/data/tuition';
+import type { CampusId } from '../../../domain/campus';
 
 export type ProgramDataKind = 'courses' | 'prerequisites' | 'categories';
 
@@ -24,6 +27,9 @@ export interface MajorDataCoverage {
     major: MajorInfo;
     cohort: CohortInfo;
     sourceCohort: string;
+    campusIds: CampusId[];
+    tuitionProfileId: TuitionProfileId;
+    tuitionProfileName: string;
     assets: ProgramDataAsset[];
     availableCount: number;
     tuitionYears: number;
@@ -64,13 +70,22 @@ export function getProgramAssets(facultyId: string, majorId: string, cohortId: s
 export function getMajorDataCoverage(faculty: FacultyInfo, major: MajorInfo, cohortId = 'k24'): MajorDataCoverage {
     const cohort = getCohortInfo(major, cohortId);
     const assets = getProgramAssets(faculty.id, major.id, cohort.id);
-    const tuition = ACADEMIC_YEARS.map((year) => getTuitionRates(year.id, major.id));
+    const offering = getProgramOffering(faculty.id, major.id, cohort.id);
+    const tuitionProfileId = offering?.tuitionProfileId ?? getProgramTuitionProfileId(faculty.id, major.id, cohort.id);
+    const tuition = ACADEMIC_YEARS.map((year) => getTuitionRates(
+        year.id,
+        { facultyId: faculty.id, majorId: major.id },
+        tuitionProfileId,
+    ));
 
     return {
         faculty,
         major,
         cohort,
         sourceCohort: getProgramDataSourceCohort(cohort.id, faculty.id, major.id) ?? resolveDataCohort(faculty.id, major.id, cohort.id),
+        campusIds: offering?.campusIds ?? [],
+        tuitionProfileId,
+        tuitionProfileName: getTuitionProfileName(tuitionProfileId),
         assets,
         availableCount: assets.filter((asset) => asset.present).length,
         tuitionYears: tuition.length,

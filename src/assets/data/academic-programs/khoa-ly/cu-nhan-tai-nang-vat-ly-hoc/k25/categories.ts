@@ -95,6 +95,7 @@ export const categories = {
     "FOUNDATION": {
         "name": "Kiến thức cơ sở ngành",
         "mandatory": true,
+        "total_credits_required": 25,
         "courses": [
             "PHY10001",
             "PHY10002",

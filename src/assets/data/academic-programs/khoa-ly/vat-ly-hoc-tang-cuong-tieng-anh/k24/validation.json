@@ -1,0 +1,16 @@
+{
+  "course_count": 149,
+  "duplicate_course_ids": [],
+  "missing_course_refs": [],
+  "unreferenced_courses": [],
+  "specialization_count": 7,
+  "specializations": [
+    "NUCLEAR_PHYSICS",
+    "GEOPHYSICS",
+    "THEORETICAL_PHYSICS",
+    "ELECTRONIC_PHYSICS",
+    "SOLID_STATE_PHYSICS",
+    "COMPUTATIONAL_PHYSICS",
+    "APPLIED_PHYSICS"
+  ]
+}

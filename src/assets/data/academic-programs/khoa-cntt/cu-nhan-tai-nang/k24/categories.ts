@@ -157,10 +157,7 @@ export const categories = {
             },
             "ELECTIVE": {
                 "credits": 26,
-
                 "courses": [
-                    "CSC14007",
-                    "CSC14008",
                     "CSC11002",
                     "CSC11003",
                     "CSC11004",

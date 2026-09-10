@@ -319,14 +319,4 @@ export const categories = {
             }
         ]
     },
-    "TALENTED_PROGRAM_REQUIREMENTS": {
-        "name": "Yêu cầu khối lượng chương trình tài năng",
-        "total_credits_required": 33,
-        "note": "Sinh viên phải đạt tổng số tín chỉ học phần tài năng tối thiểu là 33 TC, bắt buộc phải học Seminar chuyên ngành (4 TC) và Luận văn tốt nghiệp (10 TC).",
-        "courses": [
-            "MTH10412", "MTH10413", "MTH10414", "MTH10417", "MTH10418", "MTH10419", "MTH10420", "MTH10421", "MTH10422", "MTH10423",
-            "MTH10424", "MTH10425", "MTH10426", "MTH10433", "MTH10436", "MTH10438", "MTH10443", "MTH10485", "MTH10503", "MTH10511",
-            "MTH10515", "MTH10518", "MTH10525", "MTH10555", "MTH10556", "MTH10595", "MTH10596", "MTH10621"
-        ]
-    }
 };

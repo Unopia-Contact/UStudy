@@ -8,6 +8,7 @@ import {
     DEFAULT_COHORT_ID,
     COHORTS,
     getFacultiesForCohort,
+    getProgramTuitionProfileId,
     loadCohortData,
 } from '../assets/data/academic-programs/registry';
 import {
@@ -16,6 +17,7 @@ import {
     getTuitionRates,
 } from '../assets/data/tuition';
 import type { FacultyInfo, MajorInfo, CohortInfo } from '../assets/data/academic-programs/registry';
+import { useCampus } from './CampusContext';
 
 // Fallback: import trực tiếp data mặc định để tránh loading flash lần đầu
 import { courses as defaultCourses } from '../assets/data/academic-programs/khoa-cntt/cong-nghe-thong-tin/k24/courses';
@@ -94,7 +96,11 @@ interface DepartmentContextType {
 /**
  * Default tuition rates
  */
-const defaultTuitionRates = getTuitionRates(DEFAULT_ACADEMIC_YEAR, DEFAULT_MAJOR_ID);
+const defaultTuitionRates = getTuitionRates(
+    DEFAULT_ACADEMIC_YEAR,
+    { facultyId: DEFAULT_FACULTY_ID, majorId: DEFAULT_MAJOR_ID },
+    getProgramTuitionProfileId(DEFAULT_FACULTY_ID, DEFAULT_MAJOR_ID, DEFAULT_COHORT_ID),
+);
 
 /**
  * Default data
@@ -192,6 +198,7 @@ const DepartmentContext = createContext<DepartmentContextType>({
  * DepartmentProvider
  */
 export function DepartmentProvider({ children }: { children: React.ReactNode }) {
+    const { defaultCampusId } = useCampus();
     const [facultyId, setFacultyIdState] = useState<string>(() => {
         return readPlain(STORAGE_KEYS.FACULTY_ID, DEFAULT_FACULTY_ID);
     });
@@ -219,7 +226,7 @@ export function DepartmentProvider({ children }: { children: React.ReactNode }) 
         setIsConfiguredState(value);
     };
 
-    const availableFaculties = getFacultiesForCohort(cohortId).flatMap((catalogFaculty) => {
+    const availableFaculties = getFacultiesForCohort(cohortId, defaultCampusId).flatMap((catalogFaculty) => {
         const faculty = FACULTIES.find((item) => item.id === catalogFaculty.id);
         if (!faculty) return [];
 
@@ -229,11 +236,27 @@ export function DepartmentProvider({ children }: { children: React.ReactNode }) 
     const currentFaculty = availableFaculties.find((faculty) => faculty.id === facultyId) ?? availableFaculties[0];
     const currentMajor = currentFaculty?.majors.find((major) => major.id === majorId) ?? currentFaculty?.majors[0];
     const currentCohort = COHORTS.find((cohort) => cohort.id === cohortId);
+    const currentFacultyId = currentFaculty?.id;
+    const currentMajorId = currentMajor?.id;
+
+    useEffect(() => {
+        if (!currentFacultyId || !currentMajorId) return;
+
+        if (currentFacultyId !== facultyId) {
+            savePlain(STORAGE_KEYS.FACULTY_ID, currentFacultyId);
+            setFacultyIdState(currentFacultyId);
+        }
+        if (currentMajorId !== majorId) {
+            savePlain(STORAGE_KEYS.MAJOR_ID, currentMajorId);
+            setMajorIdState(currentMajorId);
+        }
+    }, [currentFacultyId, currentMajorId, facultyId, majorId]);
 
     // Load data khi faculty/major/cohort/academicYear thay đổi
     const loadData = useCallback(async (fId: string, mId: string, cId: string, year: string) => {
         // Tuition luôn sync (đã import sẵn)
-        const tuitionRates = getTuitionRates(year, mId);
+        const tuitionProfileId = getProgramTuitionProfileId(fId, mId, cId);
+        const tuitionRates = getTuitionRates(year, { facultyId: fId, majorId: mId }, tuitionProfileId);
 
         // Nếu đang ở default → dùng data đã import sẵn
         if (fId === DEFAULT_FACULTY_ID && mId === DEFAULT_MAJOR_ID && cId === DEFAULT_COHORT_ID) {
@@ -260,8 +283,9 @@ export function DepartmentProvider({ children }: { children: React.ReactNode }) 
     }, []);
 
     useEffect(() => {
-        loadData(facultyId, majorId, cohortId, academicYear);
-    }, [facultyId, majorId, cohortId, academicYear, loadData]);
+        if (!currentFacultyId || !currentMajorId) return;
+        loadData(currentFacultyId, currentMajorId, cohortId, academicYear);
+    }, [currentFacultyId, currentMajorId, cohortId, academicYear, loadData]);
 
     const setFaculty = (newFacultyId: string) => {
         savePlain(STORAGE_KEYS.FACULTY_ID, newFacultyId);
@@ -283,7 +307,7 @@ export function DepartmentProvider({ children }: { children: React.ReactNode }) 
         savePlain(STORAGE_KEYS.COHORT_ID, newCohortId);
         setCohortIdState(newCohortId);
 
-        const nextFaculties = getFacultiesForCohort(newCohortId);
+        const nextFaculties = getFacultiesForCohort(newCohortId, defaultCampusId);
         const nextFaculty = nextFaculties.find((faculty) => faculty.id === facultyId) ?? nextFaculties[0];
         const nextMajor = nextFaculty?.majors.find((major) => major.id === majorId) ?? nextFaculty?.majors[0];
 
