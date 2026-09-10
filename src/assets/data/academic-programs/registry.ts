@@ -64,7 +64,7 @@ export interface FacultyInfo {
 const ACADEMIC_YEAR_MAJOR_CATALOG_DEFINITIONS: AcademicYearMajorCatalogDefinition[] = [
     {
         cohortId: 'k23',
-        label: 'Khóa 2023 (K23)',
+        label: 'Khóa tuyển 2023',
         faculties: [
             {
                 id: 'khoa-cntt',
