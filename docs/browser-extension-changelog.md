@@ -2,6 +2,11 @@
 
 Tài liệu này ghi lại các thay đổi ảnh hưởng đến người dùng và luồng kết nối giữa Extension, HCMUS Portal và UStudy.
 
+## 0.2.8
+
+- Cho phép Extension kết nối với cả `https://ustudy.hakhoi.io.vn` và `https://ustudy.unopia.io.vn`.
+- Giữ `window.opener` khi mở Portal từ UStudy để Bookmarklet có thể gửi dữ liệu trở lại đúng tab nguồn.
+
 ## 0.2.5
 
 - Giảm thời gian chờ trước khi tự động quét từ 2200 ms xuống 500 ms.

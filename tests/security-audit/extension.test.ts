@@ -26,7 +26,12 @@ const sources = [
   { name: 'foreign-origin', id: extensionId, url: 'https://evil.invalid/', allowed: [] },
   { name: 'lookalike-origin', id: extensionId, url: `${config.appOrigins[0]}.evil.invalid/`, allowed: [] },
   { name: 'wrong-extension-id', id: 'other-extension', url: `${config.appOrigins[0]}/`, allowed: [] },
-  { name: 'app', id: extensionId, url: `${config.appOrigins[0]}/`, allowed: actions.filter((a) => a !== 'SYNC_COMPLETE') },
+  ...config.appOrigins.map((origin: string, index: number) => ({
+    name: `app-${index}`,
+    id: extensionId,
+    url: `${origin}/`,
+    allowed: actions.filter((a) => a !== 'SYNC_COMPLETE'),
+  })),
   { name: 'extension-popup', id: extensionId, url: `chrome-extension://${extensionId}/popup.html`, allowed: ['GET_STATE', 'SAVE_SETTINGS', 'OPEN_PORTAL'] },
 ];
 
@@ -63,3 +68,27 @@ it.each(['wrong-origin', 'wrong-window', 'forbidden-action', 'valid-app-request'
     expect(sent).toHaveLength(variant === 'valid-app-request' ? 1 : 0);
   },
 );
+
+it.each(config.appOrigins)('[CONTROL] app bridge initializes on %s', async (origin: string) => {
+  let listener: (event: unknown) => Promise<void>;
+  const sent: unknown[] = [];
+  const fakeWindow = {
+    location: { origin },
+    addEventListener: (_type: string, callback: typeof listener) => { listener = callback; },
+    postMessage: noop,
+  };
+  const context = vm.createContext({
+    USTUDY_EXTENSION_CONFIG: config, window: fakeWindow,
+    document: { documentElement: null, addEventListener: noop },
+    chrome: { runtime: { sendMessage: async (message: unknown) => { sent.push(message); return { ok: true }; },
+      onMessage: { addListener: noop } } },
+  });
+
+  vm.runInContext(readFileSync('extension/app-bridge.js', 'utf8'), context);
+  await listener!({
+    origin,
+    source: fakeWindow,
+    data: { type: 'USTUDY_EXTENSION_BRIDGE_REQUEST', requestId: 'synthetic-id', action: 'GET_STATE' },
+  });
+  expect(sent).toHaveLength(1);
+});

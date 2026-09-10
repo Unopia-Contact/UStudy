@@ -101,7 +101,7 @@ function BrowserPortalSyncTools() {
   const extensionDownloadUrl = `/downloads/ustudy-portal-sync.zip?v=${encodeURIComponent(latestVersion)}`;
 
   function openPortal() {
-    window.open(portalSyncConfig.portalLoginUrl, '_blank', 'noopener,noreferrer');
+    window.open(portalSyncConfig.portalLoginUrl, '_blank');
   }
 
   return (

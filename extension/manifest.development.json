@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "UStudy Portal Sync (Development)",
-  "version": "0.2.6",
+  "version": "0.2.8",
   "description": "Development build for UStudy Portal Sync.",
   "permissions": ["storage", "scripting"],
   "host_permissions": [
     "https://*.hcmus.edu.vn/*",
     "https://ustudy.hakhoi.io.vn/*",
+    "https://ustudy.unopia.io.vn/*",
     "https://u-study-git-hk-deploy-hakhoicontact-archs-projects.vercel.app/*",
     "http://localhost:3005/*",
     "https://localhost:3005/*",
@@ -24,6 +25,7 @@
     {
       "matches": [
         "https://ustudy.hakhoi.io.vn/*",
+        "https://ustudy.unopia.io.vn/*",
         "https://u-study-git-hk-deploy-hakhoicontact-archs-projects.vercel.app/*",
         "http://localhost:3005/*",
         "https://localhost:3005/*",

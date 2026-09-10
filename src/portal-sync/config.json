@@ -1,13 +1,14 @@
 {
   "protocolVersion": "1.0.0",
   "scraperVersion": "0.2.1",
-  "extensionVersion": "0.2.7",
+  "extensionVersion": "0.2.8",
   "portalHostnamePattern": "^new-portal\\d*\\.hcmus\\.edu\\.vn$",
   "portalLoginUrl": "https://new-portal.hcmus.edu.vn/Login.aspx",
   "portalLoginPathPattern": "^/+Login\\.aspx(?:/.*)?$",
   "productionAppUrl": "https://ustudy.hakhoi.io.vn/",
   "appOrigins": [
-    "https://ustudy.hakhoi.io.vn"
+    "https://ustudy.hakhoi.io.vn",
+    "https://ustudy.unopia.io.vn"
   ],
   "endpoints": {
     "grades": "/SinhVien.aspx?pid=211",

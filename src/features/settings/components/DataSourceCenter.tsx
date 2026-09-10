@@ -379,7 +379,7 @@ export function DataSourceCenter() {
       return;
     }
 
-    window.open(APP_CONFIG.PORTAL_LOGIN_URL, '_blank', 'noopener,noreferrer');
+    window.open(APP_CONFIG.PORTAL_LOGIN_URL, '_blank');
   };
 
   return (

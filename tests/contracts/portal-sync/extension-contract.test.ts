@@ -87,14 +87,21 @@ describe('Portal sync extension contract', () => {
     expect(certificate.fingerprint256).toBe('65:42:D1:76:BE:D5:0F:19:3C:0C:E2:97:AE:44:EC:D8:A0:A8:6B:EC:2E:DE:68:27:69:34:40:59:B4:E7:85:30');
   });
 
-  it('keeps the extension version and production origin aligned with shared config', async () => {
+  it('keeps the extension version and every production origin aligned with shared config', async () => {
     const config = await readJson('src/portal-sync/config.json');
     const manifest = await readJson('extension/manifest.json');
 
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.version).toBe(config.extensionVersion);
     expect(config.productionAppUrl).toBe(`${config.appOrigins[0]}/`);
-    expect(manifest.host_permissions).toContain(`${config.appOrigins[0]}/*`);
+    expect(config.appOrigins).toEqual([
+      'https://ustudy.hakhoi.io.vn',
+      'https://ustudy.unopia.io.vn',
+    ]);
+    for (const origin of config.appOrigins) {
+      expect(manifest.host_permissions).toContain(`${origin}/*`);
+      expect(manifest.content_scripts.some((entry: any) => entry.matches?.includes(`${origin}/*`))).toBe(true);
+    }
   });
 
   it('declares every script referenced by the manifest in the extension source', async () => {
@@ -118,7 +125,31 @@ describe('Portal sync extension contract', () => {
     expect(manifest.host_permissions).toEqual([
       'https://*.hcmus.edu.vn/*',
       'https://ustudy.hakhoi.io.vn/*',
+      'https://ustudy.unopia.io.vn/*',
     ]);
+  });
+
+  it('keeps bookmarklet Portal windows connected to their UStudy opener', async () => {
+    const files = [
+      'src/features/settings/components/DataSourceCenter.tsx',
+      'src/features/settings/components/PortalSyncTools.tsx',
+    ];
+
+    await Promise.all(files.map(async (file) => {
+      const source = await readFile(resolve(process.cwd(), file), 'utf8');
+      expect(source).toContain("window.open(");
+      expect(source).not.toContain("'_blank', 'noopener,noreferrer'");
+    }));
+  });
+
+  it('allows every configured development app origin in the development manifest', async () => {
+    const config = await readJson('src/portal-sync/config.development.json');
+    const manifest = await readJson('extension/manifest.development.json');
+
+    for (const origin of config.appOrigins) {
+      expect(manifest.host_permissions).toContain(`${origin}/*`);
+      expect(manifest.content_scripts.some((entry: any) => entry.matches?.includes(`${origin}/*`))).toBe(true);
+    }
   });
 
   it('keeps the empty scraper fixture compatible with every Portal source', async () => {
