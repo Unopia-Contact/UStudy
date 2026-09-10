@@ -2,6 +2,7 @@ import { ScheduleLogic } from './schedule-logic';
 import { getScheduleCalendarWeekCount, isSessionActiveInWeek } from './holiday-logic';
 import type { ScheduleSession, WeeklySchedule } from '../types';
 import { tryResolvePeriodRange } from '../../../domain/campus';
+import { createIcsHelpers, downloadCalendarIcs } from '../../calendar-export';
 
 interface CalendarOccurrence {
     calendarWeek: number;
@@ -91,34 +92,6 @@ function getDescription(session: ScheduleSession, calendarWeek?: number): string
         `Tin chi: ${session.credits}`,
         ...(calendarWeek ? [`Tuan dieu chinh: ${calendarWeek}`] : []),
     ].join('\n');
-}
-
-function createIcsHelpers() {
-    const pad = (value: number) => String(value).padStart(2, '0');
-    const toIcsDateTime = (date: Date) => (
-        `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
-    );
-    const esc = (text: string) => (
-        text.replace(/\r/g, '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
-    );
-    const foldLine = (line: string) => {
-        const encoder = new TextEncoder();
-        const chunks: string[] = [];
-        let current = '';
-        for (const character of line) {
-            const next = current + character;
-            if (current && encoder.encode(next).byteLength > 75) {
-                chunks.push(current);
-                current = ` ${character}`;
-            } else {
-                current = next;
-            }
-        }
-        if (current) chunks.push(current);
-        return chunks;
-    };
-
-    return { toIcsDateTime, esc, foldLine };
 }
 
 interface CalendarEventInput {
@@ -269,14 +242,6 @@ export function exportCalendar(schedule: WeeklySchedule) {
     const ics = buildCalendarIcs(schedule);
     if (!ics) return false;
 
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `TKB_${schedule.semester.replace(/\//g, '-')}_FullSemester.ics`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    downloadCalendarIcs(ics, `TKB_${schedule.semester.replace(/\//g, '-')}_FullSemester.ics`);
     return true;
 }
