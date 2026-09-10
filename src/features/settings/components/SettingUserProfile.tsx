@@ -3,7 +3,7 @@ import { COHORTS, getProgramDataSourceCohort, getProgramOffering } from "../../.
 import { getTuitionProfileName } from "../../../assets/data/tuition";
 import { useDepartmentData } from "../../../context/DepartmentContext";
 import { useCampus } from "../../../context/CampusContext";
-import { CAMPUS_OPTIONS } from "../../../domain/campus";
+import { CAMPUS_OPTIONS, getCampusDefinition } from "../../../domain/campus";
 import { CheckCircle, GraduationCap, Upload, Shield } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppNotification } from "../../../context/NotificationContext";
@@ -280,13 +280,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                 {defaultCampusId === 'cho-quan' && (
                     <div>
                         <p className="text-xs leading-5 text-gray-500">
-                            Chương trình đào tạo cho Cơ sở 1 – Chợ Quán hiện đang được cập nhật.
-                        </p>
-
-                        <p className="mt-3 text-xs leading-5 text-gray-500">
-                            Hiện tại, UStudy chưa có dữ liệu chương trình đào tạo của bất kỳ ngành nào
-                            tại cơ sở này. Bạn vẫn có thể sử dụng các tính năng khác của UStudy trong
-                            thời gian chờ dữ liệu được bổ sung.
+                            Hiện tại chương trình đào tạo và học phí cơ sở 1 - Chợ Quán vẫn chưa hoàn thiện. Các tính năng khác vẫn sử dụng bình thường.
                         </p>
                     </div>
                 )}

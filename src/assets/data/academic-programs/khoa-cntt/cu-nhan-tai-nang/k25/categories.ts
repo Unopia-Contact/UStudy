@@ -157,7 +157,7 @@ export const categories = {
         ]
       },
       "ELECTIVE": {
-        "credit" : 26,
+        "credits" : 26,
         "note" : "sinh viên tích lũy ít nhất 26 cho phần kiến thức tự chọn",
         "courses": [
           "CSC14007",
