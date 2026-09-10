@@ -3,8 +3,8 @@ import { COHORTS, getProgramDataSourceCohort, getProgramOffering } from "../../.
 import { getTuitionProfileName } from "../../../assets/data/tuition";
 import { useDepartmentData } from "../../../context/DepartmentContext";
 import { useCampus } from "../../../context/CampusContext";
-import { CAMPUS_OPTIONS, getCampusDefinition } from "../../../domain/campus";
-import { Building2, CheckCircle, CircleDollarSign, GraduationCap, Upload, Shield } from "lucide-react";
+import { CAMPUS_OPTIONS } from "../../../domain/campus";
+import { CheckCircle, GraduationCap, Upload, Shield } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppNotification } from "../../../context/NotificationContext";
 import { useCrypto } from "../../../context/CryptoContext";
@@ -277,6 +277,20 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                     onChange={(value) => setDefaultCampusId(value as typeof defaultCampusId)}
                 />
 
+                {defaultCampusId === 'cho-quan' && (
+                    <div>
+                        <p className="text-xs leading-5 text-gray-500">
+                            Chương trình đào tạo cho Cơ sở 1 – Chợ Quán hiện đang được cập nhật.
+                        </p>
+
+                        <p className="mt-3 text-xs leading-5 text-gray-500">
+                            Hiện tại, UStudy chưa có dữ liệu chương trình đào tạo của bất kỳ ngành nào
+                            tại cơ sở này. Bạn vẫn có thể sử dụng các tính năng khác của UStudy trong
+                            thời gian chờ dữ liệu được bổ sung.
+                        </p>
+                    </div>
+                )}
+
                 <AppSelect
                     label="Khóa tuyển"
                     value={cohortId}
@@ -307,7 +321,6 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                     disabled={true}
                 />
             </div>
-            
             {
                 isUsingSharedProgramData && (
                     <p className="mt-2 text-xs text-blue-700 pt-3">
