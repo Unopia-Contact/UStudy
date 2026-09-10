@@ -69,26 +69,28 @@ it.each(['wrong-origin', 'wrong-window', 'forbidden-action', 'valid-app-request'
   },
 );
 
-it.each(config.appOrigins)('[CONTROL] app bridge initializes on %s', async (origin: string) => {
-  let listener: (event: unknown) => Promise<void>;
-  const sent: unknown[] = [];
-  const fakeWindow = {
-    location: { origin },
-    addEventListener: (_type: string, callback: typeof listener) => { listener = callback; },
-    postMessage: noop,
-  };
-  const context = vm.createContext({
-    USTUDY_EXTENSION_CONFIG: config, window: fakeWindow,
-    document: { documentElement: null, addEventListener: noop },
-    chrome: { runtime: { sendMessage: async (message: unknown) => { sent.push(message); return { ok: true }; },
-      onMessage: { addListener: noop } } },
-  });
+for (const origin of config.appOrigins as string[]) {
+  it(`[CONTROL] app bridge initializes on ${origin}`, async () => {
+    let listener: (event: unknown) => Promise<void>;
+    const sent: unknown[] = [];
+    const fakeWindow = {
+      location: { origin },
+      addEventListener: (_type: string, callback: typeof listener) => { listener = callback; },
+      postMessage: noop,
+    };
+    const context = vm.createContext({
+      USTUDY_EXTENSION_CONFIG: config, window: fakeWindow,
+      document: { documentElement: null, addEventListener: noop },
+      chrome: { runtime: { sendMessage: async (message: unknown) => { sent.push(message); return { ok: true }; },
+        onMessage: { addListener: noop } } },
+    });
 
-  vm.runInContext(readFileSync('extension/app-bridge.js', 'utf8'), context);
-  await listener!({
-    origin,
-    source: fakeWindow,
-    data: { type: 'USTUDY_EXTENSION_BRIDGE_REQUEST', requestId: 'synthetic-id', action: 'GET_STATE' },
+    vm.runInContext(readFileSync('extension/app-bridge.js', 'utf8'), context);
+    await listener!({
+      origin,
+      source: fakeWindow,
+      data: { type: 'USTUDY_EXTENSION_BRIDGE_REQUEST', requestId: 'synthetic-id', action: 'GET_STATE' },
+    });
+    expect(sent).toHaveLength(1);
   });
-  expect(sent).toHaveLength(1);
-});
+}

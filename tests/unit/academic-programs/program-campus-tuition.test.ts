@@ -75,10 +75,12 @@ describe('academic program campus policy', () => {
       const allMajors = catalog.faculties.flatMap((faculty) => faculty.majors);
       const campusTwoPrograms = getFacultiesForCohort(catalog.cohortId, 'dong-hoa')
         .flatMap((faculty) => faculty.majors.map((major) => `${faculty.id}/${major.id}`));
-      const campusOneOnlyCount = CAMPUS_ONE_PROGRAMS.size;
+      const campusOneOnlyPrograms = catalog.faculties.flatMap((faculty) => faculty.majors
+        .filter((major) => major.campusIds.length === 1 && major.campusIds[0] === 'cho-quan')
+        .map((major) => `${faculty.id}/${major.id}`));
 
-      expect(campusTwoPrograms).toHaveLength(allMajors.length - campusOneOnlyCount);
-      for (const programKey of CAMPUS_ONE_PROGRAMS) {
+      expect(campusTwoPrograms).toHaveLength(allMajors.length - campusOneOnlyPrograms.length);
+      for (const programKey of campusOneOnlyPrograms) {
         expect(campusTwoPrograms).not.toContain(programKey);
       }
     }

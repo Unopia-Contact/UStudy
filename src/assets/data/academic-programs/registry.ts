@@ -63,6 +63,100 @@ export interface FacultyInfo {
 
 const ACADEMIC_YEAR_MAJOR_CATALOG_DEFINITIONS: AcademicYearMajorCatalogDefinition[] = [
     {
+        cohortId: 'k23',
+        label: 'Khóa 2023 (K23)',
+        faculties: [
+            {
+                id: 'khoa-cntt',
+                name: 'Khoa Công nghệ Thông tin',
+                majors: [
+                    { id: 'cong-nghe-thong-tin', name: 'Công nghệ Thông tin', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'he-thong-thong-tin', name: 'Hệ thống thông tin', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'ky-thuat-phan-mem', name: 'Kỹ thuật phần mềm', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'khoa-hoc-may-tinh', name: 'Khoa học máy tính', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'tri-tue-nhan-tao', name: 'Trí tuệ nhân tạo', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'cu-nhan-tai-nang', name: 'Cử nhân tài năng', campusIds: ['cho-quan', 'dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+            {
+                id: 'khoa-khoa-hoc-va-cong-nghe-vat-lieu',
+                name: 'Khoa Khoa học và Công nghệ Vật liệu',
+                majors: [
+                    { id: 'khoa-hoc-vat-lieu', name: 'Khoa học vật liệu', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'cong-nghe-vat-lieu', name: 'Công nghệ vật liệu', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+            {
+                id: 'khoa-toan',
+                name: 'Khoa Toán - Tin học',
+                majors: [
+                    { id: 'toan-hoc', name: 'Toán học', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'toan-tin', name: 'Toán - Tin', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'toan-ung-dung', name: 'Toán ứng dụng', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'khoa-hoc-du-lieu', name: 'Khoa học dữ liệu', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'cu-nhan-tai-nang', name: 'Cử nhân tài năng ngành Toán học', campusIds: ['cho-quan', 'dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+            {
+                id: 'khoa-dia-chat',
+                name: 'Khoa Địa chất',
+                majors: [
+                    { id: 'dia-chat-hoc', name: 'Địa chất học', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'ky-thuat-dia-chat', name: 'Kỹ thuật địa chất', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+            {
+                id: 'khoa-ly',
+                name: 'Khoa Vật lý - Vật lý Kỹ thuật',
+                majors: [
+                    { id: 'vat-ly-hoc', name: 'Vật lý học', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'vat-ly-y-khoa', name: 'Vật lý y khoa', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'hai-duong-hoc', name: 'Hải dương học', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'ky-thuat-hat-nhan', name: 'Kỹ thuật hạt nhân', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    {
+                        id: 'cong-nghe-vat-ly-dien-tu-va-tin-hoc',
+                        name: 'CN Vật lý điện tử và tin học',
+                        campusIds: ['dong-hoa'],
+                        tuitionProfileId: 'tuition-cs2',
+                    },
+                    { id: 'cu-nhan-tai-nang-vat-ly-hoc', name: 'Cử nhân tài năng ngành Vật lý học', campusIds: ['cho-quan', 'dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+            {
+                id: 'khoa-hoa',
+                name: 'Khoa Hóa học',
+                majors: [
+                    { id: 'hoa-hoc', name: 'Hóa học', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'cu-nhan-tai-nang', name: 'Cử nhân tài năng ngành hóa học', campusIds: ['cho-quan', 'dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+            {
+                id: 'khoa-sinh',
+                name: 'Khoa Sinh học - Công nghệ sinh học',
+                majors: [
+                    { id: 'sinh-hoc', name: 'Sinh học', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'cong-nghe-sinh-hoc', name: 'Công nghệ sinh học', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+            {
+                id: 'khoa-moi-truong',
+                name: 'Khoa Môi trường',
+                majors: [
+                    { id: 'cong-nghe-ky-thuat-moi-truong', name: 'Công nghệ kỹ thuật môi trường', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'khoa-hoc-moi-truong', name: 'Khoa học môi trường', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                    { id: 'quan-ly-tai-nguyen-va-moi-truong', name: 'Quản lý tài nguyên và môi trường', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+            {
+                id: 'khoa-dien-tu-vien-thong',
+                name: 'Khoa Điện tử - Viễn thông',
+                majors: [
+                    { id: 'ky-thuat-dien-tu-vien-thong', name: 'Kỹ thuật Điện tử - Viễn thông', campusIds: ['dong-hoa'], tuitionProfileId: 'tuition-cs2' },
+                ],
+            },
+        ],
+    },
+    {
         cohortId: 'k24',
         label: 'Khóa tuyển 2024',
         faculties: [
