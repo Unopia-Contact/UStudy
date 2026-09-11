@@ -119,8 +119,6 @@ export function SelectionBasket({
 
     const formatCurrency = (amount: number) => FinancialLogic.formatCurrency(amount);
 
-    console.log(tuition_rates)
-
     return (
         <div className={`ustudy-card flex h-full w-full flex-col overflow-hidden ${compact ? '' : 'shadow-lg'}`}>
             <div className="w-full flex-shrink-0 border-b border-gray-200 p-4">
