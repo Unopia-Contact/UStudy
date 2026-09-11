@@ -101,37 +101,37 @@ export const categories = {
           "CSC00004"
         ]
       },
-  "GENERAL_ENGLISH": {
-    "name": "Ngoại ngữ",
-    "credits_required": 12,
-    "mandatory": false,
-    "note": "PDF liệt kê 4 học phần Anh văn, mỗi học phần 3 tín chỉ và ghi sinh viên đạt chuẩn ngoại ngữ đầu ra theo quy định hiện hành thì không đăng ký học. Theo quy tắc tương thích UStudy của Project, các học phần này được chuẩn hóa course_type = TC và nhóm mandatory = false. Không tính vào tổng 138 tín chỉ của chương trình.",
-    "courses": [
-      "ADD00031",
-      "ADD00032",
-      "ADD00033",
-      "ADD00034"
-    ]
-  },
-  "GENERAL_PE": {
-    "name": "Giáo dục thể chất",
-    "credits_required": 4,
-    "mandatory": true,
-    "note": "Không tính vào điểm trung bình; PDF ghi tính vào số tín chỉ tích lũy nhưng không tính trong tổng 138 tín chỉ toàn khóa.",
-    "courses": [
-      "BAA00021",
-      "BAA00022"
-    ]
-  },
-  "GENERAL_DEFENSE": {
-    "name": "Giáo dục quốc phòng – an ninh",
-    "credits_required": 4,
-    "mandatory": true,
-    "note": "Không tính vào điểm trung bình; PDF ghi tính vào số tín chỉ tích lũy nhưng không tính trong tổng 138 tín chỉ toàn khóa.",
-    "courses": [
-      "BAA00030"
-    ]
-  }
+      "GENERAL_ENGLISH": {
+        "name": "Ngoại ngữ",
+        "credits_required": 12,
+        "mandatory": false,
+        "note": "PDF liệt kê 4 học phần Anh văn, mỗi học phần 3 tín chỉ và ghi sinh viên đạt chuẩn ngoại ngữ đầu ra theo quy định hiện hành thì không đăng ký học. Theo quy tắc tương thích UStudy của Project, các học phần này được chuẩn hóa course_type = TC và nhóm mandatory = false. Không tính vào tổng 138 tín chỉ của chương trình.",
+        "courses": [
+          "ADD00031",
+          "ADD00032",
+          "ADD00033",
+          "ADD00034"
+        ]
+      },
+      "GENERAL_PE": {
+        "name": "Giáo dục thể chất",
+        "credits_required": 4,
+        "mandatory": true,
+        "note": "Không tính vào điểm trung bình; PDF ghi tính vào số tín chỉ tích lũy nhưng không tính trong tổng 138 tín chỉ toàn khóa.",
+        "courses": [
+          "BAA00021",
+          "BAA00022"
+        ]
+      },
+      "GENERAL_DEFENSE": {
+        "name": "Giáo dục quốc phòng – an ninh",
+        "credits_required": 4,
+        "mandatory": true,
+        "note": "Không tính vào điểm trung bình; PDF ghi tính vào số tín chỉ tích lũy nhưng không tính trong tổng 138 tín chỉ toàn khóa.",
+        "courses": [
+          "BAA00030"
+        ]
+      }
     }
   },
   "FOUNDATION": {

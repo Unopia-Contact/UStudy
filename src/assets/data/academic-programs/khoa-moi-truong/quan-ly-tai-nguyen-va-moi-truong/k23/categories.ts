@@ -207,69 +207,102 @@ export const categories = {
         "type": "INTEGRATED_RESOURCE_ENVIRONMENT_MANAGEMENT",
         "name": "Quản lý tổng hợp tài nguyên và môi trường",
         "credits": 20,
-        "note": "12 tín chỉ bắt buộc: ENM10101-ENM10105. Tích lũy 8 tín chỉ từ danh sách tự chọn còn lại của chuyên ngành.",
-        "courses": [
-          "ENM10101",
-          "ENM10102",
-          "ENM10103",
-          "ENM10104",
-          "ENM10105",
-          "ENM10106",
-          "ENM10107",
-          "ENM10108",
-          "ENM10109",
-          "ENM10110",
-          "ENM10202",
-          "ENM10203",
-          "ENM10111",
-          "ENM10112",
-          "ENM10113"
-        ]
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 12,
+            "courses": [
+              "ENM10101",
+              "ENM10102",
+              "ENM10103",
+              "ENM10104",
+              "ENM10105"
+            ]
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 8,
+            "courses": [
+              "ENM10106",
+              "ENM10107",
+              "ENM10108",
+              "ENM10109",
+              "ENM10110",
+              "ENM10202",
+              "ENM10203",
+              "ENM10111",
+              "ENM10112",
+              "ENM10113"
+            ]
+          }
+        }
       },
       {
         "type": "URBAN_INDUSTRIAL_ENVIRONMENTAL_MANAGEMENT",
         "name": "Quản lý môi trường đô thị và công nghiệp",
         "credits": 20,
-        "note": "11 tín chỉ bắt buộc: ENM10201-ENM10205. Tích lũy 9 tín chỉ từ danh sách tự chọn còn lại của chuyên ngành.",
-        "courses": [
-          "ENM10201",
-          "ENM10202",
-          "ENM10203",
-          "ENM10204",
-          "ENM10205",
-          "ENM10206",
-          "ENM10111",
-          "ENM10207",
-          "ENM10208",
-          "ENM10209",
-          "ENM10103",
-          "ENM10104",
-          "ENM10108",
-          "ENM10112",
-          "ENM10113"
-        ]
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 11,
+            "courses": [
+              "ENM10201",
+              "ENM10202",
+              "ENM10203",
+              "ENM10204",
+              "ENM10205"
+            ]
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 9,
+            "courses": [
+              "ENM10206",
+              "ENM10111",
+              "ENM10207",
+              "ENM10208",
+              "ENM10209",
+              "ENM10103",
+              "ENM10104",
+              "ENM10108",
+              "ENM10112",
+              "ENM10113"
+            ]
+          }
+        }
       },
       {
         "type": "ENVIRONMENTAL_DATA_SCIENCE_IT",
         "name": "Khoa học dữ liệu và tin học ứng dụng trong môi trường",
         "credits": 20,
-        "note": "14 tín chỉ bắt buộc: ENM10301-ENM10305. Tích lũy 6 tín chỉ từ danh sách tự chọn còn lại của chuyên ngành.",
-        "courses": [
-          "ENM10301",
-          "ENM10302",
-          "ENM10303",
-          "ENM10304",
-          "ENM10305",
-          "ENM10306",
-          "ENM10307",
-          "ENM10102",
-          "ENM10103",
-          "ENM10110",
-          "ENM10112",
-          "ENM10113",
-          "ENM10203",
-          "ENM10208"
-        ]
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 14,
+            "courses": [
+              "ENM10301",
+              "ENM10302",
+              "ENM10303",
+              "ENM10304",
+              "ENM10305"
+            ]
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 6,
+            "courses": [
+              "ENM10306",
+              "ENM10307",
+              "ENM10102",
+              "ENM10103",
+              "ENM10110",
+              "ENM10112",
+              "ENM10113",
+              "ENM10203",
+              "ENM10208"
+            ]
+          }
+        }
       }
     ]
   },

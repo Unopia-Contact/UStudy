@@ -132,90 +132,123 @@ export const categories = {
         "type": "NUCLEAR_ENGINEERING",
         "name": "Chuyên ngành Kỹ thuật hạt nhân",
         "credits": 41,
-        "courses": [
-          "NTE10101",
-          "NTE10102",
-          "NTE10103",
-          "NTE10104",
-          "NTE10105",
-          "NTE10106",
-          "NTE10108",
-          "NTE10111",
-          "NTE10112",
-          "NTE10113",
-          "NTE10114",
-          "NTE10115",
-          "NTE10116",
-          "NTE10117",
-          "NTE10107",
-          "NTE10109",
-          "NTE10110",
-          "NTE10118",
-          "MPH10109",
-          "PHY10801",
-          "NTE10119",
-          "NTE10120",
-          "PHY10322",
-          "PHY10426"
-        ],
-        "note": "Học phần bắt buộc — 35 tín chỉ — bắt buộc; Học phần tự chọn — yêu cầu 6 tín chỉ — tự chọn — Chọn học để tích lũy 6 tín chỉ."
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 35,
+            "courses": [
+              "NTE10101",
+              "NTE10102",
+              "NTE10103",
+              "NTE10104",
+              "NTE10105",
+              "NTE10106",
+              "NTE10108",
+              "NTE10111",
+              "NTE10112",
+              "NTE10113",
+              "NTE10114",
+              "NTE10115",
+              "NTE10116",
+              "NTE10117"
+            ]
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 6,
+            "courses": [
+              "NTE10107",
+              "NTE10109",
+              "NTE10110",
+              "NTE10118",
+              "MPH10109",
+              "PHY10801",
+              "NTE10119",
+              "NTE10120",
+              "PHY10322",
+              "PHY10426"
+            ]
+          }
+        }
       },
       {
         "type": "NUCLEAR_ENERGY_AND_POWER",
         "name": "Chuyên ngành Năng lượng và điện hạt nhân",
         "credits": 41,
-        "courses": [
-          "NTE10101",
-          "NTE10102",
-          "NTE10103",
-          "NTE10104",
-          "NTE10105",
-          "NTE10106",
-          "NTE10108",
-          "NTE10110",
-          "NTE10111",
-          "NTE10112",
-          "NTE10201",
-          "NTE10202",
-          "NTE10203",
-          "NTE10204",
-          "NTE10107",
-          "NTE10205",
-          "NTE10117",
-          "NTE10109",
-          "NTE10116",
-          "PHY10801",
-          "PHY10322"
-        ],
-        "note": "Học phần bắt buộc — 35 tín chỉ — bắt buộc; Học phần tự chọn — yêu cầu 6 tín chỉ — tự chọn — Chọn học để tích lũy 6 tín chỉ."
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 35,
+            "courses": [
+              "NTE10101",
+              "NTE10102",
+              "NTE10103",
+              "NTE10104",
+              "NTE10105",
+              "NTE10106",
+              "NTE10108",
+              "NTE10110",
+              "NTE10111",
+              "NTE10112",
+              "NTE10201",
+              "NTE10202",
+              "NTE10203",
+              "NTE10204"
+            ]
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 6,
+            "courses": [
+              "NTE10107",
+              "NTE10205",
+              "NTE10117",
+              "NTE10109",
+              "NTE10116",
+              "PHY10801",
+              "PHY10322"
+            ]
+          }
+        }
       },
       {
         "type": "MEDICAL_PHYSICS",
         "name": "Chuyên ngành Vật lý y khoa",
         "credits": 40,
-        "courses": [
-          "NTE10101",
-          "NTE10102",
-          "NTE10103",
-          "NTE10104",
-          "NTE10105",
-          "MPH10106",
-          "MPH10107",
-          "MPH10108",
-          "MPH10109",
-          "MPH10110",
-          "MPH10111",
-          "MPH10112",
-          "NTE10106",
-          "NTE10107",
-          "NTE10108",
-          "NTE10109",
-          "NTE10118",
-          "MPH10120",
-          "PHY10801",
-          "NTE10119"
-        ],
-        "note": "Học phần bắt buộc — 34 tín chỉ — bắt buộc; Học phần tự chọn — yêu cầu 6 tín chỉ — tự chọn — Chọn học để tích lũy 6 tín chỉ."
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 34,
+            "courses": [
+              "NTE10101",
+              "NTE10102",
+              "NTE10103",
+              "NTE10104",
+              "NTE10105",
+              "MPH10106",
+              "MPH10107",
+              "MPH10108",
+              "MPH10109",
+              "MPH10110",
+              "MPH10111",
+              "MPH10112"
+            ]
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 6,
+            "courses": [
+              "NTE10106",
+              "NTE10107",
+              "NTE10108",
+              "NTE10109",
+              "NTE10118",
+              "MPH10120",
+              "PHY10801",
+              "NTE10119"
+            ]
+          }
+        }
       }
     ]
   },

@@ -85,46 +85,46 @@ export const categories = {
           }
         }
       },
-  "GENERAL_IT": {
-    "name": "Tin học",
-    "total_credits_required": 3,
-    "mandatory": true,
-    "note": "Không tính vào điểm trung bình; tính vào số tín chỉ tích lũy; không nằm trong 131 TC của mục 3.",
-    "courses": [
-      "CSC00003"
-    ]
-  },
-  "GENERAL_ENGLISH": {
-    "name": "Ngoại ngữ",
-    "total_credits_required": 12,
-    "mandatory": false,
-    "note": "PDF ghi 4 học phần Anh văn, nhưng sinh viên đạt chuẩn ngoại ngữ đầu ra theo quy định hiện hành thì không đăng ký học các học phần này. Theo quy tắc tương thích UStudy của Project, nhóm này mandatory=false và course_type của các học phần được ánh xạ thành TC.",
-    "courses": [
-      "ADD00031",
-      "ADD00032",
-      "ADD00033",
-      "ADD00034"
-    ]
-  },
-  "GENERAL_PE": {
-    "name": "Giáo dục thể chất",
-    "total_credits_required": 4,
-    "mandatory": true,
-    "note": "Không tính vào điểm trung bình; tính vào số tín chỉ tích lũy; không nằm trong 131 TC của mục 3.",
-    "courses": [
-      "BAA00021",
-      "BAA00022"
-    ]
-  },
-  "GENERAL_DEFENSE": {
-    "name": "Giáo dục quốc phòng - An ninh",
-    "total_credits_required": 4,
-    "mandatory": true,
-    "note": "Không tính vào điểm trung bình; tính vào số tín chỉ tích lũy; không nằm trong 131 TC của mục 3.",
-    "courses": [
-      "BAA00030"
-    ]
-  }
+      "GENERAL_IT": {
+        "name": "Tin học",
+        "total_credits_required": 3,
+        "mandatory": true,
+        "note": "Không tính vào điểm trung bình; tính vào số tín chỉ tích lũy; không nằm trong 131 TC của mục 3.",
+        "courses": [
+          "CSC00003"
+        ]
+      },
+      "GENERAL_ENGLISH": {
+        "name": "Ngoại ngữ",
+        "total_credits_required": 12,
+        "mandatory": false,
+        "note": "PDF ghi 4 học phần Anh văn, nhưng sinh viên đạt chuẩn ngoại ngữ đầu ra theo quy định hiện hành thì không đăng ký học các học phần này. Theo quy tắc tương thích UStudy của Project, nhóm này mandatory=false và course_type của các học phần được ánh xạ thành TC.",
+        "courses": [
+          "ADD00031",
+          "ADD00032",
+          "ADD00033",
+          "ADD00034"
+        ]
+      },
+      "GENERAL_PE": {
+        "name": "Giáo dục thể chất",
+        "total_credits_required": 4,
+        "mandatory": true,
+        "note": "Không tính vào điểm trung bình; tính vào số tín chỉ tích lũy; không nằm trong 131 TC của mục 3.",
+        "courses": [
+          "BAA00021",
+          "BAA00022"
+        ]
+      },
+      "GENERAL_DEFENSE": {
+        "name": "Giáo dục quốc phòng - An ninh",
+        "total_credits_required": 4,
+        "mandatory": true,
+        "note": "Không tính vào điểm trung bình; tính vào số tín chỉ tích lũy; không nằm trong 131 TC của mục 3.",
+        "courses": [
+          "BAA00030"
+        ]
+      }
     }
   },
   "FOUNDATION": {
@@ -162,110 +162,243 @@ export const categories = {
         "type": "ELECTRONICS",
         "name": "Chuyên ngành Điện tử",
         "credits": 34,
-        "courses": [
-          "ETC10101",
-          "ETC10102",
-          "ETC10103",
-          "ETC10104",
-          "ETC10105",
-          "ETC10106",
-          "ETC10107",
-          "ETC10108",
-          "ETC10109",
-          "ETC10110",
-          "ETC10111",
-          "ETC10112",
-          "ETC10113",
-          "ETC10114",
-          "ETC10115",
-          "ETC10236",
-          "ETC10116",
-          "ETC10117",
-          "ETC10137",
-          "ETC10118",
-          "ETC10119",
-          "ETC10138"
-        ],
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 26,
+            "courses": [
+              "ETC10101",
+              "ETC10102",
+              "ETC10103",
+              "ETC10104",
+              "ETC10105",
+              "ETC10106",
+              "ETC10107",
+              "ETC10108",
+              "ETC10109",
+              "ETC10110",
+              "ETC10111",
+            ],
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 8,
+            "breakdown": {
+              "TC1": {
+                "name": "Nhóm tự chọn 1",
+                "credits_required": 3,
+                "courses": [
+                  "ETC10112",
+                  "ETC10113",
+                  "ETC10114",
+                  "ETC10115",
+                ]
+              },
+              "TC2": {
+                "name": "Nhóm tự chọn 2",
+                "credits_required": 3,
+                "courses": [
+                  "ETC10116",
+                  "ETC10117",
+                  "ETC10137",
+                ]
+              },
+              "TC3": {
+                "name": "Nhóm tự chọn 3",
+                "credits_required": 2,
+                "courses": ["ETC10118",
+                  "ETC10119",
+                  "ETC10138"
+                ]
+              }
+            }
+          }
+        }
       },
       {
         "type": "EMBEDDED_SYSTEMS",
         "name": "Chuyên ngành Máy Tính - Hệ Thống Nhúng",
         "credits": 34,
-        "courses": [
-          "ETC10201",
-          "ETC10202",
-          "ETC10203",
-          "ETC10204",
-          "ETC10205",
-          "ETC10206",
-          "ETC10207",
-          "ETC10208",
-          "ETC10209",
-          "ETC10210",
-          "ETC10211",
-          "ETC10212",
-          "ETC10213",
-          "ETC10214",
-          "ETC10215",
-          "ETC10216",
-          "ETC10217",
-          "ETC10218",
-          "ETC10307",
-          "ETC10236",
-          "ETC10219",
-          "ETC10220",
-          "ETC10221",
-          "ETC10222",
-          "ETC10223",
-          "ETC10224",
-          "ETC10225",
-          "ETC10226",
-          "ETC10227",
-          "ETC10228",
-          "ETC10229",
-          "ETC10230"
-        ],
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 26,
+            "courses": [
+              "ETC10201",
+              "ETC10202",
+              "ETC10203",
+              "ETC10204",
+              "ETC10205",
+              "ETC10206",
+              "ETC10207",
+              "ETC10208",
+              "ETC10209",
+              "ETC10210",
+              "ETC10211",
+              "ETC10212",
+              "ETC10213",
+              "ETC10214",
+              "ETC10215",
+            ],
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 8,
+            "breakdown": {
+              "TC1": {
+                "name": "Nhóm tự chọn 1",
+                "credits_required": 2,
+                "courses": [
+                  "ETC10216",
+                  "ETC10217",
+                  "ETC10218",
+                  "ETC10307",
+                  "ETC10236",
+                ]
+              },
+              "TC2": {
+                "name": "Nhóm tự chọn 2",
+                "credits_required": 3,
+                "note": "Chọn 1 trong 2 nhóm học phần.",
+                "breakdown": {
+                  "TC2A": {
+                    "name": "Nhóm tự chọn 2A",
+                    "credits_required": 3,
+                    "courses": [
+                      "ETC10219",
+                      "ETC10220",
+                    ]
+                  },
+                  "TC2B": {
+                    "name": "Nhóm tự chọn 2B",
+                    "credits_required": 3,
+                    "courses": [
+                      "ETC10221",
+                      "ETC10222",
+                    ]
+                  }
+                }
+              },
+              "TC3": {
+                "name": "Nhóm tự chọn 3",
+                "credits_required": 3,
+                "note": "Chọn 1 trong 4 nhóm học phần.",
+                "breakdown": {
+                  "TC3A": {
+                    "name": "Nhóm tự chọn 3A",
+                    "credits_required": 3,
+                    "courses": [
+                      "ETC10223",
+                      "ETC10224",
+                    ]
+                  },
+                  "TC3B": {
+                    "name": "Nhóm tự chọn 3B",
+                    "credits_required": 3,
+                    "courses": [
+                      "ETC10225",
+                      "ETC10226",
+                    ]
+                  },
+                  "TC3C": {
+                    "name": "Nhóm tự chọn 3C",
+                    "credits_required": 3,
+                    "courses": [
+                      "ETC10227",
+                      "ETC10228",
+                    ]
+                  },
+                  "TC3D": {
+                    "name": "Nhóm tự chọn 3D",
+                    "credits_required": 3,
+                    "courses": [
+                      "ETC10229",
+                      "ETC10230",
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       {
         "type": "TELECOM_NETWORKS",
         "name": "Chuyên ngành Viễn Thông - Mạng",
         "credits": 34,
-        "courses": [
-          "ETC10301",
-          "ETC10302",
-          "ETC10303",
-          "ETC10304",
-          "ETC10305",
-          "ETC10306",
-          "ETC10307",
-          "ETC10308",
-          "ETC10309",
-          "ETC10310",
-          "ETC10311",
-          "ETC10312",
-          "ETC10313",
-          "ETC10314",
-          "ETC10315",
-          "ETC10316",
-          "ETC10320",
-          "ETC10317",
-          "ETC10318",
-          "ETC10319",
-          "ETC10321",
-          "ETC10322",
-          "ETC10323",
-          "ETC10227",
-          "ETC10228",
-          "ETC10324",
-          "ETC10325",
-          "ETC10326",
-          "ETC10327",
-          "ETC10328",
-          "ETC10330",
-          "ETC10236",
-          "ETC10331",
-          "ETC10332"
-        ],
+        "breakdown": {
+          "MANDATORY": {
+            "name": "Học phần bắt buộc",
+            "credits": 22,
+            "courses": [
+              "ETC10301",
+              "ETC10302",
+              "ETC10303",
+              "ETC10304",
+              "ETC10305",
+              "ETC10306",
+              "ETC10307",
+              "ETC10308",
+              "ETC10309",
+              "ETC10310",
+              "ETC10311",
+              "ETC10312",
+              "ETC10313",
+            ],
+          },
+          "ELECTIVE": {
+            "name": "Học phần tự chọn",
+            "credits_required": 12,
+            "breakdown": {
+              "TC1": {
+                "name": "Nhóm tự chọn 1",
+                "credits_required": 9,
+                "note": "Chọn 1 trong 2 nhóm học phần.",
+                "breakdown": {
+                  "TC1A": {
+                    "name": "Nhóm tự chọn 1A",
+                    "credits_required": 9,
+                    "courses": [
+                      "ETC10314",
+                      "ETC10315",
+                      "ETC10316",
+                      "ETC10320",
+                    ]
+                  },
+                  "TC1B": {
+                    "name": "Nhóm tự chọn 1B",
+                    "credits_required": 9,
+                    "courses": [
+                      "ETC10317",
+                      "ETC10318",
+                      "ETC10319",
+                      "ETC10321",
+                      "ETC10322",
+                      "ETC10323",
+                    ]
+                  }
+                }
+              },
+              "TC2": {
+                "name": "Nhóm tự chọn 2",
+                "credits_required": 3,
+                "courses": [
+                  "ETC10227",
+                  "ETC10228",
+                  "ETC10324",
+                  "ETC10325",
+                  "ETC10326",
+                  "ETC10327",
+                  "ETC10328",
+                  "ETC10330",
+                  "ETC10236",
+                  "ETC10331",
+                  "ETC10332"
+                ]
+              }
+            }
+          }
+        }
       }
     ]
   },

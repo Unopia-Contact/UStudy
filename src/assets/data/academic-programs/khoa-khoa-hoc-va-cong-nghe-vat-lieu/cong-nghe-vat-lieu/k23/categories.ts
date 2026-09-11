@@ -1,5 +1,6 @@
 import { convertMajorOptionsToBreakdown } from '../../../convert-major-options-to-breakdown';
 
+// file chuẩn (chuyên ngành kh chia bắt buộc/tự chọn)
 export const categories = {
   "GENERAL_EDUCATION": {
     "name": "Kiến thức giáo dục đại cương",
