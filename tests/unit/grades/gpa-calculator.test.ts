@@ -28,6 +28,17 @@ describe('GPACalculator', () => {
     expect(result).toBeCloseTo((8 * 2 + 9 * 4) / 6, 8);
   });
 
+  it('calculates the concrete cumulative GPA after a failed course is improved', () => {
+    const result = GPACalculator.calculateProjectedGPA([
+      grade({ code: 'CSC10001', credits: 4, grade: 8 }),
+      grade({ code: 'CSC10002', credits: 4, grade: 4, status: 'retake' }),
+    ], [
+      { code: 'CSC10002', credits: 4, projectedGrade: 7 },
+    ]);
+
+    expect(result).toBeCloseTo((8 * 4 + 7 * 4) / 8, 8);
+  });
+
   it('reports targets that are already achieved or impossible', () => {
     const history = [grade({ credits: 100, grade: 9 })];
 

@@ -596,12 +596,25 @@ export function useGPAPull({
      */
     const manualRetakeImpact = useMemo(() => {
         const totalImpactPoints = manualRetakeItems.reduce((sum, item) => sum + item.impactPoints, 0);
-        const avgGpaLift = scopedTotalCredits > 0 ? totalImpactPoints / scopedTotalCredits : 0;
+        const currentGPA = scopedCurrentSnapshot.gpa;
+        const projectedGPA = manualRetakeItems.length > 0
+            ? GPACalculator.calculateProjectedGPA(
+                scopedGradesHistory,
+                manualRetakeItems.map((item) => ({
+                    code: item.code,
+                    credits: item.credits,
+                    projectedGrade: item.targetGrade,
+                })),
+            )
+            : currentGPA;
+
         return {
             totalImpactPoints,
-            avgGpaLift,
+            currentGPA,
+            projectedGPA,
+            gpaDelta: projectedGPA - currentGPA,
         };
-    }, [manualRetakeItems, scopedTotalCredits]);
+    }, [manualRetakeItems, scopedCurrentSnapshot.gpa, scopedGradesHistory]);
 
     const selectedManualRetakeCodes = useMemo(() => {
         const set = new Set<string>();
