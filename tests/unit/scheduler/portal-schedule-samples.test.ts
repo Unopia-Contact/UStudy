@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ScheduleLogic } from '../../../src/features/visual-schedule/services/schedule-logic';
+import { ScheduleLogic as LegacyScheduleLogic } from '../../../src/logic/ScheduleLogic';
 import { decodeScheduleMask, encodeScheduleToMask } from '../../../src/logic/Utils';
 import { resolveRegistrations } from '../../../src/logic/scheduler/RegistrationResolver';
 import { maskToSections } from '../../../src/logic/scheduler/ScheduleDecoder';
@@ -157,6 +158,60 @@ describe('Portal schedule samples', () => {
     ]);
     expect(groupSections).toEqual([
       expect.objectContaining({ day: 8 }),
+    ]);
+  });
+
+  it('applies a single trailing room to every meeting in the same schedule string', () => {
+    const raw = 'T2(1-10); T3(1-10); T4(1-10); T5(1-10); T6(1-10); T7(1-10)-P.A303';
+    const course = {
+      id: 'SHAREDROOM001',
+      name: 'Shared room course',
+      classGroup: 'ROOM01',
+      courseType: 'LT',
+      schedule: raw,
+    };
+    const courseMeta = [{ course_id: course.id, credits: 1, theory_hours: 60 }];
+    const metadata = { params: { registration: { year: '26-27', sem: '1' } } };
+
+    expect(ScheduleLogic.parseScheduleString(raw).map((entry) => entry.room)).toEqual(
+      Array(6).fill('P.A303'),
+    );
+    expect(LegacyScheduleLogic.parseScheduleString(raw).map((entry) => entry.room)).toEqual(
+      Array(6).fill('P.A303'),
+    );
+
+    const schedule = ScheduleLogic.buildScheduleSessions(
+      [course],
+      courseMeta,
+      metadata,
+      undefined,
+      [],
+      [],
+      'dong-hoa',
+    );
+    const legacySchedule = LegacyScheduleLogic.buildScheduleSessions([course], courseMeta, metadata);
+
+    expect(schedule.sessions).toHaveLength(6);
+    expect(schedule.sessions.every((session) => session.room === 'P.A303')).toBe(true);
+    expect(legacySchedule.sessions).toHaveLength(6);
+    expect(legacySchedule.sessions.every((session) => session.room === 'P.A303')).toBe(true);
+  });
+
+  it('keeps the existing room value unchanged when the trailing value is a Portal placeholder', () => {
+    const raw = 'T3(11-14); TCN(1-5)-P.Link TKB';
+
+    expect(ScheduleLogic.parseScheduleString(raw).map((entry) => entry.room)).toEqual([
+      'P.Link TKB',
+      'P.Link TKB',
+    ]);
+  });
+
+  it('does not overwrite independently assigned rooms', () => {
+    const raw = 'T2(1-5)-P.A101; T4(6-10)-P.B202';
+
+    expect(ScheduleLogic.parseScheduleString(raw).map((entry) => entry.room)).toEqual([
+      'P.A101',
+      'P.B202',
     ]);
   });
 });

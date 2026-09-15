@@ -52,6 +52,31 @@ const SCHEDULE_REGEX_SIMPLE = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)/gi;
 /** Regex cho parse từng phần schedule (non-global, dùng cho match đơn) */
 const SCHEDULE_PART_REGEX = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)(?:\s*-\s*([^:;]+)(?::\s*(.*))?)?/i;
 
+function getRoomFromMatch(match: RegExpMatchArray): string | undefined {
+    return (match[5] || match[4])?.trim() || undefined;
+}
+
+function inheritTrailingRoom<T extends { room?: string }>(entries: T[]): T[] {
+    const trailingRoom = entries.at(-1)?.room;
+    if (entries.length < 2 || !trailingRoom || entries.slice(0, -1).some((entry) => entry.room)) {
+        return entries;
+    }
+
+    return entries.map((entry) => ({ ...entry, room: trailingRoom }));
+}
+
+function getSharedTrailingRoom(scheduleParts: string[]): string | undefined {
+    const rooms = scheduleParts.map((part) => {
+        const match = part.match(SCHEDULE_PART_REGEX);
+        return match ? getRoomFromMatch(match) : undefined;
+    });
+    const trailingRoom = rooms.at(-1);
+
+    return rooms.length > 1 && trailingRoom && rooms.slice(0, -1).every((room) => !room)
+        ? trailingRoom
+        : undefined;
+}
+
 // ─── Core Functions ─────────────────────────────────────────────────
 
 export const ScheduleLogic = {
@@ -74,7 +99,7 @@ export const ScheduleLogic = {
             const dayIndex = dayStr === 'CN' ? 6 : parseInt(dayStr) - 2;
             const startPeriod = parseFloat(match[2]);
             const endPeriod = parseFloat(match[3]);
-            const room = (match[5] || match[4])?.trim() || undefined;
+            const room = getRoomFromMatch(match);
 
             results.push({
                 dayStr: `T${dayStr}`,
@@ -86,7 +111,7 @@ export const ScheduleLogic = {
             });
         }
 
-        return results;
+        return inheritTrailingRoom(results);
     },
 
     /**
@@ -321,6 +346,7 @@ export const ScheduleLogic = {
 
             const scheduleStr: string = course.schedule || '';
             const scheduleParts: string[] = scheduleStr.split(/[;,]/).map((s) => s.trim()).filter(Boolean);
+            const sharedTrailingRoom = getSharedTrailingRoom(scheduleParts);
 
             if (scheduleParts.length > 0 && !countedCourseCodes.has(course.id)) {
                 countedCourseCodes.add(course.id);
@@ -344,7 +370,7 @@ export const ScheduleLogic = {
 
                 let rawStart = parseFloat(match[2]);
                 let rawEnd = parseFloat(match[3]);
-                let room = (match[5] || match[4] || '').trim();
+                let room = getRoomFromMatch(match) || sharedTrailingRoom || '';
                 const baseDayOfWeek = dayOfWeek;
                 const baseRoom = room;
                 const basePeriods = ScheduleLogic.adjustPeriodsForPractical(cType, rawStart, rawEnd);
