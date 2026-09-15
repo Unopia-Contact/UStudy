@@ -42,15 +42,15 @@ export type ScheduleColor = 'blue' | 'green' | 'yellow' | 'purple';
  * - T2(1-5) - F301: Room (optional)
  * - T3 (3.5-5.5) - Phòng TH: Room name with space (optional)
  */
-const SCHEDULE_REGEX = /T(\d|CN)\s*\(([\d.]+)-([\d.]+)\)(?:\s*-\s*([^,;:]+))?/g;
+const SCHEDULE_REGEX = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)(?:\s*-\s*([^,;:]+)(?::\s*([^,;]+))?)?/gi;
 
 /**
  * Regex đơn giản chỉ match phần Tx(n-m), dùng cho dataProcessor (không cần room).
  */
-const SCHEDULE_REGEX_SIMPLE = /T(\d|CN)\(([\d.]+)-([\d.]+)\)/g;
+const SCHEDULE_REGEX_SIMPLE = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)/gi;
 
 /** Regex cho parse từng phần schedule (non-global, dùng cho match đơn) */
-const SCHEDULE_PART_REGEX = /T(\d|CN)\s*\(([\d.]+)-([\d.]+)\)(?:\s*-\s*([^:;]+)(?::\s*(.*))?)?/;
+const SCHEDULE_PART_REGEX = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)(?:\s*-\s*([^:;]+)(?::\s*(.*))?)?/i;
 
 // ─── Core Functions ─────────────────────────────────────────────────
 
@@ -70,11 +70,11 @@ export const ScheduleLogic = {
 
         let match;
         while ((match = SCHEDULE_REGEX.exec(scheduleStr)) !== null) {
-            const dayStr = match[1];
+            const dayStr = match[1].toUpperCase();
             const dayIndex = dayStr === 'CN' ? 6 : parseInt(dayStr) - 2;
             const startPeriod = parseFloat(match[2]);
             const endPeriod = parseFloat(match[3]);
-            const room = match[4]?.trim() || undefined;
+            const room = (match[5] || match[4])?.trim() || undefined;
 
             results.push({
                 dayStr: `T${dayStr}`,

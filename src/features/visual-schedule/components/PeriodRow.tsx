@@ -1,5 +1,6 @@
 import { CourseCard } from './EditSessionDialog';
-import { type WeeklySchedule, type ScheduleOverrides, DAYS } from '../types';
+import { type WeeklySchedule, type ScheduleOverrides } from '../types';
+import { getVisibleWeekDays } from '../../../constants';
 import type { OpenClassDetailTarget } from '../../../components/course';
 import {
     getSessionsForCell,
@@ -29,15 +30,17 @@ export function PeriodRow({
     onSave: (newOverrides: ScheduleOverrides) => void;
     onOpenClassDetails: (target: OpenClassDetailTarget) => void;
 }) {
+    const visibleDays = getVisibleWeekDays(schedule.sessions.map((session) => session.dayOfWeek));
+
     return (
         <tr>
             <td className="sticky left-0 bg-gray-50 z-10 p-0.5 md:p-1.5 border border-gray-200 text-center" style={{ height: 'var(--schedule-row-height)' }}>
                 <div className="text-[10px] md:text-[13px] font-semibold text-gray-700">{period}</div>
                 <div className="text-[9px] md:text-[11px] text-gray-500">{time}</div>
             </td>
-            {DAYS.map((day) => {
-                const session = getSessionsForCell(day.value, period, schedule.sessions);
-                const isTodayCell = isToday(day.value);
+            {visibleDays.map((day) => {
+                const session = getSessionsForCell(day.day, period, schedule.sessions);
+                const isTodayCell = isToday(day.day);
                 const isCurrentPeriod = isTodayCell && currentPeriod === period;
 
                 if (session && shouldRenderCell(session, period)) {
@@ -46,7 +49,7 @@ export function PeriodRow({
                     const hasOverlap = conflictingSessions.length > 0;
 
                     return (
-                        <td key={day.value} rowSpan={calculateRowSpan(session)} className={`p-0.5 md:p-1 border border-gray-200 align-middle ${isTodayCell ? 'bg-green-50/50' : ''
+                        <td key={day.day} rowSpan={calculateRowSpan(session)} className={`p-0.5 md:p-1 border border-gray-200 align-middle ${isTodayCell ? 'bg-green-50/50' : ''
                             } ${isCurrentPeriod ? 'ring-2 ring-green-500 ring-inset' : ''}`}>
                             <CourseCard
                                 sessions={sessionsToDisplay}
@@ -59,7 +62,7 @@ export function PeriodRow({
                         </td>
                     );
                 } else if (!session) {
-                    return <td key={day.value} className={`p-0.5 md:p-1 border border-gray-200 bg-white ${isTodayCell ? 'bg-green-50/30' : ''
+                    return <td key={day.day} className={`p-0.5 md:p-1 border border-gray-200 bg-white ${isTodayCell ? 'bg-green-50/30' : ''
                         }`} style={{ height: 'var(--schedule-row-height)' }} />;
                 }
                 return null;

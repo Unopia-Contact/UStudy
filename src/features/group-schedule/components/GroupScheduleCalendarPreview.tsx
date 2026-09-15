@@ -1,9 +1,8 @@
 import type { CSSProperties } from 'react';
 import { useMemo, useState, useRef } from 'react';
 import { AlertTriangle, Calendar, Clock, Camera, Download, Loader2 } from 'lucide-react';
-import { STORAGE_KEYS, UI_COLORS } from '../../../config';
-import { readFromStorage, saveToStorage } from '../../../helpers/localStorage/save';
-import { weekDays } from '../../../constants';
+import { UI_COLORS } from '../../../config';
+import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { maskToSections } from '../../../logic/scheduler/ScheduleDecoder';
 import type { GroupScheduleOption } from '../types';
 import type { ClassSection, SavedSchedule } from '../../../types';
@@ -163,6 +162,15 @@ export function GroupScheduleCalendarPreview({
   const member = option?.schedules.find((schedule) => schedule.memberIndex === activeMemberIndex) ?? option?.schedules[0];
   const effectiveMemberIndex = member?.memberIndex ?? 0;
   const sections = getGroupMemberSections(option, effectiveMemberIndex, defaultCampusId);
+  const visibleDays = useMemo(
+    () => getVisibleWeekDays(sections.map((section) => section.day)),
+    [sections],
+  );
+  const dayColumnCount = visibleDays.length;
+  const gridTemplateColumns = getScheduleGridTemplate(64, dayColumnCount);
+  const calendarMinWidth = dayColumnCount === 7
+    ? 'min-w-[713px] md:min-w-[1156px]'
+    : 'min-w-[620px] md:min-w-[1000px]';
   const scheduleAxis = useMemo(
     () => buildScheduleAxis(sections, defaultCampusId),
     [sections, defaultCampusId],
@@ -330,13 +338,13 @@ export function GroupScheduleCalendarPreview({
         </div>
 
         <div className="overflow-auto">
-          <div className="min-w-[620px] md:min-w-[1000px]">
-            <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns: '64px repeat(6, 1fr)' }}>
+          <div className={calendarMinWidth}>
+            <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns }}>
               <div className="sticky left-0 z-30 flex h-11 flex-col items-center justify-center border-r border-white/20 bg-[#004A98] md:h-12">
                 <span className="text-[10px] font-semibold text-white md:text-xs">{getScheduleAxisHeader(scheduleAxis)}</span>
                 <span className="text-[8px] font-medium text-white/70">{getScheduleAxisContext(scheduleAxis)}</span>
               </div>
-              {weekDays.map((day) => (
+              {visibleDays.map((day) => (
                 <div key={day.day} className="flex h-11 flex-col items-center justify-center border-l border-white/15 bg-[#004A98] px-1 text-white md:h-12">
                   <span className="hidden text-[10px] font-normal leading-none text-white/70 md:block">{day.nameVi}</span>
                   <span className="text-[11px] font-semibold leading-tight md:text-[13px]">{day.short}</span>
@@ -364,16 +372,16 @@ export function GroupScheduleCalendarPreview({
                     <div
                       key={row.kind === 'period' ? `period-${row.period}` : row.kind === 'break' ? `break-${row.afterPeriod}` : `time-${row.minute}`}
                       className="grid"
-                      style={{ gridTemplateColumns: '64px repeat(6, 1fr)', height: row.height }}
+                      style={{ gridTemplateColumns, height: row.height }}
                     >
                       <div className={`sticky left-0 z-[4] flex items-center justify-center border-b border-r text-[9px] font-medium md:text-[10px] ${isBreak ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
                         {row.kind === 'period' ? <><span className="sr-only">Tiết </span>{label}</> : isBreak ? 'Trưa' : label}
                       </div>
                       {isBreak ? (
-                        <div className="col-span-6 flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700 md:text-xs">
+                        <div className="flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700 md:text-xs" style={{ gridColumn: `span ${dayColumnCount}` }}>
                           {getScheduleAxisBreakLabel(row)}
                         </div>
-                      ) : weekDays.map((day) => (
+                      ) : visibleDays.map((day) => (
                         <div key={`${day.day}-${label}`} className="border-b border-l border-gray-200 bg-white transition-colors hover:bg-slate-50/80" />
                       ))}
                     </div>
@@ -388,7 +396,8 @@ export function GroupScheduleCalendarPreview({
                   const conflictLabel = getScheduleConflictLabel(section, conflicts);
                   const timeRange = getClassSectionTimeRange(section, defaultCampusId);
                   const { top, height } = getScheduleAxisPosition(section, scheduleAxis, defaultCampusId);
-                  const dayIndex = section.day - 2;
+                  const dayIndex = visibleDays.findIndex((day) => day.day === section.day);
+                  if (dayIndex < 0) return null;
                   const baseColor = hasConflict ? '#EF4444' : section.color;
                   const backgroundColor = hasConflict ? '#FFF1F2' : getSolidTint(section.color);
                   const textColor = hasConflict ? '#991B1B' : '#111827';
@@ -430,8 +439,8 @@ export function GroupScheduleCalendarPreview({
                       style={{
                         position: 'absolute',
                         top: top + 2,
-                        left: `calc(64px + ${dayIndex} * ((100% - 64px) / 6) + 3px)`,
-                        width: 'calc((100% - 64px) / 6 - 6px)',
+                        left: `calc(64px + ${dayIndex} * ((100% - 64px) / ${dayColumnCount}) + 3px)`,
+                        width: `calc((100% - 64px) / ${dayColumnCount} - 6px)`,
                         height: height - 4,
                         backgroundColor,
                         borderRadius: '8px',

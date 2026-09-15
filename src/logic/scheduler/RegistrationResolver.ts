@@ -134,8 +134,11 @@ function parseScheduleAndRoom(raw: string): { schedule: string; room?: string } 
     // vì dấu '-' trong T2(1-3) là khoảng tiết chứ không phải dấu ngăn phòng.
     const roomMatch = raw.match(/\)\s*-\s*([^;,]+)/);
     const candidateRoom = roomMatch?.[1]?.trim();
-    const room = candidateRoom && !/^T(?:\d|CN)\s*\(/i.test(candidateRoom)
-        ? candidateRoom
+    const roomAfterLabel = candidateRoom?.includes(':')
+        ? candidateRoom.slice(candidateRoom.lastIndexOf(':') + 1).trim()
+        : candidateRoom;
+    const room = roomAfterLabel && !/^T(?:\d|CN)\s*\(/i.test(roomAfterLabel)
+        ? roomAfterLabel
         : undefined;
 
     return { schedule, room };

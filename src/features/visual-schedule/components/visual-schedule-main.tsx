@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Calendar, Clock, BookOpen, GraduationCap, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 
-import { DAYS } from '../types';
+import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { useVisualSchedule } from '../hooks/use-visual-schedule';
 import { NoDataCard } from '../../../components/feedback';
 import { PageHeader } from '../../../components/layout/page-header';
@@ -45,7 +45,6 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     trends,
     uniqueCourses,
     isToday,
-    currentPeriod,
     handlePreviousWeek,
     handleNextWeek,
     handleExport
@@ -55,6 +54,18 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     () => buildScheduleAxis(displaySessions, defaultCampusId),
     [displaySessions, defaultCampusId],
   );
+  const visibleDays = useMemo(
+    () => getVisibleWeekDays([
+      ...schedule.sessions.map((session) => session.dayOfWeek),
+      ...displaySessions.map((session) => session.dayOfWeek),
+    ]),
+    [schedule.sessions, displaySessions],
+  );
+  const dayColumnCount = visibleDays.length;
+  const gridTemplateColumns = getScheduleGridTemplate(64, dayColumnCount);
+  const calendarMinWidth = dayColumnCount === 7
+    ? 'min-w-[644px] md:min-w-[1156px]'
+    : 'min-w-[560px] md:min-w-[1000px]';
 
   const calendarBlocks = useMemo(() => {
     const visited = new Set<string>();
@@ -218,16 +229,16 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
         </p>
       )}
       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto mb-4 md:mb-6">
-        <div className="min-w-[560px] md:min-w-[1000px]">
-          <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns: '64px repeat(6, 1fr)' }}>
+        <div className={calendarMinWidth}>
+          <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns }}>
             <div className="sticky left-0 z-30 flex h-11 flex-col items-center justify-center border-r border-white/20 bg-[#004A98] text-[10px] font-semibold text-white md:h-12 md:text-xs">
               <span>{getScheduleAxisHeader(scheduleAxis)}</span>
               <span className="text-[8px] font-medium text-white/70">{getScheduleAxisContext(scheduleAxis)}</span>
             </div>
-            {DAYS.map((day) => (
-              <div key={day.value} className={`flex h-11 flex-col items-center justify-center border-l border-white/15 px-1 text-[10px] font-semibold text-white md:h-12 md:text-[13px] ${isToday(day.value) ? 'bg-green-600' : 'bg-[#004A98]'}`}>
+            {visibleDays.map((day) => (
+              <div key={day.day} className={`flex h-11 flex-col items-center justify-center border-l border-white/15 px-1 text-[10px] font-semibold text-white md:h-12 md:text-[13px] ${isToday(day.day) ? 'bg-green-600' : 'bg-[#004A98]'}`}>
                 {day.label}
-                {isToday(day.value) && <span className="mt-0.5 text-[9px] font-normal md:text-[11px]">Hôm nay</span>}
+                {isToday(day.day) && <span className="mt-0.5 text-[9px] font-normal md:text-[11px]">Hôm nay</span>}
               </div>
             ))}
           </div>
@@ -246,17 +257,17 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
                   <div
                     key={row.kind === 'period' ? `period-${row.period}` : row.kind === 'break' ? `break-${row.afterPeriod}` : `time-${row.minute}`}
                     className="grid"
-                    style={{ gridTemplateColumns: '64px repeat(6, 1fr)', height: row.height }}
+                    style={{ gridTemplateColumns, height: row.height }}
                   >
                     <div className={`sticky left-0 z-[4] flex items-center justify-center border-b border-r text-[9px] font-medium md:text-[10px] ${isBreak ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
                       {row.kind === 'period' ? <><span className="sr-only">Tiết </span>{label}</> : isBreak ? 'Trưa' : label}
                     </div>
                     {isBreak ? (
-                      <div className="col-span-6 flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700 md:text-xs">
+                      <div className="flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700 md:text-xs" style={{ gridColumn: `span ${dayColumnCount}` }}>
                         {getScheduleAxisBreakLabel(row)}
                       </div>
-                    ) : DAYS.map((day) => (
-                      <div key={`${day.value}-${label}`} className={`border-b border-l border-gray-200 ${isToday(day.value) ? 'bg-green-50/30' : 'bg-white'}`} />
+                    ) : visibleDays.map((day) => (
+                      <div key={`${day.day}-${label}`} className={`border-b border-l border-gray-200 ${isToday(day.day) ? 'bg-green-50/30' : 'bg-white'}`} />
                     ))}
                   </div>
                 );
@@ -265,7 +276,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
 
             <div className="pointer-events-none absolute inset-0 z-[2]">
               {calendarBlocks.map((block) => {
-                const dayIndex = DAYS.findIndex((day) => day.value === block.day);
+                const dayIndex = visibleDays.findIndex((day) => day.day === block.day);
                 if (dayIndex < 0) return null;
                 const positions = block.sessions.map((session) => getScheduleAxisPosition(session, scheduleAxis, defaultCampusId));
                 const top = Math.min(...positions.map((position) => position.top));
@@ -278,8 +289,8 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
                     style={{
                       top: position.top,
                       height: position.height,
-                      left: `calc(64px + ${dayIndex} * ((100% - 64px) / 6))`,
-                      width: 'calc((100% - 64px) / 6)',
+                      left: `calc(64px + ${dayIndex} * ((100% - 64px) / ${dayColumnCount}))`,
+                      width: `calc((100% - 64px) / ${dayColumnCount})`,
                     }}
                   >
                     <CourseCard

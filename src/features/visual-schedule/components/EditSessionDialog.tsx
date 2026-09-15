@@ -4,7 +4,8 @@ import { AlertTriangle, CalendarDays, CalendarOff, Check, Clock3, MapPin, Messag
 import { AppSelect, Input, Label, Switch, Textarea } from '../../../components/ui/form';
 import { AppDialog } from '../../../components/ui/overlays/app-dialog';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '../../../components/ui/overlays/hover-card';
-import { type ScheduleSession, type ScheduleOverrides, type SessionOverride, DAYS } from '../types';
+import { type ScheduleSession, type ScheduleOverrides, type SessionOverride } from '../types';
+import { weekDays } from '../../../constants';
 import type { OpenClassDetailTarget } from '../../../components/course';
 import { calculateRowSpan, getDisplayEnd } from '../services/schedule-helpers';
 import { ScheduleNote } from './schedule-note';
@@ -97,7 +98,7 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
             setError(`Tiết học chưa hợp lệ với ${getCampusDefinition(campusId).name}.`);
             return;
         }
-        if (![...DAYS.map((day) => day.value), 8].includes(parsedDay as 2 | 3 | 4 | 5 | 6 | 7 | 8)) {
+        if (!weekDays.some((day) => day.day === parsedDay)) {
             setError('Vui lòng chọn ngày học hợp lệ.');
             return;
         }
@@ -249,7 +250,7 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
                             <AppSelect
                                 value={dayOfWeek}
                                 onChange={setDayOfWeek}
-                                options={[...DAYS.map((day) => ({ id: day.value, name: day.label })), { id: '8', name: 'Chủ Nhật' }]}
+                                options={weekDays.map((day) => ({ id: String(day.day), name: day.label }))}
                                 ariaLabel="Chọn ngày học"
                                 triggerClassName="h-10 px-3 py-0 text-sm"
                             />

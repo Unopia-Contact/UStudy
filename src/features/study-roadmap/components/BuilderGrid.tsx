@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { AlertTriangle, Lock, Bot } from 'lucide-react';
-import { weekDays } from '../../../constants';
+import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import type { ClassSection } from '../../../types';
 import { getConflicts } from '../../../logic/ScheduleValidator';
 import { getScheduleConflictLabel, ScheduleConflictHoverCard } from '../../../components/schedule/schedule-conflict-hover-card';
@@ -53,6 +53,15 @@ export function BuilderGrid({
     () => buildScheduleAxis(allSections, defaultCampusId),
     [allSections, defaultCampusId],
   );
+  const visibleDays = useMemo(
+    () => getVisibleWeekDays(allSections.map((section) => section.day)),
+    [allSections],
+  );
+  const dayColumnCount = visibleDays.length;
+  const gridTemplateColumns = getScheduleGridTemplate(56, dayColumnCount);
+  const calendarMinWidth = dayColumnCount === 7
+    ? 'min-w-[644px] md:min-w-[807px]'
+    : 'min-w-[560px] md:min-w-[700px]';
   const conflictsBySectionId = useMemo(() => new Map(
     allSections.map((section) => [section.id, getConflicts(section, allSections, defaultCampusId)]),
   ), [allSections, defaultCampusId]);
@@ -81,17 +90,17 @@ export function BuilderGrid({
         </div>
       )}
       <div className="overflow-auto flex-1">
-        <div className="min-w-[560px] md:min-w-[700px]">
+        <div className={calendarMinWidth}>
           {/* Column headers */}
           <div
             className="sticky top-0 z-20 grid bg-[#004A98]"
-            style={{ gridTemplateColumns: '56px repeat(6, 1fr)' }}
+            style={{ gridTemplateColumns }}
           >
             <div className="sticky left-0 z-30 flex h-10 flex-col items-center justify-center border-r border-white/20 bg-[#004A98]">
               <span className="text-[10px] font-semibold text-white">{getScheduleAxisHeader(scheduleAxis)}</span>
               <span className="text-[8px] font-medium text-white/70">{getScheduleAxisContext(scheduleAxis)}</span>
             </div>
-            {weekDays.map(day => (
+            {visibleDays.map(day => (
               <div
                 key={day.day}
                 className="flex flex-col items-center justify-center border-l border-white/15 bg-[#004A98] px-1 text-white"
@@ -122,16 +131,16 @@ export function BuilderGrid({
                   <div
                     key={row.kind === 'period' ? `period-${row.period}` : row.kind === 'break' ? `break-${row.afterPeriod}` : `time-${row.minute}`}
                     className="grid"
-                    style={{ gridTemplateColumns: '56px repeat(6, 1fr)', height: row.height }}
+                    style={{ gridTemplateColumns, height: row.height }}
                   >
                     <div className={`sticky left-0 z-[4] flex items-center justify-center border-b border-r text-[9px] font-medium ${isBreak ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
                       {row.kind === 'period' ? <><span className="sr-only">Tiết </span>{label}</> : isBreak ? 'Trưa' : label}
                     </div>
                     {isBreak ? (
-                      <div className="col-span-6 flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700">
+                      <div className="flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700" style={{ gridColumn: `span ${dayColumnCount}` }}>
                         {getScheduleAxisBreakLabel(row)}
                       </div>
-                    ) : weekDays.map((day) => (
+                    ) : visibleDays.map((day) => (
                       <div key={`${day.day}-${label}`} className="border-b border-l border-gray-200 bg-white" />
                     ))}
                   </div>
@@ -152,7 +161,8 @@ export function BuilderGrid({
 
                 const timeRange = getClassSectionTimeRange(section, defaultCampusId);
                 const { top: topPx, height: heightPx } = getScheduleAxisPosition(section, scheduleAxis, defaultCampusId);
-                const dayColIndex = section.day - 2;
+                const dayColIndex = visibleDays.findIndex((day) => day.day === section.day);
+                if (dayColIndex < 0) return null;
 
                 const baseColor = hasConflict ? '#EF4444' : section.color;
                 const bgColor = hasConflict ? '#FFF1F2' : getSolidTint(section.color);
@@ -183,8 +193,8 @@ export function BuilderGrid({
                     style={{
                       position: 'absolute',
                       top: topPx + 2,
-                      left: `calc(56px + ${dayColIndex} * ((100% - 56px) / 6) + 2px)`,
-                      width: `calc((100% - 56px) / 6 - 4px)`,
+                      left: `calc(56px + ${dayColIndex} * ((100% - 56px) / ${dayColumnCount}) + 2px)`,
+                      width: `calc((100% - 56px) / ${dayColumnCount} - 4px)`,
                       height: heightPx - 4,
                       backgroundColor: bgColor,
                       borderRadius: '6px',
