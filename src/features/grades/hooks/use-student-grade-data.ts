@@ -6,126 +6,314 @@ import { getProgramRequiredCredits } from '../../../assets/data/academic-program
 import { AcademicRulesEngine } from '../services/academic-rules-engine';
 import { FinancialLogic } from '../../tuition';
 import { useDepartmentData } from '../../../context/DepartmentContext';
+import {
+    buildCreditDistribution,
+    getDistributionTotal,
+} from '../../../features/dashboard/services/dashboard-insights';
 
 export function useStudentGradeData() {
-    const { data: { tuitionRates, courses: allCoursesMeta, categories }, academicYear, semesterNumber } = useDepartmentData();
-    const totalProgramCredits = getProgramRequiredCredits(categories);
+    const {
+        data: {
+            tuitionRates,
+            courses: allCoursesMeta,
+            categories,
+        },
+        academicYear,
+        semesterNumber,
+    } = useDepartmentData();
+
+    const totalProgramCredits = useMemo(
+        () => getProgramRequiredCredits(categories),
+        [categories],
+    );
+
     const [stamp, setStamp] = useState(Date.now());
-    const [isReady, setIsReady] = useState(false);
-    const [hasData, setHasData] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
-            if (event.data && (
-                event.data.type === 'IMPORT_FULL_DATA' ||
-                event.data.type === 'CACHE_POPULATED'
-            )) {
+            if (
+                event.data &&
+                (
+                    event.data.type === 'IMPORT_FULL_DATA' ||
+                    event.data.type === 'CACHE_POPULATED'
+                )
+            ) {
                 setStamp(Date.now());
             }
         };
 
         window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
+
+        return () => {
+            window.removeEventListener('message', handleMessage);
+        };
     }, []);
 
-    // Build selected semester key, e.g. "2024-2025" + sem 2 → "24-25/2"
+    /**
+     * Ví dụ:
+     *
+     * academicYear = "2024-2025"
+     * semesterNumber = 2
+     *
+     * => "24-25/2"
+     */
     const selectedSemesterKey = useMemo(() => {
-        const y = String(academicYear);
-        if (y.length === 9) {
-            return `${y.substring(2, 4)}-${y.substring(7, 9)}/${semesterNumber}`;
+        const year = String(academicYear);
+
+        if (year.length === 9) {
+            return `${year.substring(2, 4)}-${year.substring(7, 9)}/${semesterNumber}`;
         }
-        return `${y}/${semesterNumber}`;
+
+        return `${year}/${semesterNumber}`;
     }, [academicYear, semesterNumber]);
 
     const gradeData = useMemo(() => {
-        setIsReady(false);
+        const studentDb = readFromStorage<any>(
+            STORAGE_KEYS.STUDENT_DB,
+            null,
+        );
 
-        const studentDb = readFromStorage<any>(STORAGE_KEYS.STUDENT_DB, null);
+        const imported = hasImportedData();
 
+        /**
+         * Chưa có database sinh viên.
+         */
         if (!studentDb) {
-            setHasData(hasImportedData());
-            setIsReady(true);
             return {
                 gradesHistory: [],
                 currentGPA: 0,
                 currentGPA4: 0,
+
                 accumulatedCredits: 0,
                 totalCredits: totalProgramCredits,
+
                 estimatedTuition: 0,
                 tuitionSource: 'none' as const,
+
                 gpaPerSemester: [],
+
                 majorGPA: 0,
+
                 foundationGPA: 0,
                 foundationGPA4: 0,
+
                 majorSpecializedGPA: 0,
                 majorSpecializedGPA4: 0,
+
+                hasData: imported,
             };
         }
 
-        setHasData(true);
-        const grades = Array.isArray(studentDb.grades) ? studentDb.grades : [];
+        const grades = Array.isArray(studentDb.grades)
+            ? studentDb.grades
+            : [];
 
-        const hasBLMExemption = AcademicRulesEngine.checkBLMExemption(grades);
-        const effectiveGrades = AcademicRulesEngine.resolveEffectiveGrades(grades);
+        const hasBLMExemption =
+            AcademicRulesEngine.checkBLMExemption(grades);
 
-        // ── GPA Summary: delegate to AcademicRulesEngine ──
+        const effectiveGrades =
+            AcademicRulesEngine.resolveEffectiveGrades(grades);
+
+        /**
+         * ============================================================
+         * GPA
+         * ============================================================
+         *
+         * AcademicRulesEngine vẫn chịu trách nhiệm:
+         *
+         * - GPA hệ 10
+         * - GPA hệ 4
+         * - GPA từng học kỳ
+         * - GPA cơ sở ngành
+         * - GPA chuyên ngành
+         *
+         * NHƯNG:
+         *
+         * accumulatedCredits trả về từ đây KHÔNG còn được dùng.
+         */
+        const gpaSummary =
+            AcademicRulesEngine.calculateGPASummary(
+                grades,
+                effectiveGrades,
+                hasBLMExemption,
+                allCoursesMeta,
+                selectedSemesterKey,
+            );
+
         const {
             gradesHistory,
             currentGPA,
             currentGPA4,
-            accumulatedCredits,
             gpaPerSemester,
             majorGPA,
             foundationGPA,
             foundationGPA4,
             majorSpecializedGPA,
             majorSpecializedGPA4,
-        } = AcademicRulesEngine.calculateGPASummary(
-            grades,
-            effectiveGrades,
-            hasBLMExemption,
-            allCoursesMeta,
-            selectedSemesterKey,
-        );
+        } = gpaSummary;
 
-        // ── BLM Exemption ghost courses ──
-        const ghostCourses = AcademicRulesEngine.buildExemptedGhostCourses(effectiveGrades, hasBLMExemption);
+        /**
+         * BLM exemption ghost courses
+         */
+        const ghostCourses =
+            AcademicRulesEngine.buildExemptedGhostCourses(
+                effectiveGrades,
+                hasBLMExemption,
+            );
+
         gradesHistory.push(...ghostCourses);
 
-        const totalCredits = totalProgramCredits;
+        /**
+         * ============================================================
+         * TÍN CHỈ TÍCH LŨY
+         * ============================================================
+         *
+         * KHÔNG dùng:
+         *
+         * gpaSummary.accumulatedCredits
+         *
+         * nữa.
+         *
+         * Thay vào đó sử dụng cùng rule với
+         * CreditDistributionWidget.
+         *
+         * buildCreditDistribution hiện chỉ giữ:
+         *
+         * status === "passed"
+         *
+         * => môn studying / chưa có điểm
+         *    KHÔNG được tính.
+         *
+         * Đồng thời rule bên trong xử lý:
+         *
+         * - môn trùng category
+         * - breakdown
+         * - options
+         * - specialization
+         * - selection_mode = one
+         * - include_in_parent_total
+         * - excluded courses
+         * - excluded categories
+         * - giới hạn tín chỉ
+         */
+        const creditDistribution =
+            buildCreditDistribution(
+                categories,
+                allCoursesMeta,
+            );
 
-        // ── Tuition estimation: delegate to FinancialLogic ──
-        const importMeta = readFromStorage<any>(STORAGE_KEYS.IMPORT_META, null);
-        const tuitionData = FinancialLogic.calculateTuitionData(
-            selectedSemesterKey,
-            undefined,
-            studentDb,
-            importMeta,
-            tuitionRates,
-            allCoursesMeta
+        const accumulatedCredits =
+            getDistributionTotal(
+                creditDistribution,
+            );
+
+        const totalCredits =
+            totalProgramCredits;
+
+        /**
+         * Debug để đối chiếu với cách tính cũ.
+         */
+        console.groupCollapsed(
+            '[StudentGradeData] Tín chỉ tích lũy',
         );
-        const estimatedTuition = tuitionData.summary.totalFee;
-        const tuitionSource = tuitionData.source;
 
-        setIsReady(true);
+        console.log(
+            'Theo AcademicRulesEngine cũ:',
+            gpaSummary.accumulatedCredits,
+        );
+
+        console.log(
+            'Theo CTĐT / Credit Distribution:',
+            accumulatedCredits,
+        );
+
+        console.log(
+            'Tổng tín chỉ chương trình:',
+            totalCredits,
+        );
+
+        console.table(
+            creditDistribution.map((item) => ({
+                key: item.key,
+                category: item.name,
+                earnedCredits: item.credits,
+                requiredCredits: item.requiredCredits,
+            })),
+        );
+
+        console.groupEnd();
+
+        /**
+         * ============================================================
+         * HỌC PHÍ
+         * ============================================================
+         */
+        const importMeta = readFromStorage<any>(
+            STORAGE_KEYS.IMPORT_META,
+            null,
+        );
+
+        const tuitionData =
+            FinancialLogic.calculateTuitionData(
+                selectedSemesterKey,
+                undefined,
+                studentDb,
+                importMeta,
+                tuitionRates,
+                allCoursesMeta,
+            );
+
+        const estimatedTuition =
+            tuitionData.summary.totalFee;
+
+        const tuitionSource =
+            tuitionData.source;
+
         return {
             gradesHistory,
+
             currentGPA,
             currentGPA4,
+
             accumulatedCredits,
             totalCredits,
+
             estimatedTuition,
             tuitionSource,
+
             gpaPerSemester,
+
             majorGPA,
+
             foundationGPA,
             foundationGPA4,
+
             majorSpecializedGPA,
             majorSpecializedGPA4,
+
+            hasData: true,
         };
+    }, [
+        stamp,
+        tuitionRates,
+        allCoursesMeta,
+        categories,
+        selectedSemesterKey,
+        totalProgramCredits,
+    ]);
 
-    // selectedSemesterKey added so memo re-runs when user changes semester
-    }, [stamp, tuitionRates, allCoursesMeta, selectedSemesterKey, totalProgramCredits]);
+    return {
+        ...gradeData,
 
-    return { ...gradeData, isReady, hasData };
+        /**
+         * Tất cả phép tính phía trên đều synchronous,
+         * nên không cần setState từ bên trong useMemo.
+         */
+        isReady: isMounted,
+    };
 }
