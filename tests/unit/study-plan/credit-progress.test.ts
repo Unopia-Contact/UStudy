@@ -13,6 +13,13 @@ const passedCourse = (courseId: string, credits: number) => ({
   status: 'passed' as const,
 });
 
+const uncompletedCourse = (courseId: string, credits: number) => ({
+  course_id: courseId,
+  course_name_vi: courseId,
+  credits,
+  status: 'none' as const,
+});
+
 describe('getCategoryCreditProgress', () => {
   it('excludes only CSC00003 from the parent while preserving other IT credits', () => {
     const informationTechnology = {
@@ -173,5 +180,78 @@ describe('getCategoryCreditProgress', () => {
     expect(getRequiredCredits(categories.MAJOR)).toBe(8);
     expect(progress['MAJOR.HONORS_COMMON'].display).toEqual({ earnedCredits: 4, plannedCredits: 0 });
     expect(progress.MAJOR.display).toEqual({ earnedCredits: 8, plannedCredits: 0 });
+  });
+
+  it('caps every general-education group at its required credits', () => {
+    const categories = {
+      GENERAL_EDUCATION: {
+        name: 'Giáo dục đại cương',
+        total_credits_required: 6,
+        breakdown: {
+          GENERAL_SOCIAL: {
+            name: 'Khoa học xã hội',
+            credits: 2,
+            coursesData: [
+              passedCourse('SOC10001', 2),
+              passedCourse('SOC10002', 2),
+            ],
+          },
+          GENERAL_IT: {
+            name: 'Tin học',
+            credits_required: 4,
+            coursesData: [passedCourse('CSC10001', 4)],
+          },
+        },
+      },
+    };
+
+    const progress = getProgramCategoryCreditProgress(categories, new Set());
+
+    expect(progress['GENERAL_EDUCATION.GENERAL_SOCIAL'].display).toEqual({
+      earnedCredits: 2,
+      plannedCredits: 0,
+    });
+    expect(progress.GENERAL_EDUCATION.display).toEqual({
+      earnedCredits: 6,
+      plannedCredits: 0,
+    });
+  });
+
+  it('uses remaining general-education credits for planned courses after earned credits', () => {
+    const categories = {
+      GENERAL_EDUCATION: {
+        name: 'Giáo dục đại cương',
+        total_credits_required: 4,
+        coursesData: [
+          passedCourse('SOC20001', 3),
+          uncompletedCourse('SOC20002', 3),
+        ],
+      },
+    };
+
+    const progress = getProgramCategoryCreditProgress(categories, new Set(['SOC20002']));
+
+    expect(progress.GENERAL_EDUCATION.display).toEqual({
+      earnedCredits: 3,
+      plannedCredits: 1,
+    });
+  });
+
+  it('does not cap credits outside general education', () => {
+    const categories = {
+      FOUNDATION: {
+        name: 'Kiến thức cơ sở ngành',
+        total_credits_required: 4,
+        coursesData: [
+          passedCourse('MTH30001', 3),
+          passedCourse('MTH30002', 3),
+        ],
+      },
+    };
+
+    expect(getProgramCategoryCreditProgress(categories, new Set()).FOUNDATION.display).toEqual({
+      earnedCredits: 6,
+      plannedCredits: 0,
+    });
   });
 });

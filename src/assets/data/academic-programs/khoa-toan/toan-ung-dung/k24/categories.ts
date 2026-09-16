@@ -36,7 +36,7 @@ export const categories = {
                 "breakdown": {
                     "MATH_MANDATORY": {
                         "name": "Toán bắt buộc",
-                        "credits_required": 34,
+                        "credits_required": 40,
                         "courses": [
                             "MTH00010",
                             "MTH00011",

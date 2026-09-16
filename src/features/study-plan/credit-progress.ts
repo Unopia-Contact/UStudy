@@ -134,7 +134,8 @@ export function getProgramCategoryCreditProgress(
             manuallyPlannedCourseIds,
             countedCourseIds,
             categoryKey,
-            progressByPath
+            progressByPath,
+            categoryKey === 'GENERAL_EDUCATION'
         );
     });
 
@@ -148,6 +149,21 @@ function getProgressScore(progress: CategoryCreditProgress): number {
 function replaceSetContents(target: Set<string>, source: Set<string>): void {
     target.clear();
     source.forEach((courseId) => target.add(courseId));
+}
+
+function capCreditProgress(
+    progress: { earnedCredits: number; plannedCredits: number },
+    requiredCredits: number
+): { earnedCredits: number; plannedCredits: number } {
+    if (requiredCredits <= 0) return progress;
+
+    const earnedCredits = Math.min(progress.earnedCredits, requiredCredits);
+    const plannedCredits = Math.min(
+        progress.plannedCredits,
+        Math.max(requiredCredits - earnedCredits, 0)
+    );
+
+    return { earnedCredits, plannedCredits };
 }
 
 function calculateUncountedCourseProgress(
@@ -188,7 +204,8 @@ function calculateCategoryCreditProgress(
     manuallyPlannedCourseIds: Set<string>,
     countedCourseIds: Set<string>,
     categoryPath: string,
-    progressByPath: CategoryCreditProgressMap
+    progressByPath: CategoryCreditProgressMap,
+    capAtRequiredCredits = false
 ): CategoryCreditCalculation {
     let earnedCredits = 0;
     let plannedCredits = 0;
@@ -231,7 +248,8 @@ function calculateCategoryCreditProgress(
                         manuallyPlannedCourseIds,
                         new Set(countedCourseIds),
                         `${categoryPath}.${childKey}`,
-                        progressByPath
+                        progressByPath,
+                        capAtRequiredCredits
                     );
                 });
 
@@ -243,7 +261,8 @@ function calculateCategoryCreditProgress(
                     manuallyPlannedCourseIds,
                     branchCourseIds,
                     `${categoryPath}.${childKey}`,
-                    progressByPath
+                    progressByPath,
+                    capAtRequiredCredits
                 );
                 return { progress, countedCourseIds: branchCourseIds };
             });
@@ -268,7 +287,8 @@ function calculateCategoryCreditProgress(
                         manuallyPlannedCourseIds,
                         countedCourseIds,
                         `${categoryPath}.${childKey}`,
-                        progressByPath
+                        progressByPath,
+                        capAtRequiredCredits
                     );
                     earnedCredits += childProgress.contribution.earnedCredits;
                     plannedCredits += childProgress.contribution.plannedCredits;
@@ -282,7 +302,8 @@ function calculateCategoryCreditProgress(
                     manuallyPlannedCourseIds,
                     countedCourseIds,
                     `${categoryPath}.${childKey}`,
-                    progressByPath
+                    progressByPath,
+                    capAtRequiredCredits
                 );
                 earnedCredits += childProgress.contribution.earnedCredits;
                 plannedCredits += childProgress.contribution.plannedCredits;
@@ -304,7 +325,8 @@ function calculateCategoryCreditProgress(
                 manuallyPlannedCourseIds,
                 optionCourseIds,
                 getCategoryOptionPath(categoryPath, optionIndex),
-                progressByPath
+                progressByPath,
+                capAtRequiredCredits
             );
             return { progress, countedCourseIds: optionCourseIds };
         });
@@ -323,7 +345,8 @@ function calculateCategoryCreditProgress(
         }
     }
 
-    const display = { earnedCredits, plannedCredits };
+    const requiredCredits = capAtRequiredCredits ? getRequiredCredits(category) : 0;
+    const display = capCreditProgress({ earnedCredits, plannedCredits }, requiredCredits);
     const categoryIsExcluded = Boolean(
         category.name && AcademicRulesEngine.isCategoryExcludedFromAccumulation(category.name)
     );
@@ -332,7 +355,10 @@ function calculateCategoryCreditProgress(
         display,
         contribution: categoryIsExcluded
             ? { earnedCredits: 0, plannedCredits: 0 }
-            : { earnedCredits: contributingEarnedCredits, plannedCredits: contributingPlannedCredits },
+            : capCreditProgress(
+                { earnedCredits: contributingEarnedCredits, plannedCredits: contributingPlannedCredits },
+                requiredCredits
+            ),
     };
     progressByPath[categoryPath] = result;
 
