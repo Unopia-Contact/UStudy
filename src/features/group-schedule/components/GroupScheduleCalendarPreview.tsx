@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import { useMemo, useState, useRef } from 'react';
-import { AlertTriangle, Calendar, Clock, Camera, Download, Loader2 } from 'lucide-react';
+import { AlertTriangle, Calendar, Clock, Camera, Download, Loader2, ImagePlus } from 'lucide-react';
 import { UI_COLORS } from '../../../config';
 import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { maskToSections } from '../../../logic/scheduler/ScheduleDecoder';
@@ -16,6 +16,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { getScheduleConflictLabel, ScheduleConflictHoverCard } from '../../../components/schedule/schedule-conflict-hover-card';
 import { getCompactCampusLabel } from '../../../components/schedule/campus-label';
 import { useCampus } from '../../../context/CampusContext';
+import { ScheduleImageDialog } from '../../schedule-image/ScheduleImageDialog';
+import { fromClassSections } from '../../schedule-image/schedule-image-model';
 import type { CampusId } from '../../../domain/campus';
 import {
   classSectionsOverlap,
@@ -180,6 +182,7 @@ export function GroupScheduleCalendarPreview({
   
   const calendarRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportTotal, setExportTotal] = useState(0);
 
@@ -269,7 +272,8 @@ export function GroupScheduleCalendarPreview({
           onChange={setActiveOptionIndex}
         />
 
-        <div className="flex shrink-0 items-center gap-2 lg:border-l lg:border-gray-200 lg:pl-3">
+        <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:border-l lg:border-gray-200 lg:pl-3">
+          <button type="button" className="schedule-image-secondary" onClick={() => setIsImageDialogOpen(true)} disabled={sections.length === 0}><ImagePlus className="h-4 w-4" /><span>Tạo ảnh</span></button>
           <span className="text-xs font-medium text-gray-500">Thành viên</span>
           <AppSelect
             value={String(effectiveMemberIndex)}
@@ -306,6 +310,7 @@ export function GroupScheduleCalendarPreview({
           </DropdownMenu>
         </div>
       </div>
+      {isImageDialogOpen && <ScheduleImageDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen} lessons={fromClassSections(sections)} title={`Lịch của ${member.nickname}`} subtitle={`Phương án ${option.option}`} filename={`lich-nhom-${slugify(member.nickname || 'thanh-vien')}-pa${option.option}`} />}
 
       <div ref={calendarRef} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="flex flex-col gap-2 border-b border-gray-200 bg-slate-50 px-3 py-3 md:flex-row md:items-center md:justify-between md:px-4">

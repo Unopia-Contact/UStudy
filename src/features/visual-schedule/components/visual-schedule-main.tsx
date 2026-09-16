@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calendar, Clock, BookOpen, GraduationCap, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { Calendar, Clock, BookOpen, GraduationCap, ChevronLeft, ChevronRight, Download, ImagePlus } from 'lucide-react';
 
 import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { useVisualSchedule } from '../hooks/use-visual-schedule';
@@ -14,6 +14,8 @@ import { QuickStatsCard } from './QuickStatsCard';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../../components/course';
 import { getOverlappingSessions } from '../services/schedule-helpers';
 import { useCampus } from '../../../context/CampusContext';
+import { ScheduleImageDialog } from '../../schedule-image/ScheduleImageDialog';
+import { fromScheduleSessions } from '../../schedule-image/schedule-image-model';
 import {
   buildScheduleAxis,
   getScheduleAxisBreakLabel,
@@ -31,6 +33,7 @@ interface VisualScheduleMainProps {
 export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps) {
   const { defaultCampusId } = useCampus();
   const [isHolidayManagerOpen, setIsHolidayManagerOpen] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [openClassDetails, setOpenClassDetails] = useState<OpenClassDetailTarget | null>(null);
   const {
     isReady,
@@ -138,6 +141,16 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
                 }])).values())}
                 onSave={schedule.updateOverrides}
               />
+
+              <button
+                type="button"
+                aria-label="Tạo ảnh thời khóa biểu"
+                onClick={() => setIsImageDialogOpen(true)}
+                className="ustudy-button-normal text-[#004A98]"
+              >
+                <ImagePlus className="h-4 w-4" />
+                <span className="hidden sm:inline">Tạo ảnh</span>
+              </button>
 
               {/* Export Button */}
               <button
@@ -324,6 +337,16 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
       </div>
 
       <OpenClassDetailDialog target={openClassDetails} onOpenChange={(open) => { if (!open) setOpenClassDetails(null); }} />
+      {isImageDialogOpen && (
+        <ScheduleImageDialog
+          open={isImageDialogOpen}
+          onOpenChange={setIsImageDialogOpen}
+          lessons={fromScheduleSessions(schedule.sessions)}
+          title="Thời khóa biểu"
+          subtitle={schedule.semesterName}
+          filename={`thoi-khoa-bieu-${schedule.semester.replace(/\//g, '-')}`}
+        />
+      )}
 
     </PageShell>
   );

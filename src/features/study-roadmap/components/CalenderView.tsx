@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, cloneElement, useCallback, useRef, isVali
 import { STORAGE_KEYS } from '../../../config';
 import { SavedSchedulesModal } from '../../group-schedule';
 import { readFromStorage, saveToStorage } from '../../../helpers/localStorage/save';
-import { Calendar, AlertTriangle, Cpu, ChevronLeft, ChevronRight, Settings, Sun, Moon, Zap, X, Save, List, Trash2, Clock, Check, BookOpen, Hash, BarChart2, Layers, Users } from 'lucide-react';
+import { Calendar, AlertTriangle, Cpu, ChevronLeft, ChevronRight, Settings, Sun, Moon, Zap, X, Save, List, Trash2, Clock, Check, BookOpen, Hash, BarChart2, Layers, Users, ImagePlus } from 'lucide-react';
 import { type ClassSection, type SavedSchedule } from '../../../types';
 import type { RegisteredCourse } from '../../../logic/scheduler/RegistrationResolver';
 import { type SolverPreferences, type ScheduleOption } from '../hooks/use-schedule-solver';
@@ -15,6 +15,8 @@ import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../../comp
 import { ScheduleModeToggle, ScheduleOptionSelector, type ScheduleMode } from '../../schedule';
 import { ScheduleBuilder } from './ScheduleBuilder';
 import { BuilderToolbar } from './BuilderToolbar';
+import { ScheduleImageDialog } from '../../schedule-image/ScheduleImageDialog';
+import { fromClassSections } from '../../schedule-image/schedule-image-model';
 import {
     createCourseCodeSet,
     excludeRegisteredSections,
@@ -154,6 +156,7 @@ export function CalendarView({
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [showListModal, setShowListModal] = useState(false);
     const [showStatsPanel, setShowStatsPanel] = useState(false);
+    const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [newScheduleName, setNewScheduleName] = useState('');
     const [loadedGroupSchedule, setLoadedGroupSchedule] = useState<SavedSchedule['groupSchedule'] | null>(null);
     const [activeLoadedGroupMemberIndex, setActiveLoadedGroupMemberIndex] = useState<number | null>(null);
@@ -296,6 +299,7 @@ export function CalendarView({
                             onClear={() => clearBuilderDraftRef.current?.()}
                         />
                     </div>
+                    <button type="button" className="schedule-image-secondary" disabled={(builderDraftSections.length > 0 ? builderDraftSections : currentSections).length === 0} onClick={() => setIsImageDialogOpen(true)}><ImagePlus className="h-4 w-4" />Tạo ảnh</button>
                 </>
             )}
         </div>
@@ -357,6 +361,7 @@ export function CalendarView({
     return (
         <div className="space-y-4">
             {renderModeToolbar()}
+            {isImageDialogOpen && <ScheduleImageDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen} lessons={fromClassSections(builderDraftSections.length > 0 ? builderDraftSections : currentSections)} title="Lịch xếp cá nhân" subtitle="Phương án đang xem" filename="lich-xep-ca-nhan" />}
 
             {/* ═══ Schedule Builder (unified manual + auto) ════════════════ */}
             <ScheduleBuilder
