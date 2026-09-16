@@ -330,6 +330,7 @@ dữ liệu học tập, kể cả khi các danh sách trong gói đều rỗng.
 | `solver_preferences` | `{ daysOff?, session?, strategy?, noGaps? }` |
 | `saved_schedules` | `SavedSchedule[]` gồm tên, thời gian, sessions, môn và lớp đã chọn |
 | `schedule_overrides` | `{ sessionOverrides, weekOverrides, holidays }` |
+| `schedule_workload_overrides` | `{ version: 1, programOverrides }`; quy tắc giờ học do người dùng chỉnh theo campus/khóa/khoa/ngành và mã môn |
 | `study_plan_draft` | `{ semesters: StudyPlanSemester[], plan: Record<semesterId, courseId[]> }` |
 | `study_plan_draft_layout` | `number` phần trăm chiều rộng panel trái |
 | `study_plan_category_expansion` | `Record<categoryId, boolean>` |

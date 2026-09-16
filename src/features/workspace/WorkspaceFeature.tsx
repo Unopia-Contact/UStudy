@@ -1,4 +1,4 @@
-import { Bookmark, Database, FlaskConical, HardDrive, ShieldCheck } from 'lucide-react';
+import { Bookmark, Calculator, Database, FlaskConical, HardDrive, ShieldCheck } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/layout/page-header';
 import { PageShell } from '../../components/layout/page-shell';
@@ -7,12 +7,14 @@ import { BookmarkLabFeature } from '../bookmark-lab/BookmarkLabFeature';
 import { SecurityLabFeature } from '../security-lab/SecurityLabFeature';
 import { WorkspaceDataFeature } from './components/WorkspaceDataFeature';
 import { WorkspaceStorageFeature } from './components/WorkspaceStorageFeature';
+import { WorkspaceWorkloadFeature } from './components/WorkspaceWorkloadFeature';
 
-type WorkspaceTab = 'lab' | 'data' | 'storage';
+type WorkspaceTab = 'lab' | 'data' | 'workload' | 'storage';
 
 const WORKSPACE_TABS: NavTab<WorkspaceTab>[] = [
     { id: 'lab', label: 'Lab', description: 'Công cụ kiểm thử nội bộ', icon: FlaskConical },
     { id: 'data', label: 'Dữ liệu', description: 'Danh mục và độ phủ dữ liệu', icon: Database },
+    { id: 'workload', label: 'Cách tính DSLM', description: 'Kiểm tra số tiết và số tuần', icon: Calculator },
     { id: 'storage', label: 'Local storage', description: 'Xem và chỉnh dữ liệu cục bộ', icon: HardDrive },
 ];
 
@@ -22,6 +24,7 @@ export function WorkspaceFeature() {
     const isSecurityLab = location.pathname.endsWith('/lab/security');
     const isBookmarkLab = location.pathname.endsWith('/lab/bookmark');
     const isDataWorkspace = location.pathname.startsWith('/ad/data');
+    const isWorkloadWorkspace = location.pathname.startsWith('/ad/workload');
     const isStorageWorkspace = location.pathname.startsWith('/ad/storage');
 
     return (
@@ -37,13 +40,15 @@ export function WorkspaceFeature() {
                 <NavigationBar
                     ariaLabel="Workspace"
                     tabs={WORKSPACE_TABS}
-                    activeTab={isDataWorkspace ? 'data' : isStorageWorkspace ? 'storage' : 'lab'}
-                    setActiveTab={(tab) => navigate(tab === 'data' ? '/ad/data' : tab === 'storage' ? '/ad/storage' : '/ad/lab')}
+                    activeTab={isDataWorkspace ? 'data' : isWorkloadWorkspace ? 'workload' : isStorageWorkspace ? 'storage' : 'lab'}
+                    setActiveTab={(tab) => navigate(tab === 'data' ? '/ad/data' : tab === 'workload' ? '/ad/workload' : tab === 'storage' ? '/ad/storage' : '/ad/lab')}
                 />
 
                 <div className="pt-5">
                     {isDataWorkspace ? (
                         <WorkspaceDataFeature />
+                    ) : isWorkloadWorkspace ? (
+                        <WorkspaceWorkloadFeature />
                     ) : isStorageWorkspace ? (
                         <WorkspaceStorageFeature />
                     ) : isSecurityLab ? (

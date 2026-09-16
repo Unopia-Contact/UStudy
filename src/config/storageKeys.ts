@@ -76,6 +76,8 @@ export const STORAGE_KEYS = {
     CHAT_HISTORY: 'chatbot_chat_history',
     /** Tiền tố key cho các tùy chỉnh thời khóa biểu theo từng học kỳ */
     SCHEDULE_OVERRIDES: 'schedule_overrides',
+    /** Cách phân bổ giờ LT/TH/BT được người dùng tùy chỉnh theo chương trình đào tạo */
+    SCHEDULE_WORKLOAD_OVERRIDES: 'schedule_workload_overrides',
     /** Thành viên nhóm (lưu tạm) */
     GROUP_SCHEDULER_MEMBERS: 'group_scheduler_members',
     /** Trạng thái UI (chế độ xem, tab đang mở, trạng thái ẩn/hiện) của Xếp lịch Nhóm */
