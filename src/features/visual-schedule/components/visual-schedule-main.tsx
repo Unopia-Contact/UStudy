@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react';
-import { Calendar, Clock, BookOpen, GraduationCap, ChevronLeft, ChevronRight, Download, ImagePlus } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { toPng } from 'html-to-image';
+import { Calendar, Clock, BookOpen, GraduationCap, ChevronLeft, ChevronRight, Download, ImageDown, ImagePlus, MoreHorizontal } from 'lucide-react';
 
 import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { useVisualSchedule } from '../hooks/use-visual-schedule';
 import { NoDataCard } from '../../../components/feedback';
 import { PageHeader } from '../../../components/layout/page-header';
 import { PageShell } from '../../../components/layout/page-shell';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../components/ui/overlays/dropdown-menu';
 import { ColorLegend } from './ColorLegend';
 import { HolidayManagerDialog } from './HolidayManagerDialog';
 import { CourseDetailCard } from './CourseDetailCard';
@@ -14,6 +16,7 @@ import { QuickStatsCard } from './QuickStatsCard';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../../components/course';
 import { getOverlappingSessions } from '../services/schedule-helpers';
 import { useCampus } from '../../../context/CampusContext';
+import { downloadImage } from '../../../utils/export';
 import { ScheduleImageDialog } from '../../schedule-image/ScheduleImageDialog';
 import { fromScheduleSessions } from '../../schedule-image/schedule-image-model';
 import {
@@ -34,7 +37,10 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
   const { defaultCampusId } = useCampus();
   const [isHolidayManagerOpen, setIsHolidayManagerOpen] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isExportingCurrentImage, setIsExportingCurrentImage] = useState(false);
+  const [imageExportError, setImageExportError] = useState('');
   const [openClassDetails, setOpenClassDetails] = useState<OpenClassDetailTarget | null>(null);
+  const currentScheduleImageRef = useRef<HTMLDivElement>(null);
   const {
     isReady,
     hasData,
@@ -84,6 +90,28 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     });
   }, [displaySessions]);
 
+  const exportCurrentScheduleImage = async () => {
+    const calendar = currentScheduleImageRef.current;
+    if (!calendar || isExportingCurrentImage) return;
+
+    setIsExportingCurrentImage(true);
+    setImageExportError('');
+    try {
+      const dataUrl = await toPng(calendar, {
+        backgroundColor: '#ffffff',
+        width: calendar.scrollWidth,
+        height: calendar.scrollHeight,
+        pixelRatio: 2,
+      });
+      downloadImage(dataUrl, `thoi-khoa-bieu-tuan-${currentWeek}.png`);
+    } catch (error) {
+      console.error('Failed to export current timetable image:', error);
+      setImageExportError('Không thể xuất ảnh lịch hiện tại. Thử tải lại trang rồi xuất lại.');
+    } finally {
+      setIsExportingCurrentImage(false);
+    }
+  };
+
   if (!isReady) {
     return (
       <div className="flex-1 flex items-center justify-center h-[400px]">
@@ -113,22 +141,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           title="Thời khóa biểu"
           description={<>Xem lịch học theo tuần - {schedule.semesterName}</>}
           actions={<>
-            <div className="flex items-center gap-1.5 md:gap-3">
-              {/* Manage Holidays Button */}
-              <button
-                type="button"
-                onClick={() => setIsHolidayManagerOpen(true)}
-                className="flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 text-gray-700 transition-colors hover:border-[#004A98]/40 hover:bg-blue-50 hover:text-[#004A98] md:gap-2 md:px-4"
-              >
-                <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                <span className="hidden text-xs font-semibold sm:inline md:text-sm">Quản lý nghỉ lễ</span>
-                {schedule.overrides.holidays.length > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#004A98] px-1.5 text-[10px] font-bold text-white">
-                    {schedule.overrides.holidays.length}
-                  </span>
-                )}
-              </button>
-
+            <div className="flex items-center">
               <HolidayManagerDialog
                 open={isHolidayManagerOpen}
                 onOpenChange={setIsHolidayManagerOpen}
@@ -142,24 +155,30 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
                 onSave={schedule.updateOverrides}
               />
 
-              <button
-                type="button"
-                aria-label="Tạo ảnh thời khóa biểu"
-                onClick={() => setIsImageDialogOpen(true)}
-                className="ustudy-button-normal text-[#004A98]"
-              >
-                <ImagePlus className="h-4 w-4" />
-                <span className="hidden sm:inline">Tạo ảnh</span>
-              </button>
-
-              {/* Export Button */}
-              <button
-                onClick={handleExport}
-                className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-[#004A98] text-white rounded-lg hover:bg-[#003d7a] transition-colors duration-200 shadow-md hover:shadow-lg"
-              >
-                <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                <span className="text-xs md:text-sm font-medium">Xuất lịch</span>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button type="button" className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50" aria-label="Mở tùy chọn thời khóa biểu" title="Tùy chọn thời khóa biểu">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="hidden sm:inline">Tùy chọn</span>
+                    {schedule.overrides.holidays.length > 0 && <span className="ustudy-badge-count text-[10px] font-bold">{schedule.overrides.holidays.length}</span>}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="z-50 w-56 bg-white">
+                  <DropdownMenuItem onClick={() => setIsHolidayManagerOpen(true)} className="cursor-pointer hover:bg-gray-100">
+                    <Calendar className="mr-2 h-4 w-4" />Quản lý nghỉ lễ
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setIsImageDialogOpen(true)} className="cursor-pointer hover:bg-gray-100">
+                    <ImagePlus className="mr-2 h-4 w-4" />Tạo ảnh tổng quan
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled={isExportingCurrentImage} onClick={() => void exportCurrentScheduleImage()} className="cursor-pointer hover:bg-gray-100">
+                    <ImageDown className="mr-2 h-4 w-4" />{isExportingCurrentImage ? 'Đang xuất ảnh…' : 'Xuất ảnh lịch hiện tại'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExport} className="cursor-pointer hover:bg-gray-100">
+                    <Download className="mr-2 h-4 w-4" />Xuất lịch (.ics)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </>}
         />
@@ -235,6 +254,8 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
         </div>
       )}
 
+      {imageExportError && <p role="alert" className="mb-3 text-sm font-medium text-red-700">{imageExportError}</p>}
+
       {/* Weekly Calendar Grid */}
       {scheduleAxis.mode === 'time' && (
         <p className="mb-2 text-xs text-slate-500" title={getScheduleAxisTimeBreakSummary(scheduleAxis) ?? undefined}>
@@ -242,7 +263,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
         </p>
       )}
       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto mb-4 md:mb-6">
-        <div className={calendarMinWidth}>
+        <div ref={currentScheduleImageRef} className={calendarMinWidth}>
           <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns }}>
             <div className="sticky left-0 z-30 flex h-11 flex-col items-center justify-center border-r border-white/20 bg-[#004A98] text-[10px] font-semibold text-white md:h-12 md:text-xs">
               <span>{getScheduleAxisHeader(scheduleAxis)}</span>
