@@ -242,7 +242,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
-
+{/* 
       {currentWeekHolidays.length > 0 && (
         <div className="mb-3 flex items-start gap-3 border-y border-amber-200 bg-amber-50 px-3 py-3 md:mb-4 md:px-4">
           <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
@@ -252,7 +252,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           </div>
           <button type="button" onClick={() => setIsHolidayManagerOpen(true)} className="shrink-0 text-xs font-semibold text-amber-800 hover:text-amber-950">Xem chi tiết</button>
         </div>
-      )}
+      )} */}
 
       {imageExportError && <p role="alert" className="mb-3 text-sm font-medium text-red-700">{imageExportError}</p>}
 
