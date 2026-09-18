@@ -1,159 +1,37 @@
-# Hướng dẫn cập nhật bản đồ khuôn viên
+# Nhập dữ liệu Campus Map
 
-## Các tệp liên quan
+## Nguồn duy nhất cho từng loại dữ liệu
 
-| Tệp | Vai trò |
-| --- | --- |
-| `src/features/campus-map/campus-data.ts` | Nguồn dữ liệu tòa nhà, tầng, phòng và toàn bộ bản vẽ tầng. Đây là nơi chỉnh sửa chính. |
-| `src/features/campus-map/campusmap.tsx` | Giao diện bản đồ khuôn viên và chọn tòa nhà. |
-| `src/features/campus-map/FloorPlanView.tsx` | Component dùng chung để hiển thị sơ đồ tầng. Không tạo layout riêng cho từng tòa trong tệp này. |
+- `src/assets/data/campus-map/campuses.ts`: cơ sở, tòa, tầng và phòng. Số lượng và danh sách trong UI đều suy ra từ đây.
+- `src/features/campus-map/DongHoaCampusDiagram.tsx`: hình học sơ đồ khuôn viên CS2. Các chữ A–G trên hình không tự tạo tòa trong inventory. Chỉ hình của tòa đã khai báo trong `campuses.ts` mới chọn được.
+- `src/assets/data/campus-map/floor-maps.ts`: danh sách asset sơ đồ tầng, keyed bằng `campus/building/floor`.
+- `public/maps/floors/`: SVG sơ đồ tầng được `floor-maps.ts` tham chiếu.
+- `src/integrations/hcmus-portal/rooms/bindings.ts`: mã Portal trỏ đến ID phòng trong inventory.
 
-## Cách hoạt động của sơ đồ tầng
+## Thêm tòa, tầng và phòng
 
-Mỗi tầng có thể có một trường `plan` độc lập. `plan` là một canvas SVG với kích thước và danh sách thành phần riêng, vì vậy mỗi tòa có thể có hành lang, cầu thang và phòng khác nhau.
+Trong `campuses.ts`, thêm tòa vào `buildings` của đúng cơ sở. Mỗi tòa có `id`, `code`, `name`, `kind`, `status` và `floors`. Mỗi tầng có `id`, `label`, `sortOrder` và `rooms`. Mỗi phòng có `id`, `code`, `label`, `kind` và `status`. Có thể thêm `aliases` và `verification` khi có nguồn xác minh.
 
-Giao diện không tự tạo hành lang, lưới phòng hoặc sơ đồ mẫu. Nếu một tầng chưa có `plan`, trang chỉ hiển thị trạng thái chưa thiết kế.
+ID runtime tự ghép theo thứ tự `campus/building/floor/room`. Ví dụ phòng `id: '2'` ở tầng `6` của tòa `b4-2` tại `dong-hoa` có ID `dong-hoa/b4-2/6/2`. Giữ ID ổn định vì deep link và Portal binding dùng nó.
+
+## Thêm sơ đồ tầng
+
+Đặt SVG tại `public/maps/floors/`, rồi thêm một entry trong `floor-maps.ts`:
 
 ```ts
-{
-  number: 1,
-  rooms: [],
-  plan: {
-    width: 900,
-    height: 600,
-    elements: [
-      {
-        id: 'vien-ngoai',
-        type: 'path',
-        d: 'M40 40 H860 V560 H40 Z',
-        fill: '#FFFFFF',
-        stroke: '#64748B',
-        strokeWidth: 3,
-      },
-      {
-        id: 'hanh-lang',
-        type: 'area',
-        x: 80,
-        y: 260,
-        width: 740,
-        height: 70,
-        label: 'Hành lang',
-        fill: '#F1F5F9',
-      },
-      {
-        id: 'a101',
-        type: 'room',
-        code: 'A101',
-        label: 'Phòng học 101',
-        aliases: ['Phòng 101'],
-        x: 90,
-        y: 90,
-        width: 180,
-        height: 130,
-      },
-      {
-        id: 'thang-bo',
-        type: 'label',
-        x: 750,
-        y: 160,
-        text: 'Thang bộ',
-        size: 15,
-      },
-    ],
+export const FLOOR_MAPS: Partial<Record<FloorId, MapAsset>> = {
+  'dong-hoa/b4-2/6': {
+    asset: '/maps/floors/b4-2-6.svg',
+    viewBox: [0, 0, 1200, 800],
+    shapeIds: ['room-6-2'],
   },
-}
+};
 ```
 
-## Các thành phần có thể vẽ
+Nếu vị trí phòng đã xác minh, thêm `map: { shapeId: 'room-6-2' }` vào phòng tương ứng trong `campuses.ts`. `shapeId` phải có trong `shapeIds` của sơ đồ tầng. Không nhập sơ đồ tầng trong `campuses.ts` hay component UI. Phòng chưa có sơ đồ vẫn được liệt kê và tìm kiếm.
 
-- `room`: Phòng hình chữ nhật. Bắt buộc có `code`; có thể thêm `label`, `aliases`, `roomType` và `fill`.
-- `area`: Khu vực hình chữ nhật có nhãn, phù hợp cho hành lang, sảnh thang máy, nhà vệ sinh hoặc khu chờ.
-- `path`: Đường SVG tùy ý, dùng khi cần vẽ tường, cầu thang, phòng méo, mũi tên hoặc hình không phải hình chữ nhật.
-- `label`: Chữ tự do tại đúng tọa độ SVG.
+## Liên kết mã Portal
 
-Thứ tự trong `elements` cũng là thứ tự vẽ. Nên đặt nền, viền hoặc tường ở trước; phòng và nhãn đặt sau để chúng hiển thị phía trên.
+Sau khi phòng đã có trong inventory, thêm binding trong `bindings.ts` với `roomId` hoàn chỉnh. Ví dụ `P.cs2:PM_B4-2_6.2` trỏ đến `dong-hoa/b4-2/6/2`. Binding `verified` cần `sourceIds` hoặc `note` ghi nguồn xác minh.
 
-## Vẽ hành lang và đường đi
-
-### Hành lang bao quanh một khu vực
-
-Dùng `path` với một hình ngoài và một hình trong. `fillRule: 'evenodd'` khiến hình trong trở thành phần rỗng, tạo thành hành lang bao quanh. Đặt phần tử này trước các phòng để phòng được vẽ phía trên hành lang.
-
-```ts
-{
-  id: 'hanh-lang-quanh-san',
-  type: 'path',
-  // Hình ngoài 700 x 400, chừa rỗng một khối giữa 520 x 220.
-  d: 'M100 100 H800 V500 H100 Z M190 190 H710 V410 H190 Z',
-  fill: '#E2E8F0',
-  fillRule: 'evenodd',
-  stroke: '#CBD5E1',
-  strokeWidth: 2,
-}
-```
-
-Sau đó vẽ phòng hoặc khu vực vào phần rỗng ở giữa, ví dụ `x: 190`, `y: 190`, `width: 520`, `height: 220`.
-
-### Đường đi dạng nét
-
-Dùng `path` mở, không có `fill`, rồi tăng `strokeWidth`. Cách này phù hợp để chỉ lối đi ngoài trời, lối thoát hoặc đường nối giữa các khu.
-
-```ts
-{
-  id: 'loi-di-chinh',
-  type: 'path',
-  d: 'M90 520 H360 V430 H690',
-  fill: 'none',
-  stroke: '#CBD5E1',
-  strokeWidth: 28,
-}
-```
-
-Tọa độ trong `d` dùng cùng hệ với `plan.width` và `plan.height`. Có thể dùng một công cụ vẽ SVG để lấy chuỗi `d`, sau đó dán vào đây.
-
-## Phòng học và tìm kiếm
-
-Khai báo mọi phòng trong `floors[].rooms`. Đây là nguồn dữ liệu duy nhất cho tìm kiếm, gợi ý, bộ lọc và danh sách phòng.
-
-Khi phòng đã có vị trí trên sơ đồ, thêm phần tử `type: 'room'` tương ứng trong `plan.elements` với cùng `code`. Phần tử này chỉ quyết định cách vẽ và vị trí; không tham gia tìm kiếm để tránh trùng dữ liệu.
-
-`label` là tên hiển thị của phòng. `aliases` là các tên gọi khác để tìm kiếm và không được hiển thị thành phòng riêng.
-
-### Mô tả và thông tin liên hệ của phòng
-
-Thông tin chi tiết được khai báo trực tiếp trong phần tử tương ứng của `floors[].rooms`. Tất cả các trường đều không bắt buộc; giao diện chỉ hiển thị những trường đã nhập.
-
-```ts
-{
-  code: 'PĐT',
-  name: 'Phòng Đào tạo - NĐH 2.4',
-  type: 'office',
-  aliases: ['pdt', 'phong dao tao', 'bảng điểm'],
-  description: 'Tiếp nhận và hỗ trợ các thủ tục liên quan đến đào tạo.',
-  phone: '(028) 0000 0000',
-  email: 'example@hcmus.edu.vn',
-  website: 'https://example.hcmus.edu.vn',
-  openingHours: 'Thứ Hai - Thứ Sáu, 08:00 - 16:30',
-}
-```
-
-- `description`: Nội dung mô tả tự do; có thể xuống dòng bằng `\n`.
-- `phone`: Số điện thoại, được hiển thị thành liên kết gọi điện.
-- `email`: Email, được hiển thị thành liên kết gửi thư.
-- `website`: Địa chỉ đầy đủ bắt đầu bằng `https://`, được mở trong tab mới.
-- `openingHours`: Giờ làm việc hoặc khoảng thời gian tiếp nhận.
-
-Không khai báo các trường này trong `plan.elements`. Bản vẽ chỉ giữ vị trí và hình dạng của phòng; thông tin phòng luôn lấy từ `floors[].rooms`.
-
-## Tọa độ bản đồ khuôn viên
-
-Tọa độ các tòa trên bản đồ tổng dùng hệ `viewBox="0 0 760 560"` trong `campusmap.tsx`. Chỉnh `x`, `y`, `width`, `height` và `rotate` của tòa tương ứng trong `CAMPUS_BUILDINGS`; không ghi cứng thông tin tòa trong JSX SVG.
-
-## Kiểm tra sau khi chỉnh sửa
-
-Sau khi cập nhật dữ liệu hoặc UI, chạy:
-
-```powershell
-npx tsc --noEmit
-npm run build
-```
+Chạy `pnpm exec vitest run tests/unit/campus-map.test.ts` để kiểm tra ID trùng, shape thiếu và binding không hợp lệ.

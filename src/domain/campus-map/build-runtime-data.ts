@@ -1,7 +1,7 @@
 import { createBuildingId, createFloorId, createRoomId } from './ids';
-import type { Campus, CampusMapRuntimeData } from './types';
+import type { Campus, CampusMapRuntimeData, FloorId, MapAsset } from './types';
 
-export function buildCampusMapRuntimeData(campuses: Campus[]): CampusMapRuntimeData {
+export function buildCampusMapRuntimeData(campuses: Campus[], floorMaps: Partial<Record<FloorId, MapAsset>> = {}): CampusMapRuntimeData {
   const data: CampusMapRuntimeData = {
     campusesById: {}, buildingsById: {}, floorsById: {}, roomsById: {},
     buildingIdsByCampusId: {}, floorIdsByBuildingId: {}, roomIdsByFloorId: {},
@@ -16,7 +16,7 @@ export function buildCampusMapRuntimeData(campuses: Campus[]): CampusMapRuntimeD
       data.floorIdsByBuildingId[buildingId] = [];
       for (const floor of building.floors) {
         const floorId = createFloorId(buildingId, floor.id);
-        data.floorsById[floorId] = { ...floor, buildingId, fullId: floorId };
+        data.floorsById[floorId] = { ...floor, buildingId, fullId: floorId, map: floorMaps[floorId] };
         data.floorIdsByBuildingId[buildingId].push(floorId);
         data.roomIdsByFloorId[floorId] = [];
         for (const room of floor.rooms) {

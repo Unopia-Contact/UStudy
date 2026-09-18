@@ -39,7 +39,6 @@ export interface Floor {
   label: string;
   level?: number;
   sortOrder: number;
-  map?: MapAsset;
   rooms: Room[];
 }
 
@@ -67,7 +66,7 @@ export interface Campus {
 }
 
 export interface BuildingRuntime extends Building { campusId: CampusId; fullId: BuildingId }
-export interface FloorRuntime extends Floor { buildingId: BuildingId; fullId: FloorId }
+export interface FloorRuntime extends Floor { buildingId: BuildingId; fullId: FloorId; map?: MapAsset }
 export interface RoomRuntime extends Room { floorId: FloorId; fullId: RoomId }
 
 export interface CampusMapRuntimeData {

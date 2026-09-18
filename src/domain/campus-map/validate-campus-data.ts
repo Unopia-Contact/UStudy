@@ -1,8 +1,10 @@
 import type { PortalRoomBinding } from '../../integrations/hcmus-portal/rooms/types';
+import { FLOOR_MAPS } from '../../assets/data/campus-map/floor-maps';
 import { compilePortalCode, createEquivalentPortalKey } from '../../integrations/hcmus-portal/rooms/build-portal-indexes';
 import { buildCampusMapRuntimeData } from './build-runtime-data';
 import { createBuildingId, createFloorId, createRoomId } from './ids';
 import type { Campus } from './types';
+import type { FloorId, MapAsset } from './types';
 
 export interface CampusMapValidationError {
   code: string;
@@ -10,7 +12,7 @@ export interface CampusMapValidationError {
   entityId?: string;
 }
 
-export function validateCampusMapData(campuses: Campus[], bindings: PortalRoomBinding[]): CampusMapValidationError[] {
+export function validateCampusMapData(campuses: Campus[], bindings: PortalRoomBinding[], floorMaps: Partial<Record<FloorId, MapAsset>> = FLOOR_MAPS): CampusMapValidationError[] {
   const errors: CampusMapValidationError[] = [];
   const seen = new Set<string>();
   const add = (code: string, message: string, entityId?: string) => errors.push({ code, message, entityId });
@@ -35,8 +37,8 @@ export function validateCampusMapData(campuses: Campus[], bindings: PortalRoomBi
           const roomId = createRoomId(floorId, room.id);
           unique(roomId);
           if (room.map) {
-            verifyShape(room.map.shapeId, floor.map, roomId);
-            if (room.map.entranceShapeId) verifyShape(room.map.entranceShapeId, floor.map, roomId);
+            verifyShape(room.map.shapeId, floorMaps[floorId], roomId);
+            if (room.map.entranceShapeId) verifyShape(room.map.entranceShapeId, floorMaps[floorId], roomId);
           }
         }
       }
@@ -44,6 +46,9 @@ export function validateCampusMapData(campuses: Campus[], bindings: PortalRoomBi
   }
 
   const runtime = buildCampusMapRuntimeData(campuses);
+  for (const floorId of Object.keys(floorMaps)) {
+    if (!runtime.floorsById[floorId]) add('missing-floor', `Sơ đồ tầng tham chiếu tầng không tồn tại: ${floorId}`, floorId);
+  }
   const exact = new Map<string, Set<string>>();
   const equivalent = new Map<string, Set<string>>();
   for (const binding of bindings) {

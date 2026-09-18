@@ -8,18 +8,25 @@ import { extractPortalLocationCode } from '../../src/integrations/hcmus-portal/r
 import { resolvePortalRoom } from '../../src/integrations/hcmus-portal/rooms/resolve-portal-room';
 import { ScheduleLogic } from '../../src/features/visual-schedule/services/schedule-logic';
 import type { Campus } from '../../src/domain/campus-map/types';
-import { LEGACY_CAMPUS_BUILDINGS } from '../../src/features/campus-map/Campus2Diagram';
+import { FLOOR_MAPS } from '../../src/assets/data/campus-map/floor-maps';
 import { zoomMapBox } from '../../src/features/campus-map/MapViewport';
 
 const data = buildCampusMapRuntimeData(CAMPUS_MAP_CAMPUSES);
 const indexes = buildPortalRoomIndexes(PORTAL_ROOM_BINDINGS);
 
 describe('Campus Map / Portal integration', () => {
-  it('reuses each old Dong Hoa building once and keeps B4.2 unplaced', () => {
-    expect(LEGACY_CAMPUS_BUILDINGS.map((item) => item.id)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'NDH']);
-    expect(LEGACY_CAMPUS_BUILDINGS.some((item) => item.id === ('b4-2' as typeof item.id))).toBe(false);
-    const floor = LEGACY_CAMPUS_BUILDINGS.find((item) => item.id === 'F')?.building.floors[0];
-    expect(floor?.plan?.elements.some((element) => element.type === 'room' && element.code === 'F101')).toBe(true);
+  it('only indexes buildings and floors declared in campuses.ts', () => {
+    expect(data.buildingIdsByCampusId['dong-hoa']).toEqual(CAMPUS_MAP_CAMPUSES[0].buildings.map((building) => `dong-hoa/${building.id}`));
+    expect(data.buildingsById['dong-hoa/f']).toBeUndefined();
+    expect(data.floorIdsByBuildingId['dong-hoa/ndh']).toHaveLength(CAMPUS_MAP_CAMPUSES[0].buildings.find((building) => building.id === 'ndh')?.floors.length);
+  });
+
+  it('attaches floor drawings only from floor-maps.ts', () => {
+    const floorId = 'dong-hoa/b4-2/6';
+    const asset = { asset: '/maps/floors/b4-2-6.svg', viewBox: [0, 0, 100, 80] as [number, number, number, number], shapeIds: ['room-6-2'] };
+    const withMap = buildCampusMapRuntimeData(CAMPUS_MAP_CAMPUSES, { [floorId]: asset });
+    expect(withMap.floorsById[floorId].map).toEqual(asset);
+    expect(data.floorsById[floorId].map).toEqual(FLOOR_MAPS[floorId]);
   });
 
   it('zooms around a point while staying inside the map bounds', () => {

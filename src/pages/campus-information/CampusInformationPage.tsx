@@ -5,7 +5,7 @@ import { PageHeader, PageShell } from '../../components/layout';
 import { SectionTabs } from '../../components/ui/navigation/section-tabs';
 import { AcademicCalendarFeature } from '../../features/academic-calendar';
 import { CampusDirectoryFeature } from '../../features/campus-directory';
-import CampusMap from '../../features/campus-map/CampusMapTwoPanel';
+import CampusMap from '../../features/campus-map/campusmap';
 
 const tabs = [
     {

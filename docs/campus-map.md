@@ -9,6 +9,7 @@ P.cs2:PM_B4-2_6.2 → dong-hoa/b4-2/6/2
 ## Nguồn dữ liệu
 
 - `src/assets/data/campus-map/campuses.ts`: inventory vật lý (cơ sở, tòa, tầng, phòng). Chỉ thêm địa điểm đã xác minh; `status` và `verification` ghi mức tin cậy.
+- `src/assets/data/campus-map/floor-maps.ts`: nơi duy nhất khai báo asset sơ đồ tầng, keyed theo `campus/building/floor`. SVG đặt dưới `public/maps/floors/`. Không thêm `floor.map` vào inventory.
 - `src/integrations/hcmus-portal/rooms/bindings.ts`: mã Portal ánh xạ sang `RoomId`. Có thể có nhiều mã Portal trỏ tới cùng một phòng.
 - `src/domain/campus-map`: tạo ID, bảng phẳng runtime, tìm kiếm và validator.
 - `src/integrations/hcmus-portal/rooms`: lấy mã gốc từ chuỗi lịch, tạo index và resolver.
@@ -21,6 +22,8 @@ Hiện inventory mới chỉ có ví dụ `PM_B4-2_6.2` do người dùng xác n
 
 ## Giao diện bản đồ Đông Hòa
 
-`CampusMapTwoPanel.tsx` là giao diện đang dùng: map bên trái, thông tin bên phải. Ban đầu panel hiện danh sách tòa, số tòa và số tầng được khai báo. Chọn tòa bằng danh sách hoặc vùng trên bản đồ chỉ đổi panel thông tin; chọn tầng rồi bấm **Xem bản đồ tầng** mới chuyển canvas bên trái. Link `roomId` từ thời khóa biểu mở thẳng tầng/phòng tương ứng.
+`campusmap.tsx` là giao diện đang dùng: map bên trái, thông tin bên phải. Danh sách tòa, số tầng và phòng chỉ lấy từ `campuses.ts`. Chọn tòa trên bản đồ hoặc trong danh sách để xem thông tin; chọn tầng rồi bấm **Xem bản đồ tầng** mới chuyển canvas bên trái. Link `roomId` từ thời khóa biểu mở tầng/phòng tương ứng.
 
-`Campus2Diagram.tsx` dùng lại bố cục sơ đồ Đông Hòa cũ (A–G và NĐH) và các bản vẽ tầng cũ trong `campus-data.ts`. Đây là dữ liệu tham khảo, **không phải inventory đã xác minh**. Bản cũ không có tòa B4.2; B4.2 vẫn tìm được qua inventory và Portal binding nhưng chưa được đặt vị trí giả trên sơ đồ. Khi có bản vẽ chính xác, thêm vị trí tòa/tầng vào dữ liệu bản đồ mới rồi mới gắn hotspot tương tác.
+`DongHoaCampusDiagram.tsx` chỉ chứa hình học sơ đồ khuôn viên CS2. Nhãn A–G và NĐH trên hình không tự tạo tòa, tầng hay phòng; chỉ tòa có trong `campuses.ts` mới bấm được và xuất hiện trong danh sách. B4.2 hiện có trong inventory nhưng chưa có vị trí trên sơ đồ khuôn viên.
+
+Hiện `campuses.ts` khai báo hai tòa ở Đông Hòa: B4.2 (1 tầng) và Nhà điều hành (8 tầng). Vì vậy panel hiển thị 2 tòa, 9 tầng; hình A–G trên sơ đồ không cộng vào các con số này.
