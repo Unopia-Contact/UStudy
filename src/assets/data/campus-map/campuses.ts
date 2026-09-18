@@ -10,29 +10,6 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
     status: 'active',
     buildings: [
       {
-        id: 'b4-2',
-        code: 'B4-2_',
-        name: 'Tòa B4.2',
-        kind: 'academic',
-        aliases: ['B4-2', 'B4_2'],
-        status: 'active',
-        floors: [
-          {
-            id: '6',
-            label: 'Tầng 6',
-            level: 6,
-            sortOrder: 6,
-            rooms: [
-              {
-                id: '2', code: '6.2', label: 'Phòng 6.2', kind: 'computer-lab',
-                aliases: ['B4.2 6.2', 'B4-2_6.2'], status: 'active',
-                verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
-              }
-            ],
-          }
-        ],
-      },
-      {
         id: 'ndh',
         code: 'NĐH',
         name: 'Nhà điều hành',
@@ -424,6 +401,144 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
               },
             ],
           },
+        ],
+      },
+      {
+        id: 'a',
+        code: 'A',
+        name: 'Tòa A',
+        kind: 'academic',
+        aliases: ['Tòa A'],
+        status: 'active',
+        floors: [
+          {
+            id: '0',
+            label: 'Tầng 0',
+            level: 0,
+            sortOrder: 0,
+            rooms: [
+              {
+                id: '1', code: '001', label: 'Phòng A001', kind: 'classroom',
+                aliases: ['A001'], status: 'active',
+                verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
+              },
+            ]
+          }
+        ],
+      },
+      {
+        id: 'b',
+        code: 'HT',
+        name: 'Tòa B',
+        kind: 'academic',
+        aliases: ['Tòa B', 'Hội trường', 'HTB', 'Hội trường B'],
+        status: 'active',
+        floors: [
+          {
+            id: '1',
+            label: 'Tầng 1',
+            level: 1,
+            sortOrder: 1,
+            rooms: [
+              {
+                id: '1', code: 'B', label: 'Hội trường B', kind: 'classroom',
+                aliases: ['Hội trường B', 'HTB'], status: 'active',
+                verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
+              },
+            ]
+          }
+        ],
+      },
+      {
+        id: 'c',
+        code: 'C',
+        name: 'Tòa C',
+        kind: 'academic',
+        aliases: ['Tòa C'],
+        status: 'active',
+        floors: [
+          {
+            id: '0',
+            label: 'Tầng 0',
+            level: 0,
+            sortOrder: 0,
+            rooms: [
+              {
+                id: '1', code: '001', label: 'Phòng C001', kind: 'classroom',
+                aliases: ['C001'], status: 'active',
+                verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
+              },
+            ]
+          }
+        ],
+      },
+      {
+        id: 'd',
+        code: 'D',
+        name: 'Tòa D',
+        kind: 'academic',
+        aliases: ['Tòa D'],
+        status: 'active',
+        floors: [
+          {
+            id: '1',
+            label: 'Tầng 1',
+            level: 1,
+            sortOrder: 1,
+            rooms: [
+              {
+                id: '1', code: '101', label: 'Phòng D101', kind: 'classroom',
+                aliases: ['D101'], status: 'active',
+                verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
+              },
+            ]
+          }
+        ],
+      },
+      {
+        id: 'ntd',
+        code: 'NTĐ_',
+        name: 'Nhà thi đấu',
+        kind: 'academic',
+        aliases: ['Nhà thể dục', 'NTĐ', 'Nhà thi đấu'],
+        status: 'active',
+        floors: [
+          {
+            id: '1',
+            label: 'Tầng 1',
+            level: 1,
+            sortOrder: 1,
+            rooms: [
+              {
+                id: 'ntd_khtn', code: 'KHTN', label: 'NTĐ_KHTN', kind: 'classroom',
+                aliases: ['NTĐ_KHTN', 'NTĐ_KHTN1', 'NTĐ_KHTN2', 'NTĐ_KHTN3', 'NTĐ_KHTN4', 'NTĐ_KHTN5', 'NTĐ_KHTN6', 'NTĐ_KHTN7', 'NTĐ_KHTN8', 'NTĐ_KHTN9', 'NTĐ_KHTN10'], status: 'active',
+                verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'b4-2',
+        code: 'B4-2_',
+        name: 'Tòa B4.2',
+        kind: 'academic',
+        aliases: ['B4-2', 'B4_2'],
+        status: 'active',
+        floors: [
+          {
+            id: '6',
+            label: 'Tầng 6',
+            level: 6,
+            sortOrder: 6,
+            rooms: [
+              {
+                id: '2', code: '6.2', label: 'Phòng 6.2', kind: 'computer-lab',
+                aliases: ['B4.2 6.2', 'B4-2_6.2'], status: 'active',
+                verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
+              }
+            ],
+          }
         ],
       },
     ],

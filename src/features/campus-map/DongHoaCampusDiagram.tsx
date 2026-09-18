@@ -11,7 +11,8 @@ const shapes = [
   { key: 'f', label: 'F', x: 780, y: 154, width: 72, height: 298 },
   { key: 'g', label: 'G', x: 878, y: 154, width: 72, height: 298 },
   { key: 'ndh', label: 'NĐH', x: 650, y: 512, width: 92, height: 142 },
-  { key: 'b42', label: 'B4.2', x: 540, y: 33, width: 76, height: 76 },
+  { key: 'b4-2', label: 'B4.2', x: 540, y: 33, width: 76, height: 76 },
+  { key: 'ntd', label: 'NTD', x: 648, y: 124, width: 128, height: 62 }
 ] as const;
 
 export function DongHoaCampusDiagram({ buildings, selectedId, onSelect }: {

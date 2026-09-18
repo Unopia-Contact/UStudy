@@ -42,6 +42,17 @@ describe('Campus Map / Portal integration', () => {
     expect(resolvePortalRoom('P.cs2:PMT_B4-2_6.2', data, indexes).status).toBe('unresolved');
   });
 
+  it('maps every NTĐ_KHTN Portal code to the one physical sports-hall room', () => {
+    for (const suffix of Array.from({ length: 10 }, (_, index) => index + 1)) {
+      expect(resolvePortalRoom(`P.cs2:NTĐ_KHTN${suffix}`, data, indexes)).toMatchObject({
+        status: 'matched',
+        roomId: 'dong-hoa/ntd/1/ntd_khtn',
+        matchedBy: 'exact',
+        confidence: 'exact',
+      });
+    }
+  });
+
   it('keeps the full Portal code when extracting from a schedule entry', () => {
     expect(extractPortalLocationCode('T3(6-7.5)-P.cs2:PM_B4-2_6.2')).toBe('P.cs2:PM_B4-2_6.2');
     expect(extractPortalLocationCode('TCN(1-5)-P.Link TKB')).toBe('P.Link TKB');
