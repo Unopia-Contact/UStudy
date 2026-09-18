@@ -24,7 +24,7 @@ Năm học và học kỳ của đăng ký học phần/danh sách lớp mở l�
 
 Yêu cầu:
 
-- Node.js và dependencies đã được cài bằng `npm install`.
+- Node.js và dependencies đã được cài bằng `pnpm install --frozen-lockfile`.
 - JDK 21.
 - Android SDK có platform 36 và build-tools 36.0.0.
 - `ANDROID_SDK_ROOT`/`ANDROID_HOME`, hoặc SDK nằm tại `D:\Android\Sdk` hay `%LOCALAPPDATA%\Android\Sdk`.
@@ -32,7 +32,7 @@ Yêu cầu:
 Build bản phát hành:
 
 ```powershell
-npm run build:apk
+pnpm run build:apk
 ```
 
 Lệnh cần bốn biến môi trường: `USTUDY_RELEASE_STORE_FILE`, `USTUDY_RELEASE_STORE_PASSWORD`, `USTUDY_RELEASE_KEY_ALIAS`, `USTUDY_RELEASE_KEY_PASSWORD`. Keystore và các mật khẩu này không được lưu trong repository.
@@ -40,7 +40,7 @@ Lệnh cần bốn biến môi trường: `USTUDY_RELEASE_STORE_FILE`, `USTUDY_R
 Build debug chỉ để kiểm thử nội bộ:
 
 ```powershell
-npm run build:apk:debug
+pnpm run build:apk:debug
 ```
 
 APK được xuất tại:
@@ -51,4 +51,4 @@ artifacts/UStudy-release.apk
 
 Bản release cũng được cập nhật vào `public/downloads/UStudy-android.apk`. Bản debug chỉ xuất vào `artifacts/UStudy-debug.apk` và không được đưa vào web.
 
-Nếu chỉ thay đổi native Android, có thể build nhanh trong `android` bằng Gradle. Nếu thay đổi React/crawler, luôn chạy lại `npm run build` và `npx cap sync android` trước khi build APK.
+Nếu chỉ thay đổi native Android, có thể build nhanh trong `android` bằng Gradle. Nếu thay đổi React/crawler, luôn chạy lại `pnpm run build` và `pnpm exec cap sync android` trước khi build APK.

@@ -14,25 +14,25 @@ Bo kiem thu bao ve cac luong co rui ro cao nhat cua UStudy:
 ## Lenh dung tai local
 
 ```powershell
-npm ci
-npm run typecheck:test
-npm run test:unit
-npm run test:coverage
-npm run build
+pnpm install --frozen-lockfile
+pnpm run typecheck:test
+pnpm run test:unit
+pnpm run test:coverage
+pnpm run build
 ```
 
 Chay browser smoke test lan dau:
 
 ```powershell
-npx playwright install chromium
-npm run test:e2e
+pnpm exec playwright install chromium
+pnpm run test:e2e
 ```
 
 Chay mot file hoac loc theo ten ca kiem thu:
 
 ```powershell
-npx vitest run tests/unit/imports/import-preview.test.ts
-npx vitest run -t "empty scraped collection"
+pnpm exec vitest run tests/unit/imports/import-preview.test.ts
+pnpm exec vitest run -t "empty scraped collection"
 ```
 
 ## Cau truc
@@ -77,4 +77,4 @@ Trong GitHub, dat `main` va `HK/deploy` yeu cau cac check sau truoc khi merge:
 
 Khong bat buoc Android check cho thay doi chi lien quan tai lieu, vi workflow da co `paths` filter.
 
-`npm run typecheck` van la lenh audit toan bo ung dung. Hien tai lenh nay con bao no TypeScript san co o mot so UI sau cac dot merge, nen chua duoc dung lam required check. Production build va type-check cac domain cot loi van la dieu kien bat buoc; full-app type-check chi nen bat buoc sau khi baseline duoc don sach.
+`pnpm run typecheck` van la lenh audit toan bo ung dung. Hien tai lenh nay con bao no TypeScript san co o mot so UI sau cac dot merge, nen chua duoc dung lam required check. Production build va type-check cac domain cot loi van la dieu kien bat buoc; full-app type-check chi nen bat buoc sau khi baseline duoc don sach.

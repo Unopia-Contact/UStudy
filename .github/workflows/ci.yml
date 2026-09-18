@@ -28,19 +28,22 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Type-check tests and imported core modules
-        run: npm run typecheck:test
+        run: pnpm run typecheck:test
 
       - name: Run core tests with coverage
-        run: npm run test:coverage
+        run: pnpm run test:coverage
 
       - name: Build web and extension
-        run: npm run build
+        run: pnpm run build
 
       - name: Upload coverage report
         if: always()

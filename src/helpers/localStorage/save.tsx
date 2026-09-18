@@ -264,10 +264,16 @@ function generateMasterKeyMaterial(): Uint8Array {
     return crypto.getRandomValues(new Uint8Array(MASTER_KEY_BYTES));
 }
 
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+    const copy = new Uint8Array(bytes.byteLength);
+    copy.set(bytes);
+    return copy.buffer;
+}
+
 async function importMasterDataKey(rawMasterKey: Uint8Array): Promise<CryptoKey> {
     return crypto.subtle.importKey(
         'raw',
-        rawMasterKey,
+        toArrayBuffer(rawMasterKey),
         { name: 'AES-GCM' },
         false,
         ['encrypt', 'decrypt'],
@@ -277,9 +283,9 @@ async function importMasterDataKey(rawMasterKey: Uint8Array): Promise<CryptoKey>
 async function wrapMasterKey(rawMasterKey: Uint8Array, kek: CryptoKey): Promise<{ iv: Uint8Array; ciphertext: ArrayBuffer }> {
     const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
     const ciphertext = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv, additionalData: MASTER_KEY_WRAP_AAD },
+        { name: 'AES-GCM', iv: toArrayBuffer(iv), additionalData: toArrayBuffer(MASTER_KEY_WRAP_AAD) },
         kek,
-        rawMasterKey,
+        toArrayBuffer(rawMasterKey),
     );
     return { iv, ciphertext };
 }
@@ -288,9 +294,9 @@ async function unwrapMasterKey(kek: CryptoKey, ivRaw: string, ciphertextRaw: str
     const iv = fromBase64(ivRaw);
     const ciphertext = fromBase64(ciphertextRaw);
     const rawMasterKey = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv, additionalData: MASTER_KEY_WRAP_AAD },
+        { name: 'AES-GCM', iv: toArrayBuffer(iv), additionalData: toArrayBuffer(MASTER_KEY_WRAP_AAD) },
         kek,
-        ciphertext,
+        toArrayBuffer(ciphertext),
     );
     return new Uint8Array(rawMasterKey);
 }

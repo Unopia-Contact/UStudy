@@ -51,3 +51,5 @@ SKILL.md
 
 .agents/
 *.yaml
+!pnpm-lock.yaml
+!pnpm-workspace.yaml

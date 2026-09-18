@@ -2,6 +2,7 @@
     "name": "hcmus-portal-tool",
     "version": "0.1.0",
     "private": true,
+    "packageManager": "pnpm@11.26.0",
     "dependencies": {
         "@capacitor/android": "^8.3.3",
         "@capacitor/app": "^8.1.0",
@@ -38,8 +39,6 @@
         "@radix-ui/react-tooltip": "^1.1.8",
         "@react-pdf/renderer": "^4.5.1",
         "@tailwindcss/vite": "^4.3.0",
-        "@vercel/analytics": "^2.0.1",
-        "@vercel/speed-insights": "^2.0.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -77,6 +76,7 @@
         "@types/qrcode": "^1.5.6",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
+        "@vercel/node": "13.0.1",
         "@vitejs/plugin-basic-ssl": "^2.3.0",
         "@vitejs/plugin-react-swc": "^3.11.0",
         "@vitest/coverage-v8": "^4.1.11",
@@ -87,12 +87,15 @@
         "typescript": "^6.0.3",
         "vite": "^6.4.3",
         "vitest": "^4.1.11",
+        "wrangler": "^4.132.0",
         "xlsx": "^0.18.5"
     },
     "scripts": {
         "dev": "vite",
-        "build": "npm run build:extension && vite build",
+        "build": "pnpm run build:extension && vite build",
         "build:web": "vite build",
+        "build:cloudflare": "vite build",
+        "deploy:cloudflare": "pnpm run build:cloudflare && pnpm exec wrangler deploy",
         "build:extension": "node scripts/build-extension.mjs",
         "build:extension:dev": "set USTUDY_EXTENSION_PROFILE=development&& node scripts/build-extension.mjs",
         "build:apk": "powershell -ExecutionPolicy Bypass -File scripts/build-android.ps1",
@@ -103,8 +106,8 @@
         "test": "vitest",
         "test:unit": "vitest run",
         "test:coverage": "vitest run --coverage",
-        "test:e2e": "npm run build:web && playwright test",
-        "check": "npm run typecheck:test && npm run test:unit && npm run build"
+        "test:e2e": "pnpm run build:web && pnpm exec playwright test",
+        "check": "pnpm run typecheck:test && pnpm run test:unit && pnpm run build"
     },
     "overrides": {
         "brace-expansion": "5.0.9",

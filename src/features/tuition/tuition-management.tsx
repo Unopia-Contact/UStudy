@@ -54,7 +54,8 @@ const getStatusBadge = (status: string) => {
 };
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount);
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | null | undefined) => {
+  if (!dateString) return 'Chưa có hạn thanh toán';
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('vi-VN', {
     day: 'numeric',

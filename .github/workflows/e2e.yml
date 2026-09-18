@@ -28,19 +28,22 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Build web
-        run: npm run build:web
+        run: pnpm run build:web
 
       - name: Run desktop and mobile smoke tests
-        run: npx playwright test
+        run: pnpm exec playwright test
 
       - name: Upload Playwright report
         if: always()

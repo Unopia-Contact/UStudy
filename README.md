@@ -170,13 +170,13 @@ Email liên hệ: **unopia.contact@gmail.com**
 ### Yêu cầu
 
 - Node.js 22 trở lên
-- npm
+- pnpm 11 (Corepack được bật tự động trong CI)
 
 ### Khởi động web
 
 ```bash
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+pnpm run dev
 ```
 
 Ứng dụng phát triển chạy tại `https://localhost:3005`.
@@ -184,11 +184,11 @@ npm run dev
 ### Các lệnh thường dùng
 
 ```bash
-npm run build:web       # Build giao diện web
-npm run build:extension # Đóng gói extension
-npm run test:unit       # Chạy unit test
-npm run test:e2e        # Chạy smoke test trên trình duyệt
-npm run check           # Type-check, test và build toàn bộ
+pnpm run build:web       # Build giao diện web
+pnpm run build:extension # Đóng gói extension
+pnpm run test:unit       # Chạy unit test
+pnpm run test:e2e        # Chạy smoke test trên trình duyệt
+pnpm run check           # Type-check, test và build toàn bộ
 ```
 
 Để build Android, xem hướng dẫn và yêu cầu môi trường trong [docs/android-app.md](docs/android-app.md).
