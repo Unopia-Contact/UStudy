@@ -5,16 +5,16 @@ import { PageHeader, PageShell } from '../../components/layout';
 import { SectionTabs } from '../../components/ui/navigation/section-tabs';
 import { AcademicCalendarFeature } from '../../features/academic-calendar';
 import { CampusDirectoryFeature } from '../../features/campus-directory';
-import CampusMap from '../../features/campus-map/campusmap';
+import CampusMap from '../../features/campus-map/CampusMapInteractive';
 
 const tabs = [
-    // {
-    //     id: 'map',
-    //     label: 'Bản đồ khuôn viên',
-    //     description: 'Tìm tòa nhà, tầng và phòng học',
-    //     icon: MapPinned,
-    //     path: APP_ROUTES.campusMap,
-    // },
+    {
+        id: 'map',
+        label: 'Bản đồ khuôn viên',
+        description: 'Tìm tòa nhà, tầng và phòng học',
+        icon: MapPinned,
+        path: APP_ROUTES.campusMap,
+    },
     {
         id: 'academic-calendar',
         label: 'Kế hoạch năm học',
@@ -38,13 +38,13 @@ export function CampusInformationPage() {
         ? 'academic-calendar'
         : location.pathname === APP_ROUTES.campusDirectory
             ? 'directory'
-            : 'academic-calendar';
+            : 'map';
 
     return (
         <PageShell header={<PageHeader title="Thông tin trường" description="Bản đồ khuôn viên, kế hoạch năm học và danh bạ đơn vị." />}>
             <SectionTabs
                 ariaLabel="Thông tin trường"
-                tabs={tabs}
+                tabs={[...tabs]}
                 activeTab={activeTab}
                 onChange={(tabId) => navigate(tabs.find((tab) => tab.id === tabId)?.path ?? APP_ROUTES.campusMap)}
             />

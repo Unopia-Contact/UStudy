@@ -1,0 +1,38 @@
+.ustudy-map-control {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #475569;
+  transition: background-color 160ms, color 160ms;
+}
+
+.ustudy-map-control:hover { background: #eaf3ff; color: #004a98; }
+.ustudy-map-control:focus-visible { outline: 2px solid #004a98; outline-offset: 2px; }
+
+.ustudy-map-list-item {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: left;
+  color: #475569;
+  font-size: 14px;
+}
+
+.ustudy-map-list-item:hover { background: #f1f5f9; }
+.ustudy-map-list-item-active { background: #eaf3ff; color: #004a98; font-weight: 600; }
+.ustudy-map-list-item:focus-visible { outline: 2px solid #004a98; outline-offset: 2px; }
+
+@media (max-width: 767px) {
+  .ustudy-map-control { width: 44px; height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ustudy-map-control { transition: none; }
+}

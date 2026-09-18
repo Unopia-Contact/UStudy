@@ -11,6 +11,7 @@ import { calculateRowSpan, getDisplayEnd } from '../services/schedule-helpers';
 import { ScheduleNote } from './schedule-note';
 import { CAMPUS_OPTIONS, getCampusDefinition, tryResolvePeriodRange, type CampusId } from '../../../domain/campus';
 import { getCompactCampusLabel } from '../../../components/schedule/campus-label';
+import { RoomMapLink } from './RoomMapLink';
 
 function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides, onSave }: {
     open: boolean;
@@ -563,6 +564,10 @@ function CourseCard({
                             <span className="text-right font-semibold text-gray-900">{typeFullLabels[sess.type]}</span>
                             <span className="text-gray-500">Phòng học</span>
                             <span className="text-right font-semibold text-gray-900">{sess.room || '-'}</span>
+                            {sess.portalLocationCode && <>
+                                <span className="text-gray-500">Mã địa điểm Portal</span>
+                                <span className="text-right break-all font-mono text-xs text-gray-700">{sess.portalLocationCode}</span>
+                            </>}
                             <span className="text-gray-500">Cơ sở</span>
                             <span className="text-right font-semibold text-gray-900">
                                 {getCampusDefinition(sess.campusId ?? 'dong-hoa').shortName}
@@ -581,6 +586,7 @@ function CourseCard({
                                 </>
                             )}
                         </div>
+                        <div className="mt-3"><RoomMapLink session={sess} /></div>
 
                         <div className="mt-4 border-t border-gray-200 pt-3 text-sm leading-6 text-gray-600">
                             <p>Giảng viên: <span className="font-medium text-gray-900">{sess.instructor || 'Chưa có dữ liệu'}</span></p>
