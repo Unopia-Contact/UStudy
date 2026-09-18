@@ -9,7 +9,7 @@ export type SectionTab<T extends string> = {
 };
 
 interface SectionTabsProps<T extends string> {
-    tabs: SectionTab<T>[];
+    tabs: readonly SectionTab<T>[];
     activeTab: T;
     onChange: (tab: T) => void;
     ariaLabel: string;
