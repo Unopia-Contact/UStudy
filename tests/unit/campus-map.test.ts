@@ -10,6 +10,7 @@ import { ScheduleLogic } from '../../src/features/visual-schedule/services/sched
 import type { Campus } from '../../src/domain/campus-map/types';
 import { FLOOR_MAPS } from '../../src/assets/data/campus-map/floor-maps';
 import { zoomMapBox } from '../../src/features/campus-map/MapViewport';
+import { searchCampusPlaces } from '../../src/domain/campus-map/selectors';
 
 const data = buildCampusMapRuntimeData(CAMPUS_MAP_CAMPUSES);
 const indexes = buildPortalRoomIndexes(PORTAL_ROOM_BINDINGS);
@@ -17,8 +18,9 @@ const indexes = buildPortalRoomIndexes(PORTAL_ROOM_BINDINGS);
 describe('Campus Map / Portal integration', () => {
   it('only indexes buildings and floors declared in campuses.ts', () => {
     expect(data.buildingIdsByCampusId['dong-hoa']).toEqual(CAMPUS_MAP_CAMPUSES[0].buildings.map((building) => `dong-hoa/${building.id}`));
-    expect(data.buildingsById['dong-hoa/f']).toBeUndefined();
-    expect(data.floorIdsByBuildingId['dong-hoa/ndh']).toHaveLength(CAMPUS_MAP_CAMPUSES[0].buildings.find((building) => building.id === 'ndh')?.floors.length);
+    expect(data.buildingsById['dong-hoa/f']).toBeDefined();
+    expect(data.buildingsById['dong-hoa/g']).toBeUndefined();
+    expect(data.floorIdsByBuildingId['dong-hoa/ndh']).toHaveLength(CAMPUS_MAP_CAMPUSES[0].buildings.find((building) => building.id === 'ndh')!.floors.length);
   });
 
   it('attaches floor drawings only from floor-maps.ts', () => {
@@ -34,6 +36,18 @@ describe('Campus Map / Portal integration', () => {
     expect(zoomMapBox(base, 0.5, 500, 360, base)).toEqual({ x: 250, y: 180, width: 500, height: 360 });
     expect(zoomMapBox(base, 0.5, 0, 0, base)).toEqual({ x: 0, y: 0, width: 500, height: 360 });
     expect(zoomMapBox(base, 2, 500, 360, base)).toEqual(base);
+  });
+
+  it('ranks exact room matches and searches buildings and floors', () => {
+    expect(searchCampusPlaces('D207', data, 'dong-hoa')[0]).toMatchObject({
+      type: 'room', roomId: 'dong-hoa/d/2/207',
+    });
+    expect(searchCampusPlaces('Tòa D', data, 'dong-hoa')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'building', buildingId: 'dong-hoa/d' }),
+    ]));
+    expect(searchCampusPlaces('Tòa D tầng 2', data, 'dong-hoa')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'floor', floorId: 'dong-hoa/d/2' }),
+    ]));
   });
   it('maps the corrected PM_B4-2_6.2 Portal code to UStudy room ID', () => {
     expect(resolvePortalRoom('P.cs2:PM_B4-2_6.2', data, indexes)).toMatchObject({

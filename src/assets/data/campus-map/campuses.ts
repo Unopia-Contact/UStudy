@@ -425,30 +425,6 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
                 verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
               },
             ]
-          },
-          {
-            id: '2',
-            label: 'Tầng 2',
-            level: 2,
-            sortOrder: 2,
-            rooms: ['201', '202', '203', '204', '205', '206', '207', '208', '209', '210', '211', '212', '213', '214'].map((code) => {
-              const overrides: Record<string, Partial<any>> = {
-                '201': { label: 'Phòng giáo viên D201', kind: 'office' },
-                '202': { label: 'Phòng giáo viên D202', kind: 'office' },
-                '203': { label: 'Phòng máy D203', kind: 'computer-lab' },
-                '204': { label: 'Phòng máy D204', kind: 'computer-lab' },
-              };
-              return {
-                id: code,
-                code,
-                label: `Phòng D${code}`,
-                kind: 'classroom' as const,
-                aliases: [`D${code}`],
-                status: 'active' as const,
-                map: { shapeId: `room-d${code}` },
-                ...overrides[code],
-              };
-            }),
           }
         ],
       },
@@ -561,6 +537,30 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
                 status: 'active' as const,
                 map: { shapeId: `room-d${code}` },
 
+                ...overrides[code],
+              };
+            }),
+          },
+          {
+            id: '2',
+            label: 'Tầng 2',
+            level: 2,
+            sortOrder: 2,
+            rooms: ['201', '202', '203', '204', '205', '206', '207', '208', '209', '210', '211', '212', '213', '214'].map((code) => {
+              const overrides: Record<string, Partial<any>> = {
+                '201': { label: 'Phòng giáo viên D201', kind: 'office' },
+                '202': { label: 'Phòng giáo viên D202', kind: 'office' },
+                '203': { label: 'Phòng máy D203', kind: 'computer-lab' },
+                '204': { label: 'Phòng máy D204', kind: 'computer-lab' },
+              };
+              return {
+                id: code,
+                code,
+                label: `Phòng D${code}`,
+                kind: 'classroom' as const,
+                aliases: [`D${code}`],
+                status: 'active' as const,
+                map: { shapeId: `room-d${code}` },
                 ...overrides[code],
               };
             }),

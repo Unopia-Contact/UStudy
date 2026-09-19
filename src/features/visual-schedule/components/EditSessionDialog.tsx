@@ -564,10 +564,6 @@ function CourseCard({
                             <span className="text-right font-semibold text-gray-900">{typeFullLabels[sess.type]}</span>
                             <span className="text-gray-500">Phòng học</span>
                             <span className="text-right font-semibold text-gray-900">{sess.room || '-'}</span>
-                            {sess.portalLocationCode && <>
-                                <span className="text-gray-500">Mã địa điểm Portal</span>
-                                <span className="text-right break-all font-mono text-xs text-gray-700">{sess.portalLocationCode}</span>
-                            </>}
                             <span className="text-gray-500">Cơ sở</span>
                             <span className="text-right font-semibold text-gray-900">
                                 {getCampusDefinition(sess.campusId ?? 'dong-hoa').shortName}

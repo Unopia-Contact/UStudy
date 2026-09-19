@@ -1,8 +1,8 @@
-import { ArrowLeft, Building2, ChevronRight, DoorOpen, Layers3, MapPinned, Search } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { ArrowLeft, Building2, ChevronRight, DoorOpen, Layers3, MapPinned } from 'lucide-react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CAMPUS_MAP_DATA, searchMapRooms, type CampusId } from '../../domain/campus-map';
-import { resolveKnownPortalRoom } from '../../integrations/hcmus-portal/rooms';
+import { CAMPUS_MAP_DATA, type CampusId, type CampusPlaceSearchResult } from '../../domain/campus-map';
+import { CampusMapSearch } from './CampusMapSearch';
 import { DongHoaCampusDiagram } from './DongHoaCampusDiagram';
 import { InlineFloorSvg } from './InlineFloorSvg';
 import { MapViewport } from './MapViewport';
@@ -12,7 +12,6 @@ const campusIds: CampusId[] = ['dong-hoa', 'cho-quan'];
 
 export default function CampusMap() {
   const [params, setParams] = useSearchParams();
-  const [query, setQuery] = useState('');
   const [notice, setNotice] = useState('');
   const roomId = params.get('roomId');
   const room = roomId ? data.roomsById[roomId] : undefined;
@@ -33,16 +32,19 @@ export default function CampusMap() {
   function select(next: Record<string, string>) { setNotice(''); setParams(next); }
   function selectFloor(id: string) { if (building) select({ campusId, buildingId: building.fullId, floorId: id, ...(isFloorView && visibleFloor ? { view: 'floor', mapFloor: visibleFloor.fullId } : {}) }); }
   function openFloor() { if (building && floor) select({ campusId, buildingId: building.fullId, floorId: floor.fullId, view: 'floor', mapFloor: floor.fullId }); }
-  function search(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const value = query.trim();
-    if (!value) return;
-    const portal = resolveKnownPortalRoom(value);
-    if (portal.status === 'matched' && portal.roomId) { select({ roomId: portal.roomId }); return; }
-    if (portal.status === 'ambiguous') { setNotice('Mã Portal khớp nhiều phòng; chưa thể chọn vị trí an toàn.'); return; }
-    const matches = searchMapRooms(value, data);
-    if (matches.length === 1) select({ roomId: matches[0].fullId });
-    else setNotice(matches.length > 1 ? 'Tìm thấy nhiều phòng; vui lòng nhập cụ thể hơn.' : 'Chưa có phòng này trong dữ liệu bản đồ mới.');
+  function selectSearchResult(result: CampusPlaceSearchResult) {
+    if (result.type === 'room' && result.roomId) {
+      select({ roomId: result.roomId });
+      if (!result.hasFloorMap) setNotice('Đã tìm thấy phòng, nhưng tầng này chưa có sơ đồ.');
+      else if (!result.hasRoomShape) setNotice('Đã tìm thấy phòng, nhưng vị trí phòng chưa được đánh dấu trên sơ đồ.');
+      return;
+    }
+    if (result.type === 'floor' && result.floorId) {
+      select({ campusId: result.campusId, buildingId: result.buildingId, floorId: result.floorId, view: 'floor', mapFloor: result.floorId });
+      if (!result.hasFloorMap) setNotice('Đã tìm thấy tầng, nhưng tầng này chưa có sơ đồ.');
+      return;
+    }
+    select({ campusId: result.campusId, buildingId: result.buildingId });
   }
 
   const mapContent = isFloorView && building && visibleFloor?.map ? <MapViewport width={visibleFloor.map.viewBox[2]} height={visibleFloor.map.viewBox[3]} label={`Sơ đồ ${building.name} ${visibleFloor.label}`} resetKey={visibleFloor.fullId}>
@@ -54,7 +56,7 @@ export default function CampusMap() {
   return <section className="mt-5 space-y-4" aria-label="Bản đồ khuôn viên">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold text-slate-900">Bản đồ {campus?.shortName ?? 'khuôn viên'}</h2><p className="mt-1 text-sm text-slate-500">Chọn tòa, tầng, rồi mở sơ đồ khi dữ liệu đã được thêm.</p></div>
       <label className="flex items-center gap-2 text-sm text-slate-600">Cơ sở<select value={campusId} onChange={(event) => select({ campusId: event.target.value })} className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300">{campusIds.map((id) => <option key={id} value={id}>{data.campusesById[id]?.name ?? id}</option>)}</select></label></div>
-    <form onSubmit={search} className="flex gap-2"><label htmlFor="campus-map-search" className="sr-only">Tìm phòng hoặc mã Portal</label><input id="campus-map-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm phòng hoặc mã Portal" className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300" /><button type="submit" className="ustudy-button-primary"><Search className="h-4 w-4" aria-hidden="true" />Tìm</button></form>
+    <CampusMapSearch campusId={campusId} onSelect={selectSearchResult} />
     {notice && <p role="status" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{notice}</p>}
     {roomId && !room && <p role="status" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Phòng trong liên kết chưa có trong dữ liệu bản đồ mới.</p>}
     {params.has('legacyBuilding') && <p role="status" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Liên kết bản đồ cũ chưa được ánh xạ sang dữ liệu mới. Hãy chọn tòa trong danh sách.</p>}

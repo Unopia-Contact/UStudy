@@ -29,6 +29,93 @@
 .ustudy-map-list-item-active { background: #eaf3ff; color: #004a98; font-weight: 600; }
 .ustudy-map-list-item:focus-visible { outline: 2px solid #004a98; outline-offset: 2px; }
 
+.ustudy-campus-search { position: relative; z-index: 20; }
+.ustudy-campus-search-field { position: relative; }
+.ustudy-campus-search-leading {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+.ustudy-campus-search-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0 44px 0 38px;
+  color: #111827;
+  font-size: 14px;
+}
+.ustudy-campus-search-input:focus {
+  border-color: #004a98;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(0 74 152 / 0.18);
+}
+.ustudy-campus-search-trailing,
+.ustudy-campus-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+.ustudy-campus-search-trailing { width: 18px; height: 18px; }
+.ustudy-campus-search-clear {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+.ustudy-campus-search-clear:hover { background: #f1f5f9; color: #004a98; }
+.ustudy-campus-search-clear:focus-visible { outline: 2px solid #004a98; outline-offset: 1px; }
+.ustudy-campus-search-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: min(360px, 55vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgb(15 23 42 / 0.14);
+}
+.ustudy-campus-search-option {
+  display: flex;
+  width: 100%;
+  min-height: 58px;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: left;
+}
+.ustudy-campus-search-option:last-child { border-bottom: 0; }
+.ustudy-campus-search-option:hover,
+.ustudy-campus-search-option-active { background: #eaf3ff; }
+.ustudy-campus-search-option:focus-visible { outline: 2px solid #004a98; outline-offset: -2px; }
+.ustudy-campus-search-icon {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eaf3ff;
+  color: #004a98;
+}
+.ustudy-campus-search-option-active .ustudy-campus-search-icon { background: #004a98; color: #fff; }
+.ustudy-campus-search-message { padding: 16px; color: #64748b; font-size: 14px; text-align: center; }
+
 .ustudy-floor-map-room-selected:is(rect, path, polygon, ellipse, circle),
 .ustudy-floor-map-room-selected > rect,
 .ustudy-floor-map-room-selected > path,
