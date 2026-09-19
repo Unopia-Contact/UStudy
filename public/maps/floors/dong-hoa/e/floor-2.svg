@@ -1,0 +1,222 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 2000 520"
+  width="2000"
+  height="520"
+>
+  <style>
+    .room {
+      fill: #9fe8f4;
+      stroke: #c85f6e;
+      stroke-width: 4;
+      stroke-linejoin: miter;
+    }
+
+    .outline {
+      fill: none;
+      stroke: #c85f6e;
+      stroke-width: 4;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .detail {
+      fill: none;
+      stroke: #3a4f61;
+      stroke-width: 2.2;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .marker {
+      fill: #c85f6e;
+    }
+
+    .code {
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      fill: #164d69;
+      text-anchor: middle;
+    }
+
+    .label {
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      fill: #164d69;
+      text-anchor: middle;
+    }
+
+    .small {
+      font-family: Arial, sans-serif;
+      font-size: 15px;
+      fill: #164d69;
+      text-anchor: middle;
+    }
+  </style>
+
+  <!-- ===================================================== -->
+  <!-- KHỐI PHÒNG TẦNG 2                                     -->
+  <!-- ===================================================== -->
+
+  <!-- E201 -->
+  <rect id="room-e201" class="room" x="90" y="185" width="170" height="170" />
+  <text class="code"  x="175" y="260">E201</text>
+  <text class="label" x="175" y="292">Phòng học</text>
+
+  <!-- E202 -->
+  <rect id="room-e202" class="room" x="260" y="185" width="150" height="170" />
+  <text class="code"  x="335" y="260">E202</text>
+  <text class="label" x="335" y="292">Phòng học</text>
+
+  <!-- E203 -->
+  <rect id="room-e203" class="room" x="410" y="185" width="150" height="170" />
+  <text class="code"  x="485" y="260">E203</text>
+  <text class="label" x="485" y="292">Phòng học</text>
+
+  <!-- khoảng trắng / lõi giao thông -->
+  <rect class="outline" x="560" y="185" width="60" height="170" />
+
+  <!-- ký hiệu cạnh lõi -->
+  <path class="detail" d="M 610 225 L 595 215 L 610 205" />
+  <path class="detail" d="M 610 295 L 595 285 L 610 275" />
+
+  <!-- E204 -->
+  <rect id="room-e204" class="room" x="620" y="185" width="110" height="115" />
+  <text class="code"  x="675" y="245">E204</text>
+  <text class="label" x="675" y="277">Phòng</text>
+  <text class="label" x="675" y="305">học</text>
+
+  <!-- Thang bộ 1 -->
+  <rect class="outline" x="620" y="300" width="110" height="55" />
+  <path class="detail" d="M 625 350 L 725 305" />
+  <text
+    class="small"
+    x="674"
+    y="339"
+    transform="rotate(-34 674 339)"
+  >Thang bộ</text>
+
+  <!-- E205 -->
+  <rect id="room-e205" class="room" x="730" y="185" width="150" height="170" />
+  <text class="code"  x="805" y="260">E205</text>
+  <text class="label" x="805" y="292">Phòng học</text>
+
+  <!-- E206 -->
+  <rect id="room-e206" class="room" x="880" y="185" width="150" height="170" />
+  <text class="code"  x="955" y="260">E206</text>
+  <text class="label" x="955" y="292">Phòng học</text>
+
+  <!-- E207 -->
+  <rect id="room-e207" class="room" x="1030" y="185" width="150" height="170" />
+  <text class="code"  x="1105" y="260">E207</text>
+  <text class="label" x="1105" y="292">Phòng học</text>
+
+  <!-- E208 -->
+  <rect id="room-e208" class="room" x="1180" y="185" width="150" height="170" />
+  <text class="code"  x="1255" y="260">E208</text>
+  <text class="label" x="1255" y="292">Phòng học</text>
+
+  <!-- Phòng Giáo viên -->
+  <rect class="room" x="1330" y="185" width="105" height="115" />
+  <text class="label" x="1382.5" y="245">Phòng</text>
+  <text class="label" x="1382.5" y="277">Giáo</text>
+  <text class="label" x="1382.5" y="309">viên</text>
+
+  <!-- Thang bộ 2 -->
+  <rect class="outline" x="1330" y="300" width="105" height="55" />
+  <path class="detail" d="M 1335 350 L 1428 305" />
+  <text
+    class="small"
+    x="1382"
+    y="339"
+    transform="rotate(-34 1382 339)"
+  >Thang bộ</text>
+
+  <!-- khoảng trắng bên phải Phòng Giáo viên -->
+  <rect class="outline" x="1435" y="185" width="55" height="170" />
+  <path class="detail" d="M 1445 225 L 1460 215 L 1445 205" />
+  <path class="detail" d="M 1445 295 L 1460 285 L 1445 275" />
+
+  <!-- E209 -->
+  <rect id="room-e209" class="room" x="1490" y="185" width="150" height="170" />
+  <text class="code"  x="1565" y="260">E209</text>
+  <text class="label" x="1565" y="292">Phòng học</text>
+
+  <!-- E210 -->
+  <rect id="room-e210" class="room" x="1640" y="185" width="150" height="170" />
+  <text class="code"  x="1715" y="260">E210</text>
+  <text class="label" x="1715" y="292">Phòng học</text>
+
+  <!-- E211 -->
+  <rect id="room-e211" class="room" x="1790" y="185" width="150" height="170" />
+  <text class="code"  x="1865" y="260">E211</text>
+  <text class="label" x="1865" y="292">Phòng học</text>
+
+  <!-- ===================================================== -->
+  <!-- HÀNH LANG DƯỚI                                         -->
+  <!-- ===================================================== -->
+
+  <path class="outline" d="M 90 385 L 1490 385" />
+
+  <!-- mốc hành lang dưới -->
+  <rect class="marker" x="170" y="379" width="10" height="10" />
+  <rect class="marker" x="300" y="379" width="10" height="10" />
+  <rect class="marker" x="430" y="379" width="10" height="10" />
+  <rect class="marker" x="560" y="379" width="10" height="10" />
+  <rect class="marker" x="690" y="379" width="10" height="10" />
+  <rect class="marker" x="820" y="379" width="10" height="10" />
+  <rect class="marker" x="950" y="379" width="10" height="10" />
+  <rect class="marker" x="1080" y="379" width="10" height="10" />
+  <rect class="marker" x="1210" y="379" width="10" height="10" />
+  <rect class="marker" x="1340" y="379" width="10" height="10" />
+
+  <!-- Phòng trực kỹ thuật -->
+  <rect class="room" x="585" y="385" width="120" height="90" />
+  <text class="label" x="645" y="428">Phòng trực</text>
+  <text class="label" x="645" y="452">kỹ thuật</text>
+
+  <!-- Phòng giáo vụ -->
+  <rect class="room" x="1110" y="385" width="120" height="90" />
+  <text class="label" x="1170" y="428">Phòng</text>
+  <text class="label" x="1170" y="452">giáo vụ</text>
+
+  <!-- chỗ nối treo phòng dưới -->
+  <path class="detail" d="M 640 385 L 640 375 L 650 369 L 660 375 L 660 385" />
+  <path class="detail" d="M 1165 385 L 1165 375 L 1175 369 L 1185 375 L 1185 385" />
+
+  <!-- ===================================================== -->
+  <!-- CỬA NHỎ DƯỚI CHÂN PHÒNG                                -->
+  <!-- ===================================================== -->
+
+  <!-- E201 -->
+  <path class="detail" d="M 100 355 L 100 368 M 100 355 L 110 365 M 118 355 L 118 368 M 118 355 L 108 365" />
+
+  <!-- E202 -->
+  <path class="detail" d="M 305 355 L 305 368 M 305 355 L 315 365 M 323 355 L 323 368 M 323 355 L 313 365" />
+
+  <!-- E203 -->
+  <path class="detail" d="M 515 355 L 515 368 M 515 355 L 525 365 M 533 355 L 533 368 M 533 355 L 523 365" />
+
+  <!-- E204/E205 -->
+  <path class="detail" d="M 685 355 L 685 368 M 685 355 L 695 365 M 703 355 L 703 368 M 703 355 L 693 365" />
+
+  <!-- E206 -->
+  <path class="detail" d="M 975 355 L 975 368 M 975 355 L 985 365 M 993 355 L 993 368 M 993 355 L 983 365" />
+
+  <!-- E207 -->
+  <path class="detail" d="M 1125 355 L 1125 368 M 1125 355 L 1135 365 M 1143 355 L 1143 368 M 1143 355 L 1133 365" />
+
+  <!-- E208 / thang 2 -->
+  <path class="detail" d="M 1280 355 L 1280 368 M 1280 355 L 1290 365 M 1298 355 L 1298 368 M 1298 355 L 1288 365" />
+
+  <!-- E209 -->
+  <path class="detail" d="M 1535 355 L 1535 368 M 1535 355 L 1545 365 M 1553 355 L 1553 368 M 1553 355 L 1543 365" />
+
+  <!-- E210 -->
+  <path class="detail" d="M 1685 355 L 1685 368 M 1685 355 L 1695 365 M 1703 355 L 1703 368 M 1703 355 L 1693 365" />
+
+  <!-- E211 -->
+  <path class="detail" d="M 1835 355 L 1835 368 M 1835 355 L 1845 365 M 1853 355 L 1853 368 M 1853 355 L 1843 365" />
+
+</svg>

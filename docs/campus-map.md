@@ -18,7 +18,7 @@ P.cs2:PM_B4-2_6.2 → dong-hoa/b4-2/6/2
 
 Resolver ưu tiên exact → equivalent → structural. Structural chỉ trả phòng có thật trong inventory và link sẽ ghi “Vị trí suy luận”. Mã trùng nhiều phòng hoặc không đủ dữ liệu thì không tạo link bản đồ. Không lưu `RoomId` vào dữ liệu người dùng; lịch giữ mã Portal gốc trong session runtime.
 
-Hiện inventory mới chỉ có ví dụ `PM_B4-2_6.2` do người dùng xác nhận. Các mã `D207`, `TNHDC_A107`, `TNL_A211` và sơ đồ SVG chưa được xác minh nên chưa đưa vào inventory/binding. Liên kết từ danh bạ đời cũ dùng ID khác sẽ hiện cảnh báo thay vì mở nhầm tòa nhà.
+Inventory và Portal binding chỉ chứa địa điểm/mã đã được xác minh. Liên kết từ danh bạ đời cũ dùng ID khác sẽ hiện cảnh báo thay vì mở nhầm tòa nhà.
 
 ## Giao diện bản đồ Đông Hòa
 
@@ -26,4 +26,4 @@ Hiện inventory mới chỉ có ví dụ `PM_B4-2_6.2` do người dùng xác n
 
 `DongHoaCampusDiagram.tsx` chỉ chứa hình học sơ đồ khuôn viên CS2. Nhãn A–G và NĐH trên hình không tự tạo tòa, tầng hay phòng; chỉ tòa có trong `campuses.ts` mới bấm được và xuất hiện trong danh sách. B4.2 hiện có trong inventory nhưng chưa có vị trí trên sơ đồ khuôn viên.
 
-Hiện `campuses.ts` khai báo hai tòa ở Đông Hòa: B4.2 (1 tầng) và Nhà điều hành (8 tầng). Vì vậy panel hiển thị 2 tòa, 9 tầng; hình A–G trên sơ đồ không cộng vào các con số này.
+Nhà F có sơ đồ riêng cho tầng hầm và tầng 1–3 tại `public/maps/floors/dong-hoa/f/`; các entry được đăng ký trong `floor-maps.ts`. Danh sách tòa/tầng/phòng trên giao diện luôn được suy ra trực tiếp từ `campuses.ts`.

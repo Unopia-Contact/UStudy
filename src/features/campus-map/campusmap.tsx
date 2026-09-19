@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { CAMPUS_MAP_DATA, searchMapRooms, type CampusId } from '../../domain/campus-map';
 import { resolveKnownPortalRoom } from '../../integrations/hcmus-portal/rooms';
 import { DongHoaCampusDiagram } from './DongHoaCampusDiagram';
+import { InlineFloorSvg } from './InlineFloorSvg';
 import { MapViewport } from './MapViewport';
 
 const data = CAMPUS_MAP_DATA;
@@ -45,7 +46,7 @@ export default function CampusMap() {
   }
 
   const mapContent = isFloorView && building && visibleFloor?.map ? <MapViewport width={visibleFloor.map.viewBox[2]} height={visibleFloor.map.viewBox[3]} label={`Sơ đồ ${building.name} ${visibleFloor.label}`} resetKey={visibleFloor.fullId}>
-    <image href={visibleFloor.map.asset} width={visibleFloor.map.viewBox[2]} height={visibleFloor.map.viewBox[3]} />
+    <InlineFloorSvg asset={visibleFloor.map.asset} selectedShapeId={room?.floorId === visibleFloor.fullId ? room.map?.shapeId : undefined} />
   </MapViewport> : !isFloorView && campusId === 'dong-hoa' ? <DongHoaCampusDiagram buildings={(data.buildingIdsByCampusId['dong-hoa'] ?? []).map((id) => data.buildingsById[id])} selectedId={building?.fullId} onSelect={(id) => select({ campusId: 'dong-hoa', buildingId: id })} /> : !isFloorView && campus?.map ? <MapViewport width={campus.map.viewBox[2]} height={campus.map.viewBox[3]} label={`Sơ đồ khuôn viên ${campus.name}`} resetKey={campus.id}>
     <image href={campus.map.asset} width={campus.map.viewBox[2]} height={campus.map.viewBox[3]} />
   </MapViewport> : <div className="flex min-h-[340px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center"><MapPinned className="h-7 w-7 text-slate-400" aria-hidden="true" /><p className="mt-2 text-sm font-semibold text-slate-800">{isFloorView ? 'Chưa có sơ đồ tầng' : 'Chưa có sơ đồ khuôn viên'}</p><p className="mt-1 max-w-sm text-sm text-slate-500">Thêm asset SVG và viewBox vào data mới để hiển thị ở đây.</p></div>;

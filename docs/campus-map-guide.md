@@ -16,19 +16,19 @@ ID runtime tự ghép theo thứ tự `campus/building/floor/room`. Ví dụ ph�
 
 ## Thêm sơ đồ tầng
 
-Đặt SVG tại `public/maps/floors/`, rồi thêm một entry trong `floor-maps.ts`:
+Đặt SVG tại `public/maps/floors/<campus-id>/<building-id>/`. Tên file dùng `floor-<floor-id>.svg`, rồi thêm một entry trong `floor-maps.ts`:
 
 ```ts
 export const FLOOR_MAPS: Partial<Record<FloorId, MapAsset>> = {
-  'dong-hoa/b4-2/6': {
-    asset: '/maps/floors/b4-2-6.svg',
+  'dong-hoa/f/1': {
+    asset: '/maps/floors/dong-hoa/f/floor-1.svg',
     viewBox: [0, 0, 1200, 800],
-    shapeIds: ['room-6-2'],
+    shapeIds: ['room-f101'],
   },
 };
 ```
 
-Nếu vị trí phòng đã xác minh, thêm `map: { shapeId: 'room-6-2' }` vào phòng tương ứng trong `campuses.ts`. `shapeId` phải có trong `shapeIds` của sơ đồ tầng. Không nhập sơ đồ tầng trong `campuses.ts` hay component UI. Phòng chưa có sơ đồ vẫn được liệt kê và tìm kiếm.
+Nếu vị trí phòng đã xác minh, thêm `map: { shapeId: 'room-f101' }` vào phòng tương ứng trong `campuses.ts`. `shapeId` phải có trong `shapeIds` của sơ đồ tầng. Không nhập sơ đồ tầng trong `campuses.ts` hay component UI. Phòng chưa có sơ đồ vẫn được liệt kê và tìm kiếm.
 
 ## Liên kết mã Portal
 

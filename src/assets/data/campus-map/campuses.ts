@@ -9,6 +9,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
     shortName: 'Đông Hòa',
     status: 'active',
     buildings: [
+      // NDH
       {
         id: 'ndh',
         code: 'NĐH',
@@ -403,6 +404,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
           },
         ],
       },
+      // A
       {
         id: 'a',
         code: 'A',
@@ -412,7 +414,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
         status: 'active',
         floors: [
           {
-            id: '0',
+            id: 'basement',
             label: 'Tầng 0',
             level: 0,
             sortOrder: 0,
@@ -423,9 +425,34 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
                 verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
               },
             ]
+          },
+          {
+            id: '2',
+            label: 'Tầng 2',
+            level: 2,
+            sortOrder: 2,
+            rooms: ['201', '202', '203', '204', '205', '206', '207', '208', '209', '210', '211', '212', '213', '214'].map((code) => {
+              const overrides: Record<string, Partial<any>> = {
+                '201': { label: 'Phòng giáo viên D201', kind: 'office' },
+                '202': { label: 'Phòng giáo viên D202', kind: 'office' },
+                '203': { label: 'Phòng máy D203', kind: 'computer-lab' },
+                '204': { label: 'Phòng máy D204', kind: 'computer-lab' },
+              };
+              return {
+                id: code,
+                code,
+                label: `Phòng D${code}`,
+                kind: 'classroom' as const,
+                aliases: [`D${code}`],
+                status: 'active' as const,
+                map: { shapeId: `room-d${code}` },
+                ...overrides[code],
+              };
+            }),
           }
         ],
       },
+      // B
       {
         id: 'b',
         code: 'HT',
@@ -449,6 +476,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
           }
         ],
       },
+      // C
       {
         id: 'c',
         code: 'C',
@@ -472,6 +500,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
           }
         ],
       },
+      // D
       {
         id: 'd',
         code: 'D',
@@ -481,20 +510,131 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
         status: 'active',
         floors: [
           {
+            id: '0',
+            label: 'Tầng Hầm',
+            level: -1,
+            sortOrder: -1,
+            rooms: ['environmental-technology-lab', '004', '005', '006', '007'].map((code) => {
+              const overrides: Record<string, Partial<any>> = {
+                'environmental-technology-lab': {
+                  label: 'PTN Công nghệ môi trường',
+                  kind: 'laboratory',
+                  aliases: ['D003 PTN Công nghệ môi trường', 'Công nghệ môi trường', 'Phòng thí nghiệm Công nghệ môi trường'],
+                  map: { shapeId: 'environmental-technology-lab' },
+                },
+              };
+
+              return {
+                id: code,
+                code,
+                label: `D${code}`,
+                kind: 'classroom' as const,
+                aliases: [`D${code}`],
+                status: 'active' as const,
+                map: { shapeId: `room-d${code}` },
+
+                ...overrides[code],
+              };
+            }),
+          },
+          {
             id: '1',
             label: 'Tầng 1',
             level: 1,
             sortOrder: 1,
-            rooms: [
-              {
-                id: '1', code: '101', label: 'Phòng D101', kind: 'classroom',
-                aliases: ['D101'], status: 'active',
-                verification: { status: 'observed', sourceIds: ['user-confirmed-portal-code'] },
-              },
-            ]
+            rooms: ['101', '102', '102a', '103', 'lecturer-room', '105', '106', '107', '108'].map((code) => {
+              const overrides: Record<string, Partial<any>> = {
+                'lecturer-room': {
+                  label: 'Phòng GV',
+                  kind: 'office',
+                  aliases: ['D104 Phòng GV', 'Phòng giảng viên', 'Phòng giáo viên'],
+                  map: { shapeId: 'lecturer-room' },
+                },
+              };
+
+              return {
+                id: code,
+                code,
+                label: `D${code}`,
+                kind: 'classroom' as const,
+                aliases: [`D${code}`],
+                status: 'active' as const,
+                map: { shapeId: `room-d${code}` },
+
+                ...overrides[code],
+              };
+            }),
           }
         ],
       },
+      // E
+      {
+        id: 'e',
+        code: 'E',
+        name: 'Tòa E',
+        kind: 'academic',
+        aliases: ['Tòa E'],
+        status: 'active',
+        floors: [
+          {
+            id: '1',
+            label: 'Tầng 1',
+            level: 1,
+            sortOrder: 1,
+            rooms: ['101', '102', '103', '104', '105', '106', '107'].map((code) => {
+              const overrides: Record<string, Partial<any>> = {
+                '101': {
+                  label: 'Data Center',
+                  kind: 'office',
+                  aliases: ['E101', 'Data Center', 'Phòng Data Center'],
+                  map: { shapeId: 'room-e101' },
+                },
+                '102': {
+                  label: 'Phòng ý tế',
+                  kind: 'medical',
+                  aliases: ['E102', 'Phòng ý tế'],
+                  map: { shapeId: 'room-e102' },
+                },
+              };
+
+              return {
+                id: code,
+                code,
+                label: `E${code}`,
+                kind: 'classroom' as const,
+                aliases: [`E${code}`],
+                status: 'active' as const,
+                map: { shapeId: `room-e${code}` },
+
+                ...overrides[code],
+              };
+            }),
+          },
+          {
+            id: '2',
+            label: 'Tầng 2',
+            level: 2,
+            sortOrder: 2,
+            rooms: ['201', '202', '203', '204', '205', '206', '207', '208', '209', '210', '211'].map((code) => ({
+              id: code, code, label: `E${code}`, kind: 'classroom' as const,
+              aliases: [`E${code}`], status: 'active' as const,
+              map: { shapeId: `room-e${code}` },
+            })),
+          },
+          {
+            id: '3',
+            label: 'Tầng 3',
+            level: 3,
+            sortOrder: 3,
+            rooms: ['301', '302', '303', '304', '305', '306', '307', '308', '309', '310', '311', '312'].map((code) => ({
+              id: code, code, label: `E${code}`, kind: 'classroom' as const,
+              aliases: [`E${code}`], status: 'active' as const,
+              map: { shapeId: `room-e${code}` },
+            })),
+          }
+        ],
+      },
+      // NTĐ
       {
         id: 'ntd',
         code: 'NTĐ_',
@@ -518,6 +658,49 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
           }
         ]
       },
+      // F
+      {
+        id: 'f',
+        code: 'F',
+        name: 'Tòa F',
+        kind: 'academic',
+        aliases: ['Nhà F'],
+        status: 'active',
+        floors: [
+          {
+            id: 'basement',
+            label: 'Tầng hầm',
+            level: -1,
+            sortOrder: -1,
+            rooms: [],
+          },
+          {
+            id: '1', label: 'Tầng 1', level: 1, sortOrder: 1,
+            rooms: ['101', '102', '103', '104', '105', '106'].map((code) => ({
+              id: code, code, label: `F${code}`, kind: 'classroom' as const,
+              aliases: [`F${code}`], status: 'active' as const,
+              map: { shapeId: `room-f${code}` },
+            })),
+          },
+          {
+            id: '2', label: 'Tầng 2', level: 2, sortOrder: 2,
+            rooms: ['201', '202', '203', '204', '205', '206'].map((code) => ({
+              id: code, code, label: `F${code}`, kind: 'classroom' as const,
+              aliases: [`F${code}`], status: 'active' as const,
+              map: { shapeId: `room-f${code}` },
+            })),
+          },
+          {
+            id: '3', label: 'Tầng 3', level: 3, sortOrder: 3,
+            rooms: ['301', '302', '303', '304', '305', '306'].map((code) => ({
+              id: code, code, label: `F${code}`, kind: 'classroom' as const,
+              aliases: [`F${code}`], status: 'active' as const,
+              map: { shapeId: `room-f${code}` },
+            })),
+          },
+        ],
+      },
+      // B42
       {
         id: 'b4-2',
         code: 'B4-2_',

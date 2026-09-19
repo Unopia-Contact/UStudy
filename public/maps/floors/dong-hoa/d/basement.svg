@@ -1,0 +1,626 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1200 250"
+  width="1200"
+  height="250"
+>
+  <style>
+    .room {
+      fill: #70c9e5;
+      fill-opacity: 0.78;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linejoin: miter;
+    }
+
+    .service-area {
+      fill: #70c9e5;
+      fill-opacity: 0.78;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linejoin: miter;
+    }
+
+    .wall {
+      fill: none;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .thin-wall {
+      fill: none;
+      stroke: #9f5360;
+      stroke-width: 2;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .detail {
+      fill: none;
+      stroke: #35546a;
+      stroke-width: 1.7;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .room-code {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .room-name {
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .small-text {
+      font-family: Arial, sans-serif;
+      font-size: 9px;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .corridor-marker {
+      fill: #9f5360;
+    }
+  </style>
+
+
+  <!-- ========================================================= -->
+  <!-- KHỐI TRÁI : D007 - D004                                  -->
+  <!-- ========================================================= -->
+
+  <!-- D007 -->
+  <g id="room-d007">
+    <rect
+      class="room"
+      x="35"
+      y="35"
+      width="105"
+      height="105"
+    />
+
+    <text
+      class="room-code"
+      x="87.5"
+      y="125"
+    >
+      D007
+    </text>
+  </g>
+
+
+  <!-- D006 -->
+  <g id="room-d006">
+    <rect
+      class="room"
+      x="140"
+      y="35"
+      width="105"
+      height="105"
+    />
+
+    <text
+      class="room-code"
+      x="192.5"
+      y="125"
+    >
+      D006
+    </text>
+  </g>
+
+
+  <!-- D005 -->
+  <g id="room-d005">
+    <rect
+      class="room"
+      x="245"
+      y="35"
+      width="90"
+      height="105"
+    />
+
+    <text
+      class="room-code"
+      x="290"
+      y="125"
+    >
+      D005
+    </text>
+  </g>
+
+
+  <!-- D004 / PTN Địa chất công trình -->
+  <g id="room-d004">
+    <rect
+      class="room"
+      x="335"
+      y="35"
+      width="205"
+      height="105"
+    />
+
+    <text
+      class="room-name"
+      x="437.5"
+      y="86"
+    >
+      PTN Địa chất công trình
+    </text>
+
+    <text
+      class="room-code"
+      x="356"
+      y="125"
+    >
+      D004
+    </text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- LÕI GIAO THÔNG GIỮA HAI KHỐI                             -->
+  <!-- ========================================================= -->
+
+  <path
+    id="core-center"
+    class="wall"
+    d="
+      M 540 15
+      L 610 15
+
+      M 540 15
+      L 540 205
+
+      M 610 15
+      L 610 205
+
+      M 540 205
+      L 557 205
+      L 565 213
+      L 573 205
+      L 610 205
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- WC NỮ                                                     -->
+  <!-- ========================================================= -->
+
+  <rect
+    id="wc-female"
+    class="service-area"
+    x="610"
+    y="35"
+    width="85"
+    height="65"
+  />
+
+  <text
+    class="room-name"
+    x="652.5"
+    y="73"
+  >
+    WC NỮ
+  </text>
+
+
+  <!-- vùng phụ phía dưới WC -->
+  <rect
+    id="wc-female-lobby"
+    class="wall"
+    x="610"
+    y="100"
+    width="85"
+    height="40"
+  />
+
+
+  <!-- cửa từ lõi giữa vào khu WC -->
+  <path
+    class="detail"
+    d="
+      M 610 92
+      L 619 92
+
+      M 610 92
+      Q 624 100 610 108
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- PTN CÔNG NGHỆ MÔI TRƯỜNG                                 -->
+  <!-- ========================================================= -->
+
+  <g id="environmental-technology-lab">
+    <rect
+      class="service-area"
+      x="695"
+      y="35"
+      width="225"
+      height="105"
+    />
+
+    <text
+      class="room-name"
+      x="807.5"
+      y="79"
+    >
+      PTN Công nghệ môi trường
+    </text>
+
+    <text
+      class="small-text"
+      x="807.5"
+      y="95"
+    >
+      Environmental Technology Lab
+    </text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- PHÒNG / KHỐI KHÔNG GHI MÃ BÊN PHẢI                       -->
+  <!-- ========================================================= -->
+
+  <rect
+    id="east-unnamed-room"
+    class="wall"
+    x="920"
+    y="35"
+    width="80"
+    height="105"
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- LÕI GIAO THÔNG NGOÀI CÙNG BÊN PHẢI                       -->
+  <!-- ========================================================= -->
+
+  <path
+    id="core-east"
+    class="wall"
+    d="
+      M 1000 15
+      L 1075 15
+
+      M 1000 15
+      L 1000 140
+
+      M 1075 15
+      L 1075 190
+
+      M 1000 140
+      L 1075 140
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- HÀNH LANG KHỐI TRÁI                                      -->
+  <!-- ========================================================= -->
+
+  <path
+    id="corridor-west"
+    class="wall"
+    d="
+      M 35 140
+      L 35 180
+      L 540 180
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- HÀNH LANG KHỐI PHẢI                                      -->
+  <!-- ========================================================= -->
+
+  <path
+    id="corridor-east"
+    class="wall"
+    d="
+      M 610 180
+      L 1075 180
+      L 1075 140
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CẦU THANG PHÍA TÂY                                       -->
+  <!-- ========================================================= -->
+
+  <path
+    id="stairs-west-outline"
+    class="wall"
+    d="
+      M 430 180
+      L 430 220
+      L 520 220
+      L 520 180
+    "
+  />
+
+  <path
+    id="stairs-west"
+    class="detail"
+    d="
+      M 437 184 L 437 210
+      M 442 184 L 442 210
+      M 447 184 L 447 210
+      M 452 184 L 452 210
+      M 457 184 L 457 210
+      M 462 184 L 462 210
+      M 467 184 L 467 210
+      M 472 184 L 472 210
+
+      M 437 210
+      L 478 210
+      L 478 215
+    "
+  />
+
+  <text
+    class="small-text"
+    x="475"
+    y="210"
+  >
+    Thang bộ
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- CẦU THANG PHÍA ĐÔNG                                      -->
+  <!-- ========================================================= -->
+
+  <path
+    id="stairs-east-outline"
+    class="wall"
+    d="
+      M 900 180
+      L 900 215
+      L 980 215
+      L 980 180
+    "
+  />
+
+  <path
+    id="stairs-east"
+    class="detail"
+    d="
+      M 907 184 L 907 207
+      M 912 184 L 912 207
+      M 917 184 L 917 207
+      M 922 184 L 922 207
+      M 927 184 L 927 207
+      M 932 184 L 932 207
+      M 937 184 L 937 207
+      M 942 184 L 942 207
+
+      M 907 207
+      L 948 207
+      L 948 212
+    "
+  />
+
+  <text
+    class="small-text"
+    x="944"
+    y="209"
+  >
+    Thang bộ
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D007                                                  -->
+  <!-- ========================================================= -->
+
+  <path
+    class="detail"
+    d="
+      M 72 139
+      L 72 149
+
+      M 72 139
+      L 80 147
+
+      M 91 139
+      L 91 149
+
+      M 91 139
+      L 83 147
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D006                                                  -->
+  <!-- ========================================================= -->
+
+  <path
+    class="detail"
+    d="
+      M 175 139
+      L 175 149
+
+      M 175 139
+      L 183 147
+
+      M 194 139
+      L 194 149
+
+      M 194 139
+      L 186 147
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D005                                                  -->
+  <!-- ========================================================= -->
+
+  <path
+    class="detail"
+    d="
+      M 266 139
+      L 266 149
+
+      M 266 139
+      L 274 147
+
+      M 285 139
+      L 285 149
+
+      M 285 139
+      L 277 147
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D004                                                  -->
+  <!-- ========================================================= -->
+
+  <!-- cửa trái -->
+  <path
+    class="detail"
+    d="
+      M 342 139
+      L 342 149
+
+      M 342 139
+      L 350 147
+
+      M 361 139
+      L 361 149
+
+      M 361 139
+      L 353 147
+    "
+  />
+
+  <!-- cửa phải -->
+  <path
+    class="detail"
+    d="
+      M 501 139
+      L 501 149
+
+      M 501 139
+      L 509 147
+
+      M 520 139
+      L 520 149
+
+      M 520 139
+      L 512 147
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA PTN CÔNG NGHỆ MÔI TRƯỜNG                             -->
+  <!-- ========================================================= -->
+
+  <!-- cửa đôi -->
+  <path
+    class="detail"
+    d="
+      M 749 139
+      L 749 149
+
+      M 749 139
+      L 757 147
+
+      M 768 139
+      L 768 149
+
+      M 768 139
+      L 760 147
+    "
+  />
+
+  <!-- cửa bên phải -->
+  <path
+    class="detail"
+    d="
+      M 897 139
+      L 897 149
+
+      M 897 139
+      L 905 147
+
+      M 916 139
+      L 916 149
+
+      M 916 139
+      L 908 147
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA KHỐI PHẢI                                             -->
+  <!-- ========================================================= -->
+
+  <path
+    class="detail"
+    d="
+      M 985 139
+      L 985 149
+
+      M 985 139
+      L 993 147
+
+      M 1000 139
+      L 1000 149
+
+      M 1000 139
+      L 992 147
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CÁC MỐC NHỎ TRÊN TƯỜNG / HÀNH LANG                       -->
+  <!-- ========================================================= -->
+
+  <rect class="corridor-marker" x="95"  y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="175" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="255" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="335" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="415" y="175" width="6" height="8"/>
+
+  <rect class="corridor-marker" x="650" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="735" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="820" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="885" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="1030" y="175" width="6" height="8"/>
+
+
+  <!-- mốc tường phía trên khối trái -->
+  <rect class="corridor-marker" x="95"  y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="175" y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="255" y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="335" y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="415" y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="495" y="31" width="6" height="8"/>
+
+  <!-- mốc tường phía trên khối phải -->
+  <rect class="corridor-marker" x="650" y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="735" y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="820" y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="905" y="31" width="6" height="8"/>
+  <rect class="corridor-marker" x="975" y="31" width="6" height="8"/>
+
+</svg>
