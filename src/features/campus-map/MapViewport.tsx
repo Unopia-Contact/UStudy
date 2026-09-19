@@ -16,11 +16,12 @@ export function zoomMapBox(box: Box, factor: number, anchorX: number, anchorY: n
   };
 }
 
-export function MapViewport({ width, height, label, resetKey, children }: {
+export function MapViewport({ width, height, label, resetKey, className = '', children }: {
   width: number;
   height: number;
   label: string;
   resetKey: string;
+  className?: string;
   children: ReactNode;
 }) {
   const base = { x: 0, y: 0, width, height };
@@ -56,7 +57,7 @@ export function MapViewport({ width, height, label, resetKey, children }: {
     pointer.current = { x: event.clientX, y: event.clientY };
   }
 
-  return <div className="relative min-h-[340px] overflow-hidden rounded-lg border border-slate-200 bg-slate-50 sm:min-h-[480px]">
+  return <div className={`relative min-h-[340px] overflow-hidden rounded-lg border border-slate-200 bg-slate-50 sm:min-h-[480px] ${className}`}>
     <svg viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`} preserveAspectRatio="xMidYMid meet"
       className="absolute inset-0 h-full w-full touch-none cursor-grab active:cursor-grabbing"
       role="img" aria-label={label}

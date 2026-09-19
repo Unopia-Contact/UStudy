@@ -1,6 +1,7 @@
 import { ArrowLeft, Building2, ChevronRight, DoorOpen, Layers3, MapPinned } from 'lucide-react';
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { APP_ROUTES } from '../../app/routes';
 import { CAMPUS_MAP_DATA, type CampusId, type CampusPlaceSearchResult } from '../../domain/campus-map';
 import { CampusMapSearch } from './CampusMapSearch';
 import { DongHoaCampusDiagram } from './DongHoaCampusDiagram';
@@ -54,7 +55,7 @@ export default function CampusMap() {
   </MapViewport> : <div className="flex min-h-[340px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center"><MapPinned className="h-7 w-7 text-slate-400" aria-hidden="true" /><p className="mt-2 text-sm font-semibold text-slate-800">{isFloorView ? 'Chưa có sơ đồ tầng' : 'Chưa có sơ đồ khuôn viên'}</p><p className="mt-1 max-w-sm text-sm text-slate-500">Thêm asset SVG và viewBox vào data mới để hiển thị ở đây.</p></div>;
 
   return <section className="mt-5 space-y-4" aria-label="Bản đồ khuôn viên">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold text-slate-900">Bản đồ {campus?.shortName ?? 'khuôn viên'}</h2><p className="mt-1 text-sm text-slate-500">Chọn tòa, tầng, rồi mở sơ đồ khi dữ liệu đã được thêm.</p></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold text-slate-900">Bản đồ {campus?.shortName ?? 'khuôn viên'}</h2><p className="mt-1 text-sm text-slate-500">Chọn tòa, tầng, rồi mở sơ đồ khi dữ liệu đã được thêm.</p>{params.get('from') === 'schedule' && <Link to={APP_ROUTES.schedule} className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden="true" />Quay lại thời khóa biểu</Link>}</div>
       <label className="flex items-center gap-2 text-sm text-slate-600">Cơ sở<select value={campusId} onChange={(event) => select({ campusId: event.target.value })} className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300">{campusIds.map((id) => <option key={id} value={id}>{data.campusesById[id]?.name ?? id}</option>)}</select></label></div>
     <CampusMapSearch campusId={campusId} onSelect={selectSearchResult} />
     {notice && <p role="status" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{notice}</p>}

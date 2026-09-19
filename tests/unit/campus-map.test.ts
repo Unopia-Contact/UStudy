@@ -11,6 +11,7 @@ import type { Campus } from '../../src/domain/campus-map/types';
 import { FLOOR_MAPS } from '../../src/assets/data/campus-map/floor-maps';
 import { zoomMapBox } from '../../src/features/campus-map/MapViewport';
 import { searchCampusPlaces } from '../../src/domain/campus-map/selectors';
+import { resolveScheduleMapLocation } from '../../src/features/campus-map/services/resolve-schedule-location';
 
 const data = buildCampusMapRuntimeData(CAMPUS_MAP_CAMPUSES);
 const indexes = buildPortalRoomIndexes(PORTAL_ROOM_BINDINGS);
@@ -76,9 +77,21 @@ describe('Campus Map / Portal integration', () => {
   });
 
   it('never invents a room absent from physical inventory', () => {
-    expect(resolvePortalRoom('P.cs2:D207', data, indexes).status).toBe('unresolved');
+    expect(resolvePortalRoom('P.cs2:D299', data, indexes).status).toBe('unresolved');
     expect(resolvePortalRoom('P.cs2:TNHDC_A107', data, indexes).status).toBe('unresolved');
     expect(resolvePortalRoom('P.cs2:PM_B4-2_6.3', data, indexes).status).toBe('unresolved');
+  });
+
+  it('resolves a timetable room to its building, floor and highlighted map shape', () => {
+    expect(resolveScheduleMapLocation({ room: 'D207', portalLocationCode: 'P.cs2:D207' })).toMatchObject({
+      status: 'inferred',
+      building: { fullId: 'dong-hoa/d' },
+      floor: { fullId: 'dong-hoa/d/2' },
+      room: { fullId: 'dong-hoa/d/2/207' },
+      campusMapAvailable: true,
+      floorMapAvailable: true,
+      roomShapeAvailable: true,
+    });
   });
 
   it('only accepts structural fallback when that room exists', () => {

@@ -18,7 +18,7 @@ const shapes = [
 export function DongHoaCampusDiagram({ buildings, selectedId, onSelect }: {
   buildings: BuildingRuntime[];
   selectedId?: string;
-  onSelect: (id: string) => void;
+  onSelect?: (id: string) => void;
 }) {
   const byShape = new Map(buildings.map((building) => [building.id.toLowerCase(), building]));
 
@@ -41,11 +41,12 @@ export function DongHoaCampusDiagram({ buildings, selectedId, onSelect }: {
     {shapes.map((shape) => {
       const building = byShape.get(shape.key);
       const active = building?.fullId === selectedId;
-      return <g key={shape.key} role={building ? 'button' : undefined} tabIndex={building ? 0 : undefined}
-        aria-label={building ? `Chọn ${building.name}` : undefined}
-        className={building ? 'cursor-pointer outline-none' : undefined}
-        onClick={building ? () => onSelect(building.fullId) : undefined}
-        onKeyDown={building ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(building.fullId); } } : undefined}>
+      const interactive = Boolean(building && onSelect);
+      return <g key={shape.key} role={interactive ? 'button' : undefined} tabIndex={interactive ? 0 : undefined}
+        aria-label={interactive ? `Chọn ${building!.name}` : undefined}
+        className={interactive ? 'cursor-pointer outline-none' : undefined}
+        onClick={interactive ? () => onSelect!(building!.fullId) : undefined}
+        onKeyDown={interactive ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect!(building!.fullId); } } : undefined}>
         <rect x={shape.x} y={shape.y} width={shape.width} height={shape.height} rx="18"
           fill={active ? '#004a98' : '#fff'} stroke={active ? '#003a78' : '#a9bfd3'} strokeWidth={active ? 4 : 2} />
         <text x={shape.x + shape.width / 2} y={shape.y + shape.height / 2} textAnchor="middle" dominantBaseline="middle"

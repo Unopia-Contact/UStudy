@@ -1,4 +1,4 @@
-import { createRoomId, type CampusMapRuntimeData } from '../../../domain/campus-map';
+import type { CampusMapRuntimeData } from '../../../domain/campus-map';
 import { createEquivalentPortalKey } from './build-portal-indexes';
 import type { PortalRoomIndexes, PortalRoomResolution } from './types';
 
@@ -8,6 +8,15 @@ function classify(rawPortalCode: string, ids: string[], matchedBy: 'exact' | 'eq
     confidence: matchedBy === 'exact' ? 'exact' : matchedBy === 'equivalent' ? 'strong' : 'weak',
   };
   return { status: 'ambiguous', candidates: ids, rawPortalCode };
+}
+
+function findRoomsOnFloor(data: CampusMapRuntimeData, floorId: string, codes: string[]): string[] {
+  const normalizedCodes = new Set(codes.map(createEquivalentPortalKey));
+  return (data.roomIdsByFloorId[floorId] ?? []).filter((roomId) => {
+    const room = data.roomsById[roomId];
+    return [room.code, room.label, room.name ?? '', ...(room.aliases ?? [])]
+      .some((value) => normalizedCodes.has(createEquivalentPortalKey(value)));
+  });
 }
 
 function structuralCandidates(code: string, data: CampusMapRuntimeData, indexes: PortalRoomIndexes): string[] {
@@ -27,21 +36,21 @@ function structuralCandidates(code: string, data: CampusMapRuntimeData, indexes:
     const floor = dotted?.[1] ?? numeric?.[1];
     const room = dotted?.[2] ?? numeric?.[2];
     if (floor && room) {
-      const roomId = createRoomId(`${item.buildingId}/${floor}`, room.toLowerCase());
-      if (data.roomsById[roomId]) candidates.add(roomId);
+      findRoomsOnFloor(data, `${item.buildingId}/${floor}`, [suffix, room]).forEach((roomId) => candidates.add(roomId));
     }
   }
   if (candidates.size > 0) return [...candidates];
 
   const standard = remainder.match(/^([A-G])(\d)(\d{2}[A-Z]?)$/i);
   if (standard) {
-    const id = createRoomId(`${campusId}/${standard[1].toLowerCase()}/${standard[2]}`, standard[3].toLowerCase());
-    if (data.roomsById[id]) candidates.add(id);
+    const floorId = `${campusId}/${standard[1].toLowerCase()}/${standard[2]}`;
+    findRoomsOnFloor(data, floorId, [remainder, `${standard[2]}${standard[3]}`, standard[3]])
+      .forEach((roomId) => candidates.add(roomId));
   }
   const ndh = remainder.match(/^(?:NĐH|NDH)\.?\s*(\d+)\.(\d+[A-Z]?)$/i);
   if (ndh) {
-    const id = createRoomId(`${campusId}/ndh/${ndh[1]}`, ndh[2].toLowerCase());
-    if (data.roomsById[id]) candidates.add(id);
+    findRoomsOnFloor(data, `${campusId}/ndh/${ndh[1]}`, [remainder, `${ndh[1]}.${ndh[2]}`, ndh[2]])
+      .forEach((roomId) => candidates.add(roomId));
   }
   return [...candidates];
 }
