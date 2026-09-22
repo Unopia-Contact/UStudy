@@ -1,3 +1,5 @@
+import { isAnalyticsStorageKey, isPrivateAnalyticsStorageKey } from '../../features/analytics/analytics-storage';
+
 /**
  * save.tsx - Secure Storage Layer
  *
@@ -843,7 +845,7 @@ export async function createImportRollbackSnapshot(source: string, summary: Impo
         const data: Record<string, string> = {};
         for (let index = 0; index < localStorage.length; index += 1) {
             const key = localStorage.key(index);
-            if (key && key !== IMPORT_ROLLBACK_STORAGE_KEY) {
+            if (key && key !== IMPORT_ROLLBACK_STORAGE_KEY && !isAnalyticsStorageKey(key)) {
                 data[key] = localStorage.getItem(key) || '';
             }
         }
@@ -945,8 +947,16 @@ export async function restoreLastImportRollback(): Promise<boolean> {
                 else data[key] = currentValue;
             }
         }
+        const analyticsData: Record<string, string> = {};
+        for (let index = 0; index < localStorage.length; index += 1) {
+            const key = localStorage.key(index);
+            if (key && isAnalyticsStorageKey(key)) analyticsData[key] = localStorage.getItem(key) || '';
+        }
         localStorage.clear();
-        Object.entries(data).forEach(([key, value]) => localStorage.setItem(key, value));
+        Object.entries(data)
+            .filter(([key]) => !isPrivateAnalyticsStorageKey(key))
+            .forEach(([key, value]) => localStorage.setItem(key, value));
+        Object.entries(analyticsData).forEach(([key, value]) => localStorage.setItem(key, value));
         if (snapshot.storage === 'indexeddb') await deleteImportRollbackData();
         return true;
     } catch (error) {

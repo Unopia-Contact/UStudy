@@ -3,13 +3,19 @@ import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
+import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from "node:url";
 import { minifiedBookmarkletSource } from './scripts/vite-bookmarklet-source';
+
+const appVersion = (JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8')) as { version: string }).version;
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(appVersion),
+    },
     plugins: [
       minifiedBookmarkletSource(),
       react(),

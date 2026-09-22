@@ -13,6 +13,7 @@ import { processRawData } from './logic/dataProcessor';
 import { buildRawImportPreview, getImportCollectionLabel, mergeSelectedRawImport, type RawImportChange } from './logic/import-preview';
 import { mergeImportMetadata, type PortalDataSource } from './logic/import-metadata';
 import { requestPortalExtension } from './portal-sync/bridge';
+import { AnalyticsBootstrap } from './features/analytics/AnalyticsBootstrap';
 import {
   PORTAL_EXTENSION_PENDING_AVAILABLE,
   PORTAL_EXTENSION_READY_EVENT,
@@ -308,6 +309,7 @@ function AppContent() {
 
   return (
     <>
+      <AnalyticsBootstrap />
       {pendingData && !cryptoKey && (
         <SecurityLock
           setupMode={!hasData}

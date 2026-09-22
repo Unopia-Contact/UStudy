@@ -30,7 +30,21 @@ Nguyên tắc nguồn dữ liệu:
 - Dữ liệu nhạy cảm được mã hóa trước khi ghi vào `localStorage`. Sau khi mở khóa,
   bản đã giải mã chỉ nằm trong RAM cache để các hook đồng bộ đọc được.
 - Snapshot hoàn tác lưu nguyên chuỗi đang có trong `localStorage`, bao gồm cả
-  ciphertext; không tự giải mã toàn bộ snapshot.
+  ciphertext; không tự giải mã toàn bộ snapshot. Các key định danh analytics
+  được loại khỏi snapshot và được giữ nguyên khi hoàn tác dữ liệu học tập.
+
+### Dữ liệu thống kê installation
+
+| Key | Backup | Rollback | Mục đích |
+| --- | --- | --- | --- |
+| `ustudy_anonymous_analytics_enabled_v1` | Có | Giữ nguyên setting hiện tại | Cho phép hoặc tắt heartbeat ẩn danh |
+| `ustudy_anonymous_analytics_notice_seen_v1` | Có | Giữ nguyên setting hiện tại | Không lặp thông báo giới thiệu |
+| `ustudy_analytics_installation_id_v1` | Không | Không | UUID ngẫu nhiên riêng cho origin hiện tại |
+| `ustudy_analytics_last_heartbeat_day_v1` | Không | Không | Giới hạn một heartbeat mỗi ngày |
+| `ustudy_analytics_pending_deletion_v1` | Không | Không | Retry yêu cầu xóa khi thiết bị offline |
+
+Ba key cuối là dữ liệu cục bộ nội bộ, không được đưa vào file backup, QR transfer
+hoặc snapshot hoàn tác. Server chỉ lưu SHA-256 của UUID, không lưu UUID gốc.
 
 ## 2. API lưu trữ
 

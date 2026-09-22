@@ -90,4 +90,8 @@ export const STORAGE_KEYS = {
     SCHEDULE_MODE: 'schedule_mode',
     /** Bản nháp lịch builder (manual + solver selections) */
     SCHEDULE_BUILDER_DRAFT: 'schedule_builder_draft',
+    /** Người dùng có cho phép thống kê installation ẩn danh hay không. */
+    ANONYMOUS_ANALYTICS_ENABLED: 'ustudy_anonymous_analytics_enabled_v1',
+    /** Đã hiển thị thông báo giới thiệu thống kê ẩn danh. */
+    ANONYMOUS_ANALYTICS_NOTICE_SEEN: 'ustudy_anonymous_analytics_notice_seen_v1',
 };
