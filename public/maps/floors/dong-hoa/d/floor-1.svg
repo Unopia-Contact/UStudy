@@ -127,14 +127,19 @@
   <!-- Không gắn room-* vì mã phòng không đọc chắc chắn         -->
   <!-- ========================================================= -->
 
-  <rect
-    id="west-unreadable-room"
-    class="room"
-    x="495"
-    y="30"
-    width="70"
-    height="120"
-  />
+ <g id="room-d105">
+    <rect
+      id="west-unreadable-room"
+      class="room"
+      x="495"
+      y="30"
+      width="70"
+      height="120"
+    />
+
+    <text class="room-code" x="530" y="83">D105</text>
+    <text class="room-name" x="530" y="102">Phòng học</text>
+  </g>
 
 
   <!-- ========================================================= -->

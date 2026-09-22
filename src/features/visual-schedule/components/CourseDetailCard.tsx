@@ -1,7 +1,6 @@
 // CourseDetailCard.tsx
 import { type ScheduleSession } from '../types';
 import type { OpenClassDetailTarget } from '../../../components/course';
-import { CampusLabel } from '../../../components/schedule/campus-label';
 import { RoomMapLink } from './RoomMapLink';
 
 const colorClasses = {
@@ -24,19 +23,23 @@ export function CourseDetailCard({ session, onOpenClassDetails }: { session: Sch
                             {session.courseCode} - {session.courseName}
                         </button> : <>{session.courseCode} - {session.courseName}</>}
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-600">
-                        <div>• {session.credits} TC | {typeLabels[session.type]} | Phòng: {session.room}</div>
-                        <CampusLabel
-                            campusId={session.campusId}
-                            isFallback={session.isCampusFallback}
-                            className="text-xs text-gray-600"
-                        />
+                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                        <div>
+                            • {session.credits} TC | {typeLabels[session.type]}
+                        </div>
+
+                        <RoomMapLink session={session} variant="campus" />
+
                         {session.totalWeeks > 0 && (
-                            <div>• Học từ: {session.startDate} - {session.endDate} ({session.totalWeeks} tuần)</div>
+                            <div>
+                                • Học từ: {session.startDate} - {session.endDate} ({session.totalWeeks} tuần)
+                            </div>
                         )}
-                        <div className="md:col-span-2">• GV: {session.instructor} | Lớp: {session.classCode}</div>
+
+                        <div>
+                            • Lớp: {session.classCode}
+                        </div>
                     </div>
-                    <div className="mt-2"><RoomMapLink session={session} /></div>
                 </div>
             </div>
         </div>

@@ -490,7 +490,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
             label: 'Tầng Hầm',
             level: -1,
             sortOrder: -1,
-            rooms: ['environmental-technology-lab', '004', '005', '006', '007'].map((code) => {
+            rooms: ['environmental-technology-lab','001', '002', '004', '005', '006', '007'].map((code) => {
               const overrides: Record<string, Partial<any>> = {
                 'environmental-technology-lab': {
                   label: 'PTN Công nghệ môi trường',
@@ -521,7 +521,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
             rooms: ['101', '102', '102a', '103', 'lecturer-room', '105', '106', '107', '108'].map((code) => {
               const overrides: Record<string, Partial<any>> = {
                 'lecturer-room': {
-                  label: 'Phòng GV',
+                  label: 'P.GV D104',
                   kind: 'office',
                   aliases: ['D104 Phòng GV', 'Phòng giảng viên', 'Phòng giáo viên'],
                   map: { shapeId: 'lecturer-room' },
@@ -548,15 +548,15 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
             sortOrder: 2,
             rooms: ['201', '202', '203', '204', '205', '206', '207', '208', '209', '210', '211', '212', '213', '214'].map((code) => {
               const overrides: Record<string, Partial<any>> = {
-                '201': { label: 'Phòng giáo viên D201', kind: 'office' },
-                '202': { label: 'Phòng giáo viên D202', kind: 'office' },
-                '203': { label: 'Phòng máy D203', kind: 'computer-lab' },
-                '204': { label: 'Phòng máy D204', kind: 'computer-lab' },
+                '201': { label: 'P.GV D201', kind: 'office' },
+                '202': { label: 'P.GV D202', kind: 'office' },
+                '203': { label: 'PMT D203', kind: 'computer-lab' },
+                '204': { label: 'PMT D204', kind: 'computer-lab' },
               };
               return {
                 id: code,
                 code,
-                label: `Phòng D${code}`,
+                label: `D${code}`,
                 kind: 'classroom' as const,
                 aliases: [`D${code}`],
                 status: 'active' as const,
@@ -590,10 +590,16 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
                   map: { shapeId: 'room-e101' },
                 },
                 '102': {
-                  label: 'Phòng ý tế',
+                  label: 'TT. Ngoại ngữ',
                   kind: 'medical',
                   aliases: ['E102', 'Phòng ý tế'],
                   map: { shapeId: 'room-e102' },
+                },
+                '103': {
+                  label: 'P. Y tế',
+                  kind: 'medical',
+                  aliases: ['E102', 'Phòng ý tế'],
+                  map: { shapeId: 'room-e103' },
                 },
               };
 

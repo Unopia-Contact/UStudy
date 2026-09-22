@@ -5,7 +5,7 @@ export const FLOOR_MAPS: Partial<Record<FloorId, MapAsset>> = {
   'dong-hoa/d/0': {
     asset: '/maps/floors/dong-hoa/d/basement.svg',
     viewBox: [0, 0, 1200, 250],
-    shapeIds: ['environmental-technology-lab', 'room-d004', 'room-d005', 'room-d006', 'room-d007'],
+    shapeIds: ['room-d001', 'room-d002', 'environmental-technology-lab', 'room-d004', 'room-d005', 'room-d006', 'room-d007'],
   },
   'dong-hoa/d/1': {
     asset: '/maps/floors/dong-hoa/d/floor-1.svg',

@@ -12,6 +12,8 @@ import { ScheduleNote } from './schedule-note';
 import { CAMPUS_OPTIONS, getCampusDefinition, tryResolvePeriodRange, type CampusId } from '../../../domain/campus';
 import { getCompactCampusLabel } from '../../../components/schedule/campus-label';
 import { RoomMapLink } from './RoomMapLink';
+import { RoomLocationDialog } from '../../campus-map/RoomLocationDialog';
+import type { ScheduleMapLocation } from '../../campus-map/services/resolve-schedule-location';
 
 function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides, onSave }: {
     open: boolean;
@@ -406,6 +408,26 @@ function CourseCard({
 }) {
     const [showInfo, setShowInfo] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [mapLocation, setMapLocation] = useState<ScheduleMapLocation | null>(null);
+    const [pendingMapLocation, setPendingMapLocation] = useState<ScheduleMapLocation | null>(null);
+
+    useEffect(() => {
+        if (showInfo || !pendingMapLocation) return;
+        const frame = window.requestAnimationFrame(() => {
+            setMapLocation(pendingMapLocation);
+            setPendingMapLocation(null);
+        });
+        return () => window.cancelAnimationFrame(frame);
+    }, [pendingMapLocation, showInfo]);
+
+    function openRoomLocation(location: ScheduleMapLocation) {
+        if (showInfo) {
+            setPendingMapLocation(location);
+            setShowInfo(false);
+            return;
+        }
+        setMapLocation(location);
+    }
 
     const colorClasses = {
         blue: 'bg-blue-50 border-blue-500',
@@ -503,7 +525,7 @@ function CourseCard({
                             </div>
                             <div className={`flex min-w-0 items-center gap-0.5 text-[8px] leading-tight md:text-[10px] ${hasConflict ? 'text-red-600' : 'text-gray-600'}`}>
                                 <span className="min-w-0 truncate">{sess.type} | {sess.room} | {getCompactCampusLabel(sess.campusId)}</span>
-                                <RoomMapLink session={sess} variant="icon" />
+                                <RoomMapLink session={sess} variant="icon" onOpenLocation={openRoomLocation} />
                             </div>
                         </div>
                     ))}
@@ -564,7 +586,7 @@ function CourseCard({
                             <span className="text-gray-500">Loại học phần</span>
                             <span className="text-right font-semibold text-gray-900">{typeFullLabels[sess.type]}</span>
                             <span className="text-gray-500">Phòng học</span>
-                            <span className="text-right font-semibold text-gray-900">{sess.room || '-'}</span>
+                            <RoomMapLink session={sess} variant="room" onOpenLocation={openRoomLocation} />
                             <span className="text-gray-500">Cơ sở</span>
                             <span className="text-right font-semibold text-gray-900">
                                 {getCampusDefinition(sess.campusId ?? 'dong-hoa').shortName}
@@ -583,8 +605,6 @@ function CourseCard({
                                 </>
                             )}
                         </div>
-                        <div className="mt-3"><RoomMapLink session={sess} /></div>
-
                         <div className="mt-4 border-t border-gray-200 pt-3 text-sm leading-6 text-gray-600">
                             <p>Giảng viên: <span className="font-medium text-gray-900">{sess.instructor || 'Chưa có dữ liệu'}</span></p>
                             <p>Lớp: <span className="font-medium text-gray-900">{sess.classCode || '-'}</span> · <span className="font-medium text-gray-900">{sess.credits} TC</span></p>
@@ -622,6 +642,12 @@ function CourseCard({
                     </button>
                 </div>
             </AppDialog>
+
+            {mapLocation && <RoomLocationDialog
+                open
+                onOpenChange={(nextOpen) => { if (!nextOpen) setMapLocation(null); }}
+                location={mapLocation}
+            />}
 
             <EditSessionDialog
                 open={isEditOpen}

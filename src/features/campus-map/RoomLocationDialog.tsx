@@ -87,11 +87,6 @@ export function RoomLocationDialog({ open, onOpenChange, location }: {
       </section>
 
       <aside className="min-h-0 overflow-y-auto border-t border-slate-200 bg-white p-5 md:border-l md:border-t-0" aria-label="Thông tin vị trí">
-        <div className={`mb-5 flex items-start gap-2 rounded-lg px-3 py-2 text-xs leading-5 ${location.status === 'inferred' ? 'bg-amber-50 text-amber-800' : 'bg-blue-50 text-blue-800'}`}>
-          {location.status === 'inferred' ? <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> : <MapPinned className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />}
-          <span>{location.status === 'inferred' ? 'Vị trí được suy luận từ cấu trúc mã phòng Portal.' : 'Mã phòng Portal đã được liên kết với dữ liệu bản đồ.'}</span>
-        </div>
-
         <h3 className="text-sm font-semibold text-slate-900">Đường đến phòng</h3>
         <ol className="mt-3 space-y-0">
           {[
