@@ -10,6 +10,7 @@ import { APP_CONFIG, STORAGE_KEYS } from '../../config';
 import { readFromStorage, clearAllStorage } from '../../helpers/localStorage/save';
 import { useCrypto } from '../../context/CryptoContext';
 import { isNativePortalSyncAvailable, openNativePortalSync } from '../../mobile/portal-sync';
+import { getRandomPortalLoginUrl } from '../../portal-sync/portal-url';
 
 export interface HeaderProps {
   selectedSemester?: string;
@@ -118,8 +119,7 @@ export function Header({
       return;
     }
 
-    const PORTAL_URL = APP_CONFIG.PORTAL_LOGIN_URL;
-    window.open(PORTAL_URL, '_blank');
+    window.open(getRandomPortalLoginUrl(), '_blank');
   };
 
   // lấy chữ cái đầu của tên sinh viên

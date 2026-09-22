@@ -37,6 +37,12 @@ const DEFAULT_STATS = {
 const activePortalRuns = new Map();
 const checkpointQueues = new Map();
 
+function getRandomPortalLoginUrl() {
+  const { urlTemplate, shardMin, shardMax } = CONFIG.portalLogin;
+  const shard = shardMin + Math.floor(Math.random() * (shardMax - shardMin + 1));
+  return urlTemplate.replace('{shard}', String(shard));
+}
+
 function getSelectedSources(settings) {
   return ['grades', 'tuition', 'exams', 'courses', 'registrations']
     .filter((source) => source === 'grades' || Boolean(settings.sources[source]));
@@ -335,7 +341,7 @@ async function openPortalAndRequestSync() {
     await focusTab(loginTab);
     return;
   }
-  await chrome.tabs.create({ url: CONFIG.portalLoginUrl });
+  await chrome.tabs.create({ url: getRandomPortalLoginUrl() });
 }
 
 function buildRunnerRuntime(requestId, settings, completedSources = []) {

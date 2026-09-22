@@ -15,11 +15,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AppDialog } from '../../../components/ui/overlays/app-dialog';
-import { APP_CONFIG } from '../../../config';
 import { CACHE_POPULATED_EVENT } from '../../../context/CryptoContext';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 import { useCrypto } from '../../../context/CryptoContext';
 import { useAppNotification } from '../../../context/NotificationContext';
+import { getRandomPortalLoginUrl } from '../../../portal-sync/portal-url';
 import {
   getImportHistory,
   getImportRollbackSnapshot,
@@ -379,7 +379,7 @@ export function DataSourceCenter() {
       return;
     }
 
-    window.open(APP_CONFIG.PORTAL_LOGIN_URL, '_blank');
+    window.open(getRandomPortalLoginUrl(), '_blank');
   };
 
   return (

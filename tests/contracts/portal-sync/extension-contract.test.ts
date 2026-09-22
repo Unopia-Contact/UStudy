@@ -43,6 +43,32 @@ describe('Portal sync extension contract', () => {
 
     expect(background).toContain("parsedUrl.protocol === 'https:'");
     expect(background).toContain("new RegExp(CONFIG.portalHostnamePattern, 'i').test(parsedUrl.hostname)");
+    expect(background).toContain('getRandomPortalLoginUrl()');
+  });
+
+  it('opens login on a random numbered Portal host from 1 through 18', async () => {
+    const config = await readJson('src/portal-sync/config.json');
+
+    expect(config.portalLogin).toEqual({
+      urlTemplate: 'https://new-portal{shard}.hcmus.edu.vn/Login.aspx',
+      shardMin: 1,
+      shardMax: 18,
+    });
+  });
+
+  it('uses the shared random login URL for every UStudy Portal entry point', async () => {
+    const entryPoints = await Promise.all([
+      'src/components/layout/Header.tsx',
+      'src/features/settings/components/PortalSyncTools.tsx',
+      'src/features/settings/components/DataSourceCenter.tsx',
+      'src/mobile/portal-sync.ts',
+    ].map((path) => readFile(resolve(process.cwd(), path), 'utf8')));
+
+    for (const source of entryPoints) {
+      expect(source).toContain('getRandomPortalLoginUrl');
+      expect(source).not.toContain('portalLoginUrl');
+      expect(source).not.toContain('PORTAL_LOGIN_URL');
+    }
   });
 
   it('never hands Portal sync navigation to an external Android browser', async () => {
