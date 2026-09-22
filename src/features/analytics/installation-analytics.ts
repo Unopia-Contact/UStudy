@@ -2,6 +2,7 @@ import {
   ANALYTICS_STORAGE_KEYS,
   clearPrivateAnalyticsStorage,
   getOrCreateInstallationId,
+  getPendingAnalyticsDeactivationId,
   isAnonymousAnalyticsEnabled,
   setAnonymousAnalyticsEnabled,
 } from './analytics-storage';
@@ -21,7 +22,7 @@ type AnalyticsDependencies = {
   appVersion?: string;
 };
 
-export type AnalyticsDeletionResult = 'deleted' | 'pending' | 'nothing-to-delete' | 'unsupported-origin';
+export type AnalyticsDeactivationResult = 'deactivated' | 'pending' | 'nothing-to-deactivate' | 'unsupported-origin';
 
 export function getVietnamDay(date = new Date()): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -38,7 +39,7 @@ export function isAnalyticsOriginSupported(hostname: string): boolean {
   return PRODUCTION_HOSTS.has(hostname.toLowerCase());
 }
 
-async function sendDeletion(installationId: string, fetcher: typeof fetch): Promise<boolean> {
+async function sendDeactivation(installationId: string, fetcher: typeof fetch): Promise<boolean> {
   const response = await fetcher(ANALYTICS_ENDPOINT, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
@@ -49,19 +50,19 @@ async function sendDeletion(installationId: string, fetcher: typeof fetch): Prom
   return response.ok;
 }
 
-export async function flushPendingAnalyticsDeletion({
+export async function flushPendingAnalyticsDeactivation({
   storage = localStorage,
   fetcher = fetch,
   hostname = window.location.hostname,
-}: AnalyticsDependencies = {}): Promise<AnalyticsDeletionResult> {
-  const pendingId = storage.getItem(ANALYTICS_STORAGE_KEYS.pendingDeletionId);
-  if (!pendingId) return 'nothing-to-delete';
+}: AnalyticsDependencies = {}): Promise<AnalyticsDeactivationResult> {
+  const pendingId = getPendingAnalyticsDeactivationId(storage);
+  if (!pendingId) return 'nothing-to-deactivate';
   if (!isAnalyticsOriginSupported(hostname)) return 'unsupported-origin';
 
   try {
-    if (!await sendDeletion(pendingId, fetcher)) return 'pending';
+    if (!await sendDeactivation(pendingId, fetcher)) return 'pending';
     clearPrivateAnalyticsStorage(storage);
-    return 'deleted';
+    return 'deactivated';
   } catch {
     return 'pending';
   }
@@ -76,8 +77,8 @@ export async function sendDailyAnalyticsHeartbeat({
 }: AnalyticsDependencies = {}): Promise<boolean> {
   if (!isAnalyticsOriginSupported(hostname)) return false;
 
-  const deletionResult = await flushPendingAnalyticsDeletion({ storage, fetcher, hostname });
-  if (deletionResult === 'pending' || deletionResult === 'deleted') return false;
+  const deactivationResult = await flushPendingAnalyticsDeactivation({ storage, fetcher, hostname });
+  if (deactivationResult === 'pending' || deactivationResult === 'deactivated') return false;
   if (!isAnonymousAnalyticsEnabled(storage)) return false;
 
   const today = getVietnamDay(now);
@@ -101,28 +102,28 @@ export async function sendDailyAnalyticsHeartbeat({
   }
 }
 
-export async function deleteAnonymousAnalyticsInstallation({
+export async function deactivateAnonymousAnalyticsInstallation({
   storage = localStorage,
   fetcher = fetch,
   hostname = window.location.hostname,
-}: AnalyticsDependencies = {}): Promise<AnalyticsDeletionResult> {
+}: AnalyticsDependencies = {}): Promise<AnalyticsDeactivationResult> {
   setAnonymousAnalyticsEnabled(false, storage);
   const installationId = storage.getItem(ANALYTICS_STORAGE_KEYS.installationId);
   if (!installationId) {
     clearPrivateAnalyticsStorage(storage);
-    return 'nothing-to-delete';
+    return 'nothing-to-deactivate';
   }
 
-  storage.setItem(ANALYTICS_STORAGE_KEYS.pendingDeletionId, installationId);
+  storage.setItem(ANALYTICS_STORAGE_KEYS.pendingDeactivationId, installationId);
   if (!isAnalyticsOriginSupported(hostname)) {
     clearPrivateAnalyticsStorage(storage);
     return 'unsupported-origin';
   }
 
   try {
-    if (!await sendDeletion(installationId, fetcher)) return 'pending';
+    if (!await sendDeactivation(installationId, fetcher)) return 'pending';
     clearPrivateAnalyticsStorage(storage);
-    return 'deleted';
+    return 'deactivated';
   } catch {
     return 'pending';
   }

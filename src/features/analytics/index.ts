@@ -7,8 +7,8 @@ export {
   setAnonymousAnalyticsEnabled,
 } from './analytics-storage';
 export {
-  deleteAnonymousAnalyticsInstallation,
-  flushPendingAnalyticsDeletion,
+  deactivateAnonymousAnalyticsInstallation,
+  flushPendingAnalyticsDeactivation,
   getVietnamDay,
   isAnalyticsOriginSupported,
   sendDailyAnalyticsHeartbeat,

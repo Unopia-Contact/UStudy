@@ -93,17 +93,20 @@ export async function handleAnalyticsRequest(request: Request, env: WorkerEnv): 
   }
 
   try {
+    const day = getVietnamDay();
+
     if (request.method === 'DELETE') {
-      const result = await env.ANALYTICS_DB
-        .prepare('DELETE FROM anonymous_installations WHERE installation_hash = ?1')
-        .bind(installationHash)
-        .run();
+      const result = await env.ANALYTICS_DB.prepare(`
+        UPDATE anonymous_installations
+        SET deleted_day = ?2
+        WHERE installation_hash = ?1
+          AND deleted_day IS NULL
+      `).bind(installationHash, day).run();
       return result.success ? response(204) : response(503, { error: 'Analytics unavailable' });
     }
 
-    const day = getVietnamDay();
     const origin = localAllowed ? 'ustudy.hakhoi.io.vn' : url.hostname.toLowerCase();
-    const result = await env.ANALYTICS_DB.prepare(`
+    const installationStatement = env.ANALYTICS_DB.prepare(`
       INSERT INTO anonymous_installations (
         installation_hash, origin, first_seen_day, last_seen_day, app_version, client_kind
       ) VALUES (?1, ?2, ?3, ?3, ?4, ?5)
@@ -111,17 +114,33 @@ export async function handleAnalyticsRequest(request: Request, env: WorkerEnv): 
         last_seen_day = excluded.last_seen_day,
         app_version = excluded.app_version,
         client_kind = excluded.client_kind
-      WHERE anonymous_installations.last_seen_day < excluded.last_seen_day
-         OR anonymous_installations.app_version <> excluded.app_version
-         OR anonymous_installations.client_kind <> excluded.client_kind
+      WHERE anonymous_installations.deleted_day IS NULL
+        AND (
+          anonymous_installations.last_seen_day < excluded.last_seen_day
+          OR anonymous_installations.app_version <> excluded.app_version
+          OR anonymous_installations.client_kind <> excluded.client_kind
+        )
     `).bind(
       installationHash,
       origin,
       day,
       payload.appVersion || 'unknown',
       payload.clientKind || 'web',
-    ).run();
-    return result.success ? response(204) : response(503, { error: 'Analytics unavailable' });
+    );
+    const activityStatement = env.ANALYTICS_DB.prepare(`
+      INSERT OR IGNORE INTO installation_activity_days (installation_hash, active_day)
+      SELECT ?1, ?2
+      WHERE EXISTS (
+        SELECT 1
+        FROM anonymous_installations
+        WHERE installation_hash = ?1
+          AND deleted_day IS NULL
+      )
+    `).bind(installationHash, day);
+    const results = await env.ANALYTICS_DB.batch([installationStatement, activityStatement]);
+    return results.every((result) => result.success)
+      ? response(204)
+      : response(503, { error: 'Analytics unavailable' });
   } catch {
     console.error('[analytics] D1 operation failed');
     return response(503, { error: 'Analytics unavailable' });

@@ -6,6 +6,8 @@ const INSTALLATION_ID = '9d574337-f37d-4fb7-b24f-f8c181756a58';
 
 class FakeDatabase {
   calls: Array<{ query: string; values: unknown[] }> = [];
+  batchCalls: D1PreparedStatement[][] = [];
+  failBatch = false;
 
   prepare(query: string): D1PreparedStatement {
     const call = { query, values: [] as unknown[] };
@@ -18,6 +20,12 @@ class FakeDatabase {
       run: async () => ({ success: true }),
     };
     return statement;
+  }
+
+  async batch(statements: D1PreparedStatement[]) {
+    this.batchCalls.push(statements);
+    if (this.failBatch) throw new Error('batch failed');
+    return statements.map(() => ({ success: true }));
   }
 }
 
@@ -54,20 +62,33 @@ describe('anonymous installation analytics Worker', () => {
     const env = createEnv();
     const result = await handleAnalyticsRequest(analyticsRequest('POST'), env);
     expect(result.status).toBe(204);
-    expect(env.ANALYTICS_DB.calls).toHaveLength(1);
+    expect(env.ANALYTICS_DB.calls).toHaveLength(2);
+    expect(env.ANALYTICS_DB.batchCalls).toHaveLength(1);
     const [installationHash, origin] = env.ANALYTICS_DB.calls[0].values;
     expect(installationHash).toMatch(/^[0-9a-f]{64}$/);
     expect(installationHash).not.toBe(INSTALLATION_ID);
     expect(origin).toBe('ustudy.hakhoi.io.vn');
-    expect(env.ANALYTICS_DB.calls[0].values).not.toContain(INSTALLATION_ID);
+    expect(env.ANALYTICS_DB.calls.flatMap((call) => call.values)).not.toContain(INSTALLATION_ID);
+    expect(env.ANALYTICS_DB.calls[0].query).toContain('anonymous_installations.deleted_day IS NULL');
+    expect(env.ANALYTICS_DB.calls[1].query).toContain('INSERT OR IGNORE INTO installation_activity_days');
+    expect(env.ANALYTICS_DB.calls[1].query).toContain('deleted_day IS NULL');
   });
 
-  it('deletes by the same hash without logging or storing the raw ID', async () => {
+  it('soft-deletes by the same hash without removing history or storing the raw ID', async () => {
     const env = createEnv();
     const result = await handleAnalyticsRequest(analyticsRequest('DELETE'), env);
     expect(result.status).toBe(204);
-    expect(env.ANALYTICS_DB.calls[0].query).toContain('DELETE FROM anonymous_installations');
+    expect(env.ANALYTICS_DB.calls[0].query).toContain('UPDATE anonymous_installations');
+    expect(env.ANALYTICS_DB.calls[0].query).toContain('SET deleted_day');
+    expect(env.ANALYTICS_DB.calls[0].query).not.toMatch(/DELETE\s+FROM/i);
     expect(env.ANALYTICS_DB.calls[0].values[0]).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('returns unavailable when the transactional heartbeat batch fails', async () => {
+    const database = new FakeDatabase();
+    database.failBatch = true;
+    const result = await handleAnalyticsRequest(analyticsRequest('POST'), createEnv(database));
+    expect(result.status).toBe(503);
   });
 
   it('fails closed for malformed IDs and disabled heartbeat collection', async () => {
@@ -84,4 +105,3 @@ describe('anonymous installation analytics Worker', () => {
     expect(env.ANALYTICS_DB.calls).toHaveLength(0);
   });
 });
-

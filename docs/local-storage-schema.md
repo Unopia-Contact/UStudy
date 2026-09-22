@@ -41,7 +41,8 @@ Nguyên tắc nguồn dữ liệu:
 | `ustudy_anonymous_analytics_notice_seen_v1` | Có | Giữ nguyên setting hiện tại | Không lặp thông báo giới thiệu |
 | `ustudy_analytics_installation_id_v1` | Không | Không | UUID ngẫu nhiên riêng cho origin hiện tại |
 | `ustudy_analytics_last_heartbeat_day_v1` | Không | Không | Giới hạn một heartbeat mỗi ngày |
-| `ustudy_analytics_pending_deletion_v1` | Không | Không | Retry yêu cầu xóa khi thiết bị offline |
+| `ustudy_analytics_pending_deactivation_v1` | Không | Không | Retry yêu cầu vô hiệu hóa ID khi thiết bị offline |
+| `ustudy_analytics_pending_deletion_v1` | Không | Không | Key cũ, tự chuyển sang pending deactivation khi đọc |
 
 Ba key cuối là dữ liệu cục bộ nội bộ, không được đưa vào file backup, QR transfer
 hoặc snapshot hoàn tác. Server chỉ lưu SHA-256 của UUID, không lưu UUID gốc.

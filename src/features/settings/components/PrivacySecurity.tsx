@@ -15,7 +15,7 @@ const sections = [
         iconColor: 'text-blue-600',
         iconBg: 'bg-blue-50',
         title: 'Tổng quan bảo mật',
-        content: 'UStudy được thiết kế với nguyên tắc "Privacy by Design" - quyền riêng tư của bạn được đặt lên hàng đầu trong mọi quyết định kiến trúc. Toàn bộ dữ liệu cá nhân (điểm số, lịch học, thông tin sinh viên) được mã hóa và chỉ lưu trên thiết bị. Nếu bạn cho phép thống kê ẩn danh, UStudy chỉ gửi một mã ngẫu nhiên cùng ngày hoạt động và phiên bản ứng dụng.',
+        content: 'UStudy được thiết kế với nguyên tắc "Privacy by Design" - quyền riêng tư của bạn được đặt lên hàng đầu trong mọi quyết định kiến trúc. Toàn bộ dữ liệu cá nhân (điểm số, lịch học, thông tin sinh viên) được mã hóa và chỉ lưu trên thiết bị.'
     },
     // {
     //     id: 'encryption',
@@ -38,8 +38,8 @@ const sections = [
         title: 'Nơi lưu trữ dữ liệu',
         items: [
             { icon: Globe, label: 'Dữ liệu học tập trên thiết bị', desc: 'Điểm, lịch học, thông tin sinh viên và dữ liệu Portal chỉ được lưu trong localStorage của trình duyệt bạn.' },
-            { icon: EyeOff, label: 'Không fingerprinting', desc: 'UStudy không dùng cookie theo dõi hay fingerprint thiết bị. Mã installation là UUID ngẫu nhiên, có thể tắt và xóa bất cứ lúc nào.' },
-            { icon: Server, label: 'Database thống kê tối giản', desc: 'Cloudflare D1 chỉ lưu mã đã băm, domain, phiên bản và ngày hoạt động; không chứa thông tin sinh viên hay dữ liệu Portal.' },
+            { icon: EyeOff, label: 'Không fingerprinting', desc: 'UStudy không dùng cookie theo dõi hay fingerprint thiết bị. Mã installation là UUID ngẫu nhiên và có thể tắt bất cứ lúc nào.' },
+            { icon: Server, label: 'Database thống kê tối giản', desc: 'Cloudflare D1 chỉ lưu mã đã băm, domain, phiên bản và lịch sử ngày hoạt động; không chứa thông tin sinh viên hay dữ liệu Portal.' },
         ],
     },
     // {
@@ -211,7 +211,6 @@ export function PrivacySecurity() {
                                     {[
                                         ['Dữ liệu nhạy cảm', 'Điểm số, thông tin SV, lịch học', 'AES-256-GCM', 'Không'],
                                         ['Cài đặt ứng dụng', 'Khoa, học kỳ, giao diện', 'Không (plaintext)', 'Không'],
-                                        ['Thống kê ẩn danh', 'UUID ngẫu nhiên, domain, phiên bản, ngày hoạt động', 'Băm SHA-256 trên server', 'Có, nếu bật'],
                                         ['Khóa bảo mật', 'Salt, verify blob', 'N/A (hệ thống)', 'Không'],
                                     ].map((row, i) => (
                                         <tr key={i} className="border-b border-gray-100 last:border-0">

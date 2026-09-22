@@ -2,13 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { MemoryStorage } from '../../setup/test-environment';
 import {
   ANALYTICS_STORAGE_KEYS,
+  getPendingAnalyticsDeactivationId,
   isAnalyticsStorageKey,
   isAnonymousAnalyticsEnabled,
   isPrivateAnalyticsStorageKey,
   setAnonymousAnalyticsEnabled,
 } from '../../../src/features/analytics/analytics-storage';
 import {
-  deleteAnonymousAnalyticsInstallation,
+  deactivateAnonymousAnalyticsInstallation,
   getVietnamDay,
   sendDailyAnalyticsHeartbeat,
 } from '../../../src/features/analytics/installation-analytics';
@@ -71,17 +72,17 @@ describe('anonymous installation analytics client', () => {
     expect(storage.getItem(ANALYTICS_STORAGE_KEYS.installationId)).toBeNull();
   });
 
-  it('disables analytics and removes the local ID after server deletion succeeds', async () => {
+  it('disables analytics and removes the local ID after server deactivation succeeds', async () => {
     const storage = new MemoryStorage();
     storage.setItem(ANALYTICS_STORAGE_KEYS.installationId, INSTALLATION_ID);
     storage.setItem(ANALYTICS_STORAGE_KEYS.lastHeartbeatDay, '2026-09-22');
     const fetcher = vi.fn(async () => new Response(null, { status: 204 })) as unknown as typeof fetch;
 
-    await expect(deleteAnonymousAnalyticsInstallation({
+    await expect(deactivateAnonymousAnalyticsInstallation({
       storage,
       fetcher,
       hostname: 'ustudy.hakhoi.io.vn',
-    })).resolves.toBe('deleted');
+    })).resolves.toBe('deactivated');
 
     expect(isAnonymousAnalyticsEnabled(storage)).toBe(false);
     expect(storage.getItem(ANALYTICS_STORAGE_KEYS.installationId)).toBeNull();
@@ -89,18 +90,27 @@ describe('anonymous installation analytics client', () => {
     expect(fetcher).toHaveBeenCalledWith('/api/analytics/installation', expect.objectContaining({ method: 'DELETE' }));
   });
 
-  it('keeps a pending deletion ID when the request fails', async () => {
+  it('keeps a pending deactivation ID when the request fails', async () => {
     const storage = new MemoryStorage();
     storage.setItem(ANALYTICS_STORAGE_KEYS.installationId, INSTALLATION_ID);
     const fetcher = vi.fn(async () => { throw new Error('offline'); }) as unknown as typeof fetch;
 
-    await expect(deleteAnonymousAnalyticsInstallation({
+    await expect(deactivateAnonymousAnalyticsInstallation({
       storage,
       fetcher,
       hostname: 'ustudy.hakhoi.io.vn',
     })).resolves.toBe('pending');
 
-    expect(storage.getItem(ANALYTICS_STORAGE_KEYS.pendingDeletionId)).toBe(INSTALLATION_ID);
+    expect(storage.getItem(ANALYTICS_STORAGE_KEYS.pendingDeactivationId)).toBe(INSTALLATION_ID);
     expect(isAnonymousAnalyticsEnabled(storage)).toBe(false);
+  });
+
+  it('migrates an offline pending deletion from the legacy storage key', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(ANALYTICS_STORAGE_KEYS.legacyPendingDeletionId, INSTALLATION_ID);
+
+    expect(getPendingAnalyticsDeactivationId(storage)).toBe(INSTALLATION_ID);
+    expect(storage.getItem(ANALYTICS_STORAGE_KEYS.pendingDeactivationId)).toBe(INSTALLATION_ID);
+    expect(storage.getItem(ANALYTICS_STORAGE_KEYS.legacyPendingDeletionId)).toBeNull();
   });
 });

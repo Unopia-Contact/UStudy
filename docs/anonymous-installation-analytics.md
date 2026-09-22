@@ -9,7 +9,7 @@ domain được tính thành hai installation.
 - UUID ngẫu nhiên; Worker băm SHA-256 trước khi ghi D1.
 - Phiên bản UStudy.
 - Loại client `web`.
-- Domain và ngày hoạt động do Worker tự xác định.
+- Domain và ngày hoạt động do Worker tự xác định. Mỗi installation chỉ có tối đa một bản ghi cho mỗi ngày.
 
 Không gửi mã sinh viên, tên, PIN, điểm, lịch học, dữ liệu Portal, feature event,
 đường dẫn đã xem, IP hoặc user-agent vào D1. IP chỉ được băm tạm thời để áp dụng
@@ -31,11 +31,20 @@ pnpm run analytics:migrate:remote
 pnpm run analytics:migrate:remote:unopia
 ```
 
-Xem số liệu:
+Xem số liệu tổng quan:
 
 ```powershell
 pnpm run analytics:report
 pnpm run analytics:report:unopia
+```
+
+Xem DAU lịch sử và retention D1/D7/D30:
+
+```powershell
+pnpm run analytics:dau
+pnpm run analytics:dau:unopia
+pnpm run analytics:retention
+pnpm run analytics:retention:unopia
 ```
 
 Muốn lấy tổng toàn hệ thống thì cộng các cột tương ứng của hai báo cáo. Không tạo
@@ -45,8 +54,17 @@ API báo cáo public và không đưa danh sách hash ra frontend.
 
 - Setting mặc định bật và gửi tối đa một heartbeat thành công mỗi ngày.
 - Tắt setting sẽ dừng heartbeat nhưng giữ installation hiện tại.
-- Xóa dữ liệu sẽ tắt setting, xóa dòng D1 và xóa ID cục bộ.
-- Nếu đang offline, yêu cầu xóa được giữ cục bộ và tự retry khi online.
-- ID, ngày heartbeat và pending deletion không nằm trong backup hoặc rollback.
+- Chọn **Tắt và xóa ID trên thiết bị** sẽ tắt setting, xóa UUID cục bộ và đánh dấu `deleted_day` trên D1. Bản ghi không thể nhận thêm heartbeat.
+- Lịch sử ngày hoạt động ẩn danh trước khi tắt được giữ lại cho báo cáo tổng hợp; không hard-delete installation hoặc activity.
+- Nếu đang offline, yêu cầu vô hiệu hóa được giữ cục bộ và tự retry khi online.
+- Nếu bật lại sau khi vô hiệu hóa, UStudy tạo UUID mới và không nối nó với ID cũ.
+- ID, ngày heartbeat và pending deactivation không nằm trong backup hoặc rollback.
+
+## Mô hình D1
+
+- `anonymous_installations`: trạng thái hiện tại, phiên bản gần nhất, ngày đầu/cuối và `deleted_day`.
+- `installation_activity_days`: lịch sử ngày hoạt động, khóa chính `(installation_hash, active_day)`.
+- Heartbeat ghi hai bảng trong một D1 batch. Activity chỉ được thêm khi `deleted_day IS NULL`.
+- Foreign key dùng `ON DELETE RESTRICT` để ngăn vô tình xóa cứng lịch sử.
 
 Cloudflare Web Analytics là lớp riêng, không dùng UUID installation này.

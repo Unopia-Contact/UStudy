@@ -5,13 +5,15 @@ export const ANALYTICS_STORAGE_KEYS = {
   noticeSeen: STORAGE_KEYS.ANONYMOUS_ANALYTICS_NOTICE_SEEN,
   installationId: 'ustudy_analytics_installation_id_v1',
   lastHeartbeatDay: 'ustudy_analytics_last_heartbeat_day_v1',
-  pendingDeletionId: 'ustudy_analytics_pending_deletion_v1',
+  pendingDeactivationId: 'ustudy_analytics_pending_deactivation_v1',
+  legacyPendingDeletionId: 'ustudy_analytics_pending_deletion_v1',
 } as const;
 
 const PRIVATE_ANALYTICS_KEYS = new Set<string>([
   ANALYTICS_STORAGE_KEYS.installationId,
   ANALYTICS_STORAGE_KEYS.lastHeartbeatDay,
-  ANALYTICS_STORAGE_KEYS.pendingDeletionId,
+  ANALYTICS_STORAGE_KEYS.pendingDeactivationId,
+  ANALYTICS_STORAGE_KEYS.legacyPendingDeletionId,
 ]);
 
 const ALL_ANALYTICS_KEYS = new Set<string>(Object.values(ANALYTICS_STORAGE_KEYS));
@@ -42,8 +44,20 @@ export function getOrCreateInstallationId(storage: Storage = localStorage): stri
   return installationId;
 }
 
+export function getPendingAnalyticsDeactivationId(storage: Storage = localStorage): string | null {
+  const current = storage.getItem(ANALYTICS_STORAGE_KEYS.pendingDeactivationId);
+  if (current) return current;
+
+  const legacy = storage.getItem(ANALYTICS_STORAGE_KEYS.legacyPendingDeletionId);
+  if (!legacy) return null;
+  storage.setItem(ANALYTICS_STORAGE_KEYS.pendingDeactivationId, legacy);
+  storage.removeItem(ANALYTICS_STORAGE_KEYS.legacyPendingDeletionId);
+  return legacy;
+}
+
 export function clearPrivateAnalyticsStorage(storage: Storage = localStorage): void {
   storage.removeItem(ANALYTICS_STORAGE_KEYS.installationId);
   storage.removeItem(ANALYTICS_STORAGE_KEYS.lastHeartbeatDay);
-  storage.removeItem(ANALYTICS_STORAGE_KEYS.pendingDeletionId);
+  storage.removeItem(ANALYTICS_STORAGE_KEYS.pendingDeactivationId);
+  storage.removeItem(ANALYTICS_STORAGE_KEYS.legacyPendingDeletionId);
 }

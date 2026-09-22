@@ -9,6 +9,7 @@ export interface D1PreparedStatement {
 
 export interface D1DatabaseBinding {
   prepare(query: string): D1PreparedStatement;
+  batch(statements: D1PreparedStatement[]): Promise<D1RunResult[]>;
 }
 
 export interface RateLimiterBinding {
@@ -27,4 +28,3 @@ export interface WorkerEnv {
   ANALYTICS_ENABLED?: string;
   ANALYTICS_ALLOW_LOCAL?: string;
 }
-

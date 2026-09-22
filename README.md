@@ -123,7 +123,7 @@ UStudy được xây dựng theo hướng **local-first**: dữ liệu học t�
 - Dữ liệu sau khi giải mã chỉ được giữ trong bộ nhớ trong phiên sử dụng.
 - Công cụ đồng bộ cho phép xem trước thay đổi trước khi ghi dữ liệu.
 - Lịch sử nhập và bản sao dữ liệu giúp hoàn tác khi cần thiết.
-- Thống kê installation ẩn danh chỉ gửi mã ngẫu nhiên đã băm, domain, phiên bản và ngày hoạt động; người dùng có thể tắt hoặc xóa dữ liệu này tại **Bảo mật & Quyền**.
+- Thống kê installation ẩn danh chỉ gửi mã ngẫu nhiên đã băm, domain, phiên bản và ngày hoạt động. Người dùng có thể tạm dừng hoặc xóa ID khỏi thiết bị tại **Bảo mật & Quyền**; lịch sử ngày hoạt động đã ghi nhận được giữ cho báo cáo tổng hợp theo nội dung đồng ý hiển thị trong ứng dụng.
 
 > [!NOTE]
 > Vì dữ liệu nằm trên thiết bị, hãy chủ động tạo bản sao lưu trước khi xóa dữ liệu trình duyệt, đổi máy hoặc gỡ ứng dụng.
