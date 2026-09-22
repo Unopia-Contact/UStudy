@@ -16,6 +16,7 @@ import { useDepartmentData } from '../context/DepartmentContext';
 import { CampusInformationPage } from '../pages/campus-information/CampusInformationPage';
 import { APP_ROUTES, getPageIdFromPath, getPathForPage } from './routes';
 import { APP_CONFIG } from '../config/appConfig';
+import { GuidesPage } from '../pages/guides/GuidesPage';
 
 const isWorkspaceEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_WORKSPACE === 'true';
 const WorkspacePage = isWorkspaceEnabled
@@ -50,7 +51,8 @@ function RoutedApp() {
     const location = useLocation();
     const navigate = useNavigate();
     const currentPage = getPageIdFromPath(location.pathname);
-    const visiblePage = isConfigured ? currentPage : (currentPage === 'privacy' ? 'privacy' : 'setup');
+    const isPublicPage = currentPage === 'privacy' || currentPage === 'guide';
+    const visiblePage = isConfigured || isPublicPage ? currentPage : 'setup';
 
     const handlePageChange = (page: string) => {
         navigate(getPathForPage(page));
@@ -86,6 +88,7 @@ function RoutedApp() {
             <Routes>
                 <Route path={APP_ROUTES.root} element={<Navigate to={APP_ROUTES.dashboard} replace />} />
                 <Route path={APP_ROUTES.privacy} element={<PrivacySecurity />} />
+                <Route path={`${APP_ROUTES.guide}/*`} element={<GuidesPage />} />
                 {WorkspacePage && (
                     <Route
                         path="/ad/*"
