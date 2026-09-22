@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { AcademicRulesEngine } from '../../../src/features/grades/services/academic-rules-engine';
 
@@ -114,48 +114,4 @@ describe('AcademicRulesEngine', () => {
     });
   });
 
-  it('logs selected attempts and earned-credit reasons when credit debugging is enabled', () => {
-    const groupSpy = vi.spyOn(console, 'groupCollapsed').mockImplementation(() => undefined);
-    const tableSpy = vi.spyOn(console, 'table').mockImplementation(() => undefined);
-    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const groupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => undefined);
-    vi.stubGlobal('window', {
-      localStorage: {
-        getItem: (key: string) => key === 'ustudy:debug:credits' ? '1' : null,
-      },
-    });
-
-    try {
-      const grades = [
-        { id: 'MTH10001', name: 'MTH10001 - Môn học lại', credits: '3', score: '4', semester: '23-24/2', type: 'LT' },
-        { id: 'MTH10001', name: 'MTH10001 - Môn học lại', credits: '3', score: '6', semester: '24-25/2', type: 'HL' },
-      ];
-
-      AcademicRulesEngine.calculateGPASummary(
-        grades,
-        AcademicRulesEngine.resolveEffectiveGrades(grades),
-        false,
-      );
-
-      expect(groupSpy).toHaveBeenCalledWith('[UStudy][Tín chỉ] Tổng quan đang cộng 3 tín chỉ');
-      expect(tableSpy.mock.calls[0][0]).toEqual([
-        expect.objectContaining({
-          'Mã môn': 'MTH10001',
-          'Số lần học': 2,
-          'Học kỳ được chọn': '24-25/2',
-          'Tín chỉ được cộng': 3,
-          'Kết luận': 'Cộng 3 tín chỉ',
-        }),
-      ]);
-      expect(warnSpy).toHaveBeenCalledTimes(1);
-    } finally {
-      vi.unstubAllGlobals();
-      groupSpy.mockRestore();
-      tableSpy.mockRestore();
-      infoSpy.mockRestore();
-      warnSpy.mockRestore();
-      groupEndSpy.mockRestore();
-    }
-  });
 });

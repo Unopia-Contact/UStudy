@@ -92,8 +92,6 @@ function buildPassedCourseMap(
   const effectiveGrades =
     AcademicRulesEngine.resolveEffectiveGrades(rawGrades);
 
-  const debugRows: any[] = [];
-
   effectiveGrades.forEach((grade: any) => {
     const courseId = normalizeCourseId(grade.id);
 
@@ -127,39 +125,10 @@ function buildPassedCourseMap(
      * Distribution này chỉ tính tín chỉ ĐÃ ĐẠT.
      */
     if (status !== 'passed') {
-      debugRows.push({
-        courseId,
-        name:
-          grade.name ||
-          grade.course_name ||
-          meta?.course_name ||
-          '',
-        status,
-        credits,
-        counted: false,
-        reason:
-          status === 'studying'
-            ? 'Chưa có điểm / đang học'
-            : `Không đạt (${status})`,
-      });
-
       return;
     }
 
     if (credits <= 0) {
-      debugRows.push({
-        courseId,
-        name:
-          grade.name ||
-          grade.course_name ||
-          meta?.course_name ||
-          '',
-        status,
-        credits,
-        counted: false,
-        reason: 'Không xác định được tín chỉ',
-      });
-
       return;
     }
 
@@ -180,27 +149,7 @@ function buildPassedCourseMap(
       status: 'passed',
     });
 
-    debugRows.push({
-      courseId,
-      name:
-        grade.name ||
-        grade.course_name ||
-        meta?.course_name ||
-        '',
-      status,
-      credits,
-      counted: true,
-      reason: 'Đã đạt',
-    });
   });
-
-  console.groupCollapsed(
-    `[CreditDistribution] Kiểm tra ${effectiveGrades.length} môn`,
-  );
-
-  console.table(debugRows);
-
-  console.groupEnd();
 
   return result;
 }
@@ -325,10 +274,6 @@ export function buildCreditDistribution(
     : [];
 
   if (rawGrades.length === 0) {
-    console.warn(
-      '[CreditDistribution] Không có dữ liệu bảng điểm.',
-    );
-
     return [];
   }
 
@@ -433,39 +378,6 @@ export function buildCreditDistribution(
           ],
       };
     });
-
-  console.groupCollapsed(
-    '[CreditDistribution] Kết quả theo rule',
-  );
-
-  console.table(
-    result.map((item) => ({
-      key: item.key,
-      category: item.name,
-      earnedCredits: item.credits,
-      requiredCredits:
-        item.requiredCredits,
-      progress:
-        item.requiredCredits > 0
-          ? `${Math.round(
-              (item.credits /
-                item.requiredCredits) *
-                100,
-            )}%`
-          : '-',
-    })),
-  );
-
-  console.log(
-    'Tổng tín chỉ tích lũy:',
-    result.reduce(
-      (sum, item) =>
-        sum + item.credits,
-      0,
-    ),
-  );
-
-  console.groupEnd();
 
   return result;
 }

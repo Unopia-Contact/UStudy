@@ -3,90 +3,6 @@ import { score10ToFourPoint } from './grade-scale';
 import { ENGLISH_COURSE_IDS } from '../../../constants/academic';
 import type { StudentCourseGrade } from '../types';
 
-export const CREDIT_ACCUMULATION_DEBUG_STORAGE_KEY = 'ustudy:debug:credits';
-
-interface CreditAccumulationDebugRow {
-    sourceRecord: any;
-    code: string;
-    name: string;
-    attemptCount: number;
-    semester: string;
-    type: string;
-    rawScore: unknown;
-    parsedScore: number | null;
-    credits: number;
-    status: CourseStatus3;
-    excludedFromAccumulation: boolean;
-    earnedCredits: number;
-    reason: string;
-}
-
-function isCreditAccumulationDebugEnabled(): boolean {
-    try {
-        return typeof window !== 'undefined'
-            && window.localStorage.getItem(CREDIT_ACCUMULATION_DEBUG_STORAGE_KEY) === '1';
-    } catch {
-        return false;
-    }
-}
-
-function logCreditAccumulationDebug(
-    rawGrades: any[],
-    rows: CreditAccumulationDebugRow[],
-    accumulatedCredits: number
-): void {
-    if (!isCreditAccumulationDebugEnabled()) return;
-
-    const selectedRecords = new Set(rows.map((row) => row.sourceRecord));
-    const attempts = rawGrades.map((grade, index) => ({
-        '#': index + 1,
-        'Mã môn': String(grade?.id ?? '').trim().toUpperCase(),
-        'Học kỳ': String(grade?.semester ?? '').trim(),
-        'Loại': String(grade?.type ?? '').trim(),
-        'Tín chỉ gốc': grade?.credits ?? '',
-        'Điểm gốc': grade?.score ?? '',
-        'Được chọn': selectedRecords.has(grade) ? 'Có' : 'Không',
-    }));
-    const summary = rows.map((row) => ({
-        'Mã môn': row.code,
-        'Tên môn': row.name,
-        'Số lần học': row.attemptCount,
-        'Học kỳ được chọn': row.semester,
-        'Loại': row.type,
-        'Điểm gốc': row.rawScore ?? '',
-        'Điểm đọc được': row.parsedScore ?? 'Không có',
-        'Tín chỉ': row.credits,
-        'Trạng thái': row.status,
-        'Bị loại tích lũy': row.excludedFromAccumulation ? 'Có' : 'Không',
-        'Tín chỉ được cộng': row.earnedCredits,
-        'Kết luận': row.reason,
-    }));
-    const suspiciousRows = rows.filter((row) => (
-        row.attemptCount > 1
-        || (row.status === 'passed' && row.earnedCredits === 0)
-    ));
-
-    console.groupCollapsed(`[UStudy][Tín chỉ] Tổng quan đang cộng ${accumulatedCredits} tín chỉ`);
-    console.info('Bảng kết quả hiệu dụng: mỗi mã môn chỉ còn một dòng được dùng để tính.');
-    console.table(summary);
-    console.info('Toàn bộ dòng điểm gốc: dùng cột "Được chọn" để kiểm tra môn học lại/cải thiện.');
-    console.table(attempts);
-    if (suspiciousRows.length > 0) {
-        console.warn('Các môn nên kiểm tra trước (học nhiều lần hoặc đã đậu nhưng không được cộng tín chỉ):');
-        console.table(suspiciousRows.map((row) => ({
-            'Mã môn': row.code,
-            'Số lần học': row.attemptCount,
-            'Học kỳ được chọn': row.semester,
-            'Điểm': row.parsedScore ?? 'Không có',
-            'Tín chỉ': row.credits,
-            'Tín chỉ được cộng': row.earnedCredits,
-            'Kết luận': row.reason,
-        })));
-    }
-    console.info(`Tắt log: localStorage.removeItem('${CREDIT_ACCUMULATION_DEBUG_STORAGE_KEY}'); location.reload();`);
-    console.groupEnd();
-}
-
 function normalizeSemesterKey(value: unknown): string {
     const raw = String(value ?? '').trim();
     if (!raw) return '';
@@ -429,19 +345,8 @@ export const AcademicRulesEngine = {
         let foundationCredits = 0;
         let foundationFourPointPoints = 0;
         const normalizedCurrentSemester = normalizeSemesterKey(currentSemesterKey);
-        const debugEnabled = isCreditAccumulationDebugEnabled();
-        const attemptCountByCourse = debugEnabled
-            ? rawGrades.reduce((counts, grade) => {
-                const code = String(grade?.id ?? '').trim().toUpperCase();
-                counts.set(code, (counts.get(code) || 0) + 1);
-                return counts;
-            }, new Map<string, number>())
-            : new Map<string, number>();
-        const creditDebugRows: CreditAccumulationDebugRow[] = [];
-
         effectiveGrades.forEach((g: any) => {
             const code = String(g.id).trim();
-            const normalizedCode = code.toUpperCase();
             const nameVi = AcademicRulesEngine.extractVietnameseCourseName(g.name);
             const credits = parseInt(g.credits) || 0;
 
@@ -480,36 +385,6 @@ export const AcademicRulesEngine = {
                     foundationCredits += creditsForGPA;
                     foundationFourPointPoints += score4 * creditsForGPA;
                 }
-            }
-
-            if (debugEnabled) {
-                const excludedFromAccumulation = AcademicRulesEngine.isCourseExcludedFromAccumulation(code);
-                let reason = `Cộng ${earnedCredits} tín chỉ`;
-                if (!hasValidScore) {
-                    reason = 'Không cộng: chưa có điểm hoặc điểm không đọc được';
-                } else if (status !== 'passed') {
-                    reason = `Không cộng: điểm dưới ${ACADEMIC_RULES.PASS_GRADE_DECIMAL}`;
-                } else if (excludedFromAccumulation) {
-                    reason = 'Không cộng: mã môn thuộc quy tắc loại khỏi tín chỉ tích lũy';
-                } else if (credits <= 0) {
-                    reason = 'Không cộng: dòng điểm hiệu dụng có tín chỉ bằng 0 hoặc để trống';
-                }
-
-                creditDebugRows.push({
-                    sourceRecord: g,
-                    code: normalizedCode,
-                    name: nameVi,
-                    attemptCount: attemptCountByCourse.get(normalizedCode) || 1,
-                    semester: String(g.semester ?? '').trim(),
-                    type: String(g.type ?? '').trim(),
-                    rawScore: g.score,
-                    parsedScore: score,
-                    credits,
-                    status,
-                    excludedFromAccumulation,
-                    earnedCredits,
-                    reason,
-                });
             }
 
             gradesHistory.push({
@@ -574,8 +449,6 @@ export const AcademicRulesEngine = {
         const majorSpecializedGPA4 = majorSpecializedCredits > 0 ? majorSpecializedFourPointPoints / majorSpecializedCredits : 0;
         const foundationGPA = foundationCredits > 0 ? foundationPoints / foundationCredits : 0;
         const foundationGPA4 = foundationCredits > 0 ? foundationFourPointPoints / foundationCredits : 0;
-
-        logCreditAccumulationDebug(rawGrades, creditDebugRows, accumulatedCredits);
 
         return {
             gradesHistory,

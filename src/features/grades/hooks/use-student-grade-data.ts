@@ -216,39 +216,6 @@ export function useStudentGradeData() {
             totalProgramCredits;
 
         /**
-         * Debug để đối chiếu với cách tính cũ.
-         */
-        console.groupCollapsed(
-            '[StudentGradeData] Tín chỉ tích lũy',
-        );
-
-        console.log(
-            'Theo AcademicRulesEngine cũ:',
-            gpaSummary.accumulatedCredits,
-        );
-
-        console.log(
-            'Theo CTĐT / Credit Distribution:',
-            accumulatedCredits,
-        );
-
-        console.log(
-            'Tổng tín chỉ chương trình:',
-            totalCredits,
-        );
-
-        console.table(
-            creditDistribution.map((item) => ({
-                key: item.key,
-                category: item.name,
-                earnedCredits: item.credits,
-                requiredCredits: item.requiredCredits,
-            })),
-        );
-
-        console.groupEnd();
-
-        /**
          * ============================================================
          * HỌC PHÍ
          * ============================================================
