@@ -10,10 +10,10 @@ export function PrivacyFooter() {
         <p className="text-[10px] text-gray-500">
           Copyright © 2026 Unopia. All rights reserved.
         </p>
-        <nav className="flex items-center justify-center gap-3 text-[10px]" aria-label="Liên kết thông tin">
+        {/* <nav className="flex items-center justify-center gap-3 text-[10px]" aria-label="Liên kết thông tin">
           <Link className="font-medium text-[#0056A6] hover:underline" to="/guide">Hướng dẫn UStudy</Link>
           <Link className="font-medium text-[#0056A6] hover:underline" to="/privacy">Quyền riêng tư</Link>
-        </nav>
+        </nav> */}
       </div>
     </div>
   );
