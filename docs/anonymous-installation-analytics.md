@@ -64,7 +64,7 @@ Snapshot SQL được lưu tại `.local/analytics/hakhoi.sql` và
 `.local/analytics/unopia.sql`. Đây là dữ liệu cục bộ có chứa installation hash;
 thư mục `.local` đã bị Git ignore, không commit hay chia sẻ các file này.
 
-Chạy truy vấn mặc định `scripts/analytics-report.sql` trên cả hai snapshot:
+Chạy truy vấn mặc định `scripts/sql/analytics-report.sql` trên cả hai snapshot:
 
 ```powershell
 pnpm run analytics:query
@@ -73,7 +73,7 @@ pnpm run analytics:query
 Chạy một file truy vấn khác:
 
 ```powershell
-pnpm run analytics:query -- --file scripts/analytics-dau-history.sql
+pnpm run analytics:query -- --file scripts/sql/analytics-dau-history.sql
 ```
 
 Chọn một snapshot bằng `--source hakhoi` hoặc `--source unopia`; mặc định là

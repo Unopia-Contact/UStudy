@@ -11,8 +11,10 @@
     --ustudy-text: #111827;
     --ustudy-text-muted: #64748b;
     --ustudy-ring: rgba(0, 74, 152, 0.28);
+    --ustudy-mobile-nav-height: calc(64px + env(safe-area-inset-bottom));
     /* Portaled layers: navigation < sheet < modal < controls inside modal. */
     --ustudy-z-navigation: 40;
+    --ustudy-z-chatbot: 45;
     --ustudy-z-navigation-backdrop: 50;
     --ustudy-z-navigation-drawer: 60;
     --ustudy-z-bottom-sheet: 70;
@@ -65,7 +67,12 @@ body:has(:is(
   }
 
   .ustudy-main-scroll {
-    @apply relative flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0;
+    @apply relative flex-1 overflow-y-auto overflow-x-hidden;
+    padding-bottom: calc(var(--ustudy-mobile-nav-height) + 1rem);
+  }
+
+  @media (min-width: 768px) {
+    .ustudy-main-scroll { padding-bottom: 0; }
   }
 
   .ustudy-page-container {
@@ -368,6 +375,15 @@ body:has(:is(
 
   .ustudy-dropdown-option-active {
     @apply bg-[#004A98] font-medium text-white hover:bg-[#003A78];
+  }
+
+  .ustudy-dropdown-option:focus-visible {
+    outline: 2px solid var(--ustudy-brand);
+    outline-offset: -2px;
+  }
+
+  .ustudy-dropdown-option:disabled:not(.ustudy-dropdown-option-active) {
+    background: transparent;
   }
 
   /* Custom Scrollbar for Sidebar/Content */

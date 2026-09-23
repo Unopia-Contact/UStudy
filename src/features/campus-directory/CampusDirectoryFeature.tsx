@@ -163,7 +163,7 @@ export function CampusDirectoryFeature() {
             </div>
 
             {isMobileDetailOpen && selectedUnit && (
-                <div className="fixed inset-x-0 top-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-[var(--ustudy-z-bottom-sheet)] bg-white lg:hidden">
+                <div className="fixed inset-x-0 top-0 bottom-[var(--ustudy-mobile-nav-height)] z-[var(--ustudy-z-bottom-sheet)] bg-white md:bottom-0 lg:hidden">
                     <div className="h-full overflow-y-auto scrollbar-hide">
                         <CampusDirectoryDetail
                             unit={selectedUnit}

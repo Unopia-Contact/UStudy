@@ -550,7 +550,7 @@ Bạn cần hỗ trợ gì, hãy nhắn cho mình nhé!`,
                         maxWidth: 'calc(100vw - 32px)',
                         height: '560px',
                         maxHeight: 'calc(100vh - 100px)',
-                        zIndex: 2147483647,
+                        zIndex: 'var(--ustudy-z-chatbot)',
                     }}
                 >
                     {/* Header cao cấp */}
@@ -731,7 +731,7 @@ Bạn cần hỗ trợ gì, hãy nhắn cho mình nhé!`,
                         width: '52px',
                         height: '52px',
                         background: 'linear-gradient(135deg, #005ab6 0%, #1672df 100%)',
-                        zIndex: 2147483647,
+                        zIndex: 'var(--ustudy-z-chatbot)',
                     }}
                 >
                     {isOpen ? <X className="w-5.5 h-5.5 animate-in spin-in duration-300" /> : <Bot className="w-6 h-6 fill-current animate-in zoom-in duration-300" />}

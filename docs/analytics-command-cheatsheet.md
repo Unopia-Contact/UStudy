@@ -33,8 +33,8 @@ pnpm run analytics:query
 Chạy một file SQL khác trên cả hai snapshot:
 
 ```powershell
-pnpm run analytics:query -- --file scripts/analytics-dau-history.sql
-pnpm run analytics:query -- --file scripts/analytics-retention.sql
+pnpm run analytics:query -- --file scripts/sql/analytics-dau-history.sql
+pnpm run analytics:query -- --file scripts/sql/analytics-retention.sql
 ```
 
 Chỉ chạy trên một snapshot:
@@ -47,7 +47,7 @@ pnpm run analytics:query -- --source unopia
 Kết hợp chọn file SQL và database:
 
 ```powershell
-pnpm run analytics:query -- --file scripts/analytics-dau-history.sql --source hakhoi
+pnpm run analytics:query -- --file scripts/sql/analytics-dau-history.sql --source hakhoi
 ```
 
 Snapshot được lưu trong `.local/analytics/` và bị Git ignore. Lệnh `analytics:query`

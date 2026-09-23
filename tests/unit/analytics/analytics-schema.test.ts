@@ -27,9 +27,9 @@ describe('anonymous analytics D1 schema', () => {
 
   it('derives usage reports from activity history', async () => {
     const [summary, history, retention] = await Promise.all([
-      readProjectFile('scripts/analytics-report.sql'),
-      readProjectFile('scripts/analytics-dau-history.sql'),
-      readProjectFile('scripts/analytics-retention.sql'),
+      readProjectFile('scripts/sql/analytics-report.sql'),
+      readProjectFile('scripts/sql/analytics-dau-history.sql'),
+      readProjectFile('scripts/sql/analytics-retention.sql'),
     ]);
 
     expect(summary).toContain('installation_activity_days');

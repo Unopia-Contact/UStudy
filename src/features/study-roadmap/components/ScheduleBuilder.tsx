@@ -380,7 +380,7 @@ export function ScheduleBuilder({
 
       {/* Mobile summary bar */}
       {!mobileSidebarOpen && (
-      <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-0 right-0 z-30 border-t border-gray-200 bg-white px-3 py-2 shadow-lg lg:hidden">
+      <div className="fixed bottom-[var(--ustudy-mobile-nav-height)] left-0 right-0 z-30 border-t border-gray-200 bg-white px-3 py-2 shadow-lg md:bottom-0 lg:hidden">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold text-gray-900">

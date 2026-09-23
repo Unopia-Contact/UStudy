@@ -14,7 +14,7 @@ function readOption(name, fallback) {
   return value;
 }
 
-const queryFile = resolve(projectRoot, readOption('--file', 'scripts/analytics-report.sql'));
+const queryFile = resolve(projectRoot, readOption('--file', 'scripts/sql/analytics-report.sql'));
 const source = readOption('--source', 'both');
 const selectedSources = source === 'both' ? ['hakhoi', 'unopia'] : [source];
 const validOptions = new Set(['--file', '--source']);

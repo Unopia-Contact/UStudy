@@ -1,5 +1,5 @@
 import { Home, Map, Bot, MapPinned, Info, BarChart3, DollarSign, Calendar, Settings, ChevronLeft, ChevronRight, Subtitles, Menu, X, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { getPathForPage } from '../../app/routes';
 import { APP_CONFIG } from '../../config/appConfig';
@@ -57,6 +57,39 @@ interface SidebarProps {
 export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  const closeDrawer = () => {
+    setIsDrawerOpen(false);
+    moreButtonRef.current?.focus();
+  };
+
+  useEffect(() => {
+    if (!isDrawerOpen) return;
+    drawerCloseRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeDrawer();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isDrawerOpen]);
+
+  const handleDrawerKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Tab') return;
+    const focusable = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href]') ?? []);
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   const handlePageChange = (page: string) => {
     onPageChange(page);
@@ -149,11 +182,15 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
 
       {/* Backdrop */}
       {isDrawerOpen && (
-        <div
-          onClick={() => setIsDrawerOpen(false)}
+        <button
+          type="button"
+          aria-label="Đóng menu điều hướng"
+          onClick={closeDrawer}
           style={{
             position: 'fixed',
             inset: 0,
+            border: 0,
+            cursor: 'pointer',
             background: 'rgba(0,0,0,0.5)',
             backdropFilter: 'blur(2px)',
             zIndex: 'var(--ustudy-z-navigation-backdrop)',
@@ -163,6 +200,11 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
 
       {/* Drawer Panel */}
       <div
+        ref={drawerRef}
+        id="ustudy-mobile-more-menu"
+        aria-hidden={!isDrawerOpen}
+        inert={!isDrawerOpen}
+        onKeyDown={handleDrawerKeyDown}
         style={{
           position: 'fixed',
           left: 0,
@@ -170,6 +212,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
           bottom: 0,
           maxHeight: '70vh',
           overflowY: 'auto',
+          overscrollBehavior: 'contain',
           background: '#004A98',
           borderRadius: '16px 16px 0 0',
           boxShadow: '0 -8px 32px rgba(0,0,0,0.3)',
@@ -189,15 +232,18 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <span style={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>Menu</span>
           <button
-            onClick={() => setIsDrawerOpen(false)}
-            style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer' }}
+            ref={drawerCloseRef}
+            type="button"
+            aria-label="Đóng menu điều hướng"
+            onClick={closeDrawer}
+            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer' }}
           >
             <X style={{ width: '16px', height: '16px', color: 'white' }} />
           </button>
         </div>
 
         {/* Nav groups */}
-        <nav style={{ padding: '12px 16px 24px' }}>
+        <nav aria-label="Các trang khác" style={{ padding: '12px 16px', paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
           {navGroups.map((group) => (
             <div key={group.title} style={{ marginBottom: '16px' }}>
               <p style={{ padding: '0 8px', marginBottom: '8px', fontSize: '11px', color: 'rgba(147,197,253,0.8)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>
@@ -250,12 +296,15 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
 
       {/* Bottom Navigation Bar */}
       <nav
+        aria-label="Điều hướng chính"
+        aria-hidden={isDrawerOpen}
+        inert={isDrawerOpen}
         style={{
           position: 'fixed',
           left: 0,
           right: 0,
           bottom: 0,
-          height: '64px',
+          height: 'var(--ustudy-mobile-nav-height)',
           background: '#004A98',
           borderTop: '1px solid rgba(255,255,255,0.1)',
           zIndex: 'var(--ustudy-z-navigation)',
@@ -270,6 +319,11 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
           return (
             <button
               key={item.page}
+              type="button"
+              ref={isMore ? moreButtonRef : undefined}
+              aria-current={!isMore && isActive ? 'page' : undefined}
+              aria-expanded={isMore ? isDrawerOpen : undefined}
+              aria-controls={isMore ? 'ustudy-mobile-more-menu' : undefined}
               onClick={() => {
                 if (isMore) {
                   setIsDrawerOpen(!isDrawerOpen);

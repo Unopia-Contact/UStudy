@@ -84,7 +84,7 @@ export function MobileBottomSheet({
     };
 
     return createPortal((
-        <div className={`fixed inset-x-0 top-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-[var(--ustudy-z-bottom-sheet)] ${className}`}>
+        <div className={`fixed inset-x-0 top-0 bottom-[var(--ustudy-mobile-nav-height)] z-[var(--ustudy-z-bottom-sheet)] md:bottom-0 ${className}`}>
             <button
                 type="button"
                 aria-label="Đóng"
