@@ -6,6 +6,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from "node:url";
 import { minifiedBookmarkletSource } from './scripts/vite-bookmarklet-source';
+import { createAnalyticsWorkspaceMiddleware } from './scripts/analytics-workspace-api';
 
 const appVersion = (JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8')) as { version: string }).version;
 
@@ -21,6 +22,12 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       basicSsl(),
+      {
+        name: 'local-analytics-workspace',
+        configureServer(server) {
+          server.middlewares.use('/api/workspace/analytics', createAnalyticsWorkspaceMiddleware());
+        },
+      },
       // Middleware giả lập Vercel Serverless (chỉ dùng cho dev)
       {
         name: 'api-fallback',

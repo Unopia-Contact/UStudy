@@ -106,6 +106,8 @@
         "analytics:dau:unopia": "wrangler d1 execute ustudy-analytics --remote --env unopia --file scripts/analytics-dau-history.sql",
         "analytics:retention": "wrangler d1 execute ustudy-analytics --remote --file scripts/analytics-retention.sql",
         "analytics:retention:unopia": "wrangler d1 execute ustudy-analytics --remote --env unopia --file scripts/analytics-retention.sql",
+        "analytics:snapshot": "node scripts/analytics-snapshot.mjs",
+        "analytics:query": "node scripts/analytics-local-query.mjs",
         "build:extension": "node scripts/build-extension.mjs",
         "build:extension:dev": "set USTUDY_EXTENSION_PROFILE=development&& node scripts/build-extension.mjs",
         "build:apk": "powershell -ExecutionPolicy Bypass -File scripts/build-android.ps1",

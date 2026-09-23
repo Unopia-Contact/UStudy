@@ -1,5 +1,7 @@
 # Thống kê installation ẩn danh
 
+Danh sách lệnh chạy nhanh nằm tại [analytics-command-cheatsheet.md](./analytics-command-cheatsheet.md).
+
 UStudy đếm installation theo origin bằng một UUID ngẫu nhiên trong `localStorage`.
 Hai domain production có storage và D1 riêng, vì vậy cùng một trình duyệt mở cả hai
 domain được tính thành hai installation.
@@ -46,6 +48,39 @@ pnpm run analytics:dau:unopia
 pnpm run analytics:retention
 pnpm run analytics:retention:unopia
 ```
+
+## Snapshot và truy vấn trên máy không cần cài database
+
+Node.js 22.13 trở lên có module SQLite tích hợp. Script dùng database `:memory:`
+nên không tạo file database và không cần cài SQLite hoặc DB Browser.
+
+Tạo mới hoặc làm mới snapshot của cả hai D1:
+
+```powershell
+pnpm run analytics:snapshot
+```
+
+Snapshot SQL được lưu tại `.local/analytics/hakhoi.sql` và
+`.local/analytics/unopia.sql`. Đây là dữ liệu cục bộ có chứa installation hash;
+thư mục `.local` đã bị Git ignore, không commit hay chia sẻ các file này.
+
+Chạy truy vấn mặc định `scripts/analytics-report.sql` trên cả hai snapshot:
+
+```powershell
+pnpm run analytics:query
+```
+
+Chạy một file truy vấn khác:
+
+```powershell
+pnpm run analytics:query -- --file scripts/analytics-dau-history.sql
+```
+
+Chọn một snapshot bằng `--source hakhoi` hoặc `--source unopia`; mặc định là
+`both`, khi đó cùng một truy vấn được chạy độc lập trên mỗi snapshot và kết quả
+được in kèm nhãn nguồn. Mỗi lần viết lại SQL và gọi `analytics:query`, dữ liệu
+được đọc từ file cục bộ; chỉ `analytics:snapshot` mới kết nối D1 để tải dữ liệu.
+Snapshot không tự cập nhật khi có heartbeat mới.
 
 Muốn lấy tổng toàn hệ thống thì cộng các cột tương ứng của hai báo cáo. Không tạo
 API báo cáo public và không đưa danh sách hash ra frontend.
