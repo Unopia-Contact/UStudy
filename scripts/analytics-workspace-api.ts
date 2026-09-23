@@ -3,6 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { Worker } from 'node:worker_threads';
 
 type SqliteRow = Record<string, string | number | bigint | null>;
 type SqliteStatement = {
@@ -26,9 +27,11 @@ const snapshotDirectory = resolve(projectRoot, '.local/analytics');
 const sources = ['hakhoi', 'unopia'] as const;
 const tables = ['anonymous_installations', 'installation_activity_days'] as const;
 const maxBodyBytes = 24_000;
-const maxRows = 500;
+const queryTimeoutMs = 5_000;
+const workerPath = resolve(projectRoot, 'scripts/analytics-query-worker.mjs');
 
 type Source = typeof sources[number];
+type QuerySource = Source | 'both';
 
 function snapshotPath(source: Source) {
   return resolve(snapshotDirectory, `${source}.sql`);
@@ -108,12 +111,15 @@ async function getMetadata() {
       const file = await stat(snapshotPath(source));
       const schema = await withSnapshot(source, (database) => tables.map((table) => ({
         name: table,
-        columns: database.prepare(`PRAGMA table_info(${table})`).all().map((column) => ({
-          name: String(column.name),
-          type: String(column.type || 'TEXT'),
-          required: Boolean(column.notnull),
-          primaryKey: Boolean(column.pk),
-        })),
+        columns: [
+          { name: 'source', type: 'TEXT', required: true, primaryKey: true },
+          ...database.prepare(`PRAGMA table_info(${table})`).all().map((column) => ({
+            name: String(column.name),
+            type: String(column.type || 'TEXT'),
+            required: Boolean(column.notnull),
+            primaryKey: Boolean(column.pk),
+          })),
+        ],
         foreignKeys: database.prepare(`PRAGMA foreign_key_list(${table})`).all().map((key) => ({
           from: String(key.from),
           to: String(key.to),
@@ -125,13 +131,47 @@ async function getMetadata() {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
         return { source, available: false, updatedAt: null, bytes: 0, schema: [] };
       }
-      throw error;
+      return { source, available: false, updatedAt: null, bytes: 0, schema: [], error: `Snapshot ${source} không đọc được: ${error instanceof Error ? error.message : 'lỗi không xác định'}` };
     }
   }));
   return { snapshots };
 }
 
-async function executeQuery(body: unknown) {
+type WorkerResult = { source: QuerySource; columns?: string[]; rows?: SqliteRow[]; truncated?: boolean; elapsedMs?: number; error?: string };
+
+function runQueryWorker(source: QuerySource, sql: string, response: ServerResponse): Promise<WorkerResult> {
+  return new Promise((resolveResult, rejectResult) => {
+    const worker = new Worker(workerPath, {
+      workerData: { snapshotDirectory, source, sql },
+      resourceLimits: { maxOldGenerationSizeMb: 128 },
+    });
+    let settled = false;
+    const finish = (result?: WorkerResult, error?: Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      response.off('close', onClose);
+      if (error) rejectResult(error);
+      else resolveResult(result!);
+    };
+    const onClose = () => {
+      void worker.terminate();
+      finish(undefined, new Error('Truy vấn đã được hủy.'));
+    };
+    const timer = setTimeout(() => {
+      void worker.terminate();
+      finish({ source, error: 'Truy vấn quá 5 giây và đã được dừng. Hãy thêm WHERE hoặc LIMIT.' });
+    }, queryTimeoutMs);
+    response.once('close', onClose);
+    worker.once('message', (result: WorkerResult) => finish(result));
+    worker.once('error', (error) => finish({ source, error: error.message }));
+    worker.once('exit', (code) => {
+      if (code !== 0) finish({ source, error: `Worker đã dừng (mã ${code}).` });
+    });
+  });
+}
+
+async function executeQuery(body: unknown, response: ServerResponse) {
   if (!body || typeof body !== 'object') throw new Error('Thiếu câu SQL.');
   const { sql, source } = body as { sql?: unknown; source?: unknown };
   if (typeof sql !== 'string' || !sql.trim()) throw new Error('Nhập câu SQL trước khi chạy.');
@@ -139,33 +179,8 @@ async function executeQuery(body: unknown) {
   if (!isSelectQuery(sql)) throw new Error('Chỉ hỗ trợ truy vấn SELECT hoặc WITH đọc dữ liệu.');
   if (source !== 'both' && !sources.includes(source as Source)) throw new Error('Nguồn dữ liệu không hợp lệ.');
 
-  const selected = source === 'both' ? sources : [source as Source];
-  const results = [];
-  for (const current of selected) {
-    let result;
-    try {
-      result = await withSnapshot(current, (database) => {
-        const startedAt = performance.now();
-        const statement = database.prepare(sql);
-        const columns = statement.columns().map((column) => column.name);
-        const rows: SqliteRow[] = [];
-        for (const row of statement.iterate()) {
-          rows.push(row);
-          if (rows.length > maxRows) break;
-        }
-        const truncated = rows.length > maxRows;
-        if (truncated) rows.pop();
-        return { source: current, columns, rows, truncated, elapsedMs: Math.round(performance.now() - startedAt) };
-      });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new Error(`Chưa có snapshot ${current}. Chạy pnpm run analytics:snapshot trước.`);
-      }
-      throw error;
-    }
-    results.push(result);
-  }
-  return { results };
+  const result = await runQueryWorker(source as QuerySource, sql, response);
+  return { results: [result] };
 }
 
 export function createAnalyticsWorkspaceMiddleware() {
@@ -182,7 +197,8 @@ export function createAnalyticsWorkspaceMiddleware() {
         return;
       }
       if (request.method === 'POST' && path === '/query') {
-        sendJson(response, 200, await executeQuery(await readJsonBody(request)));
+        const result = await executeQuery(await readJsonBody(request), response);
+        if (!response.destroyed) sendJson(response, 200, result);
         return;
       }
       sendJson(response, 404, { error: 'Đường dẫn không tồn tại.' });
