@@ -3,6 +3,7 @@ import { toPng } from 'html-to-image';
 import { Download, ImagePlus, Move, Trash2 } from 'lucide-react';
 import { AppDialog } from '../../components/ui/overlays/app-dialog';
 import { downloadImage } from '../../utils/export';
+import { prepareBackgroundForExport } from './schedule-image-background';
 import { buildBasicTable, dayLabel, DEFAULT_RECT, groupLessons, IMAGE_SIZES, clamp, constrainRect, resizeOverlayRect, surfaceOpacityFromTransparency, type OverlayRect, type OverlayResizeDirection, type ScheduleImageLayout, type ScheduleImageLesson } from './schedule-image-model';
 import { readBackground, writeBackground } from './schedule-image-storage';
 import './schedule-image.css';
@@ -211,16 +212,24 @@ export function ScheduleImageDialog({ open, onOpenChange, lessons, title, subtit
   const exportPng = async () => {
     if (!stageRef.current || exporting) return;
     setExporting(true); setError('');
+    const background = stageRef.current.querySelector<HTMLImageElement>('.schedule-image-background');
+    const originalSrc = background?.src;
     try {
-      // Controls sit outside the artwork and are never part of the capture.
-      // `html-to-image` appends a query string when cacheBust is enabled. That
-      // makes locally selected `blob:` background URLs invalid (`blob:...?time`),
-      // so the export fails before the canvas can be drawn.
+      // Crop and downsample the original image before html-to-image embeds it.
+      // This also avoids asking SVG foreignObject to decode a full-size photo.
+      if (background) {
+        background.src = await prepareBackgroundForExport(background, size.width, size.height);
+        await background.decode();
+      }
       const dataUrl = await toPng(stageRef.current, { width: size.width, height: size.height, pixelRatio: 1 });
       downloadImage(dataUrl, `${filename}-${size.width}x${size.height}.png`);
-    } catch {
+    } catch (cause) {
+      console.error('Failed to export schedule image:', cause);
       setError('Không thể tạo ảnh. Thử ảnh nền nhỏ hơn hoặc một khổ ảnh khác.');
-    } finally { setExporting(false); }
+    } finally {
+      if (background && originalSrc) background.src = originalSrc;
+      setExporting(false);
+    }
   };
 
   const slider = (label: string, value: number, onChange: (value: number) => void, min = 0, max = 100) => <label className="schedule-image-control">{label}: {Math.round(value)}%

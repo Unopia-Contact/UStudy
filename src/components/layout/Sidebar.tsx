@@ -145,7 +145,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
 
   // ---- Mobile Portal: render thẳng vào document.body, thoát khỏi mọi container cha ----
   const MobilePortal = createPortal(
-    <div className="md:hidden" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="md:hidden" data-ustudy-mobile-navigation style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
 
       {/* Backdrop */}
       {isDrawerOpen && (
@@ -156,7 +156,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
             inset: 0,
             background: 'rgba(0,0,0,0.5)',
             backdropFilter: 'blur(2px)',
-            zIndex: 9040,
+            zIndex: 'var(--ustudy-z-navigation-backdrop)',
           }}
         />
       )}
@@ -173,7 +173,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
           background: '#004A98',
           borderRadius: '16px 16px 0 0',
           boxShadow: '0 -8px 32px rgba(0,0,0,0.3)',
-          zIndex: 9050,
+          zIndex: 'var(--ustudy-z-navigation-drawer)',
           transform: isDrawerOpen ? 'translateY(0)' : 'translateY(calc(100%))',
           opacity: isDrawerOpen ? 1 : 0,
           pointerEvents: isDrawerOpen ? 'auto' : 'none',
@@ -258,7 +258,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
           height: '64px',
           background: '#004A98',
           borderTop: '1px solid rgba(255,255,255,0.1)',
-          zIndex: 9030,
+          zIndex: 'var(--ustudy-z-navigation)',
           display: 'flex',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}

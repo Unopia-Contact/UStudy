@@ -11,7 +11,48 @@
     --ustudy-text: #111827;
     --ustudy-text-muted: #64748b;
     --ustudy-ring: rgba(0, 74, 152, 0.28);
+    /* Portaled layers: navigation < sheet < modal < controls inside modal. */
+    --ustudy-z-navigation: 40;
+    --ustudy-z-navigation-backdrop: 50;
+    --ustudy-z-navigation-drawer: 60;
+    --ustudy-z-bottom-sheet: 70;
+    --ustudy-z-modal-backdrop: 80;
+    --ustudy-z-modal: 90;
+    --ustudy-z-modal-popover: 95;
   }
+}
+
+/* Radix portals live in body, outside the app shell. Hide mobile navigation
+   while a modal owns focus so it cannot cover or intercept dialog controls. */
+body:has(:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="drawer-content"]
+)[data-state="open"]) [data-ustudy-mobile-navigation] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Menus/selects opened from inside a modal are portaled too. */
+body:has(:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="drawer-content"]
+)[data-state="open"]) :is(
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="select-content"],
+  [data-slot="popover-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="context-menu-sub-content"],
+  [data-slot="menubar-content"],
+  [data-slot="menubar-sub-content"],
+  [data-slot="hover-card-content"],
+  [data-slot="tooltip-content"]
+) {
+  z-index: var(--ustudy-z-modal-popover);
 }
 
 @layer components {
