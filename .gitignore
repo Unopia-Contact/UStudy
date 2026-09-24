@@ -17,7 +17,16 @@ dist-ssr
 coverage
 playwright-report
 test-results
+*.tsbuildinfo
 *.local
+
+# Local configuration and signing material (keep documented examples).
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.jks
+*.keystore
 
 # Editor directories and files
 .vscode/*
@@ -29,11 +38,8 @@ test-results
 *.njsproj
 *.sln
 *.sw?
-.env
 diagram.md
 architecture.md
-
-.env
 
 data.json
 temp/*
@@ -51,6 +57,6 @@ capacitor-android-plugins/*
 SKILL.md
 
 .agents/
-*.yaml
-!pnpm-lock.yaml
-!pnpm-workspace.yaml
+
+# Generated web output.
+/build/
