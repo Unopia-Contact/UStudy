@@ -136,11 +136,11 @@ export function Header({
           {/* ---- Bên trái: tiêu đề + bộ chọn học kỳ ---- */}
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {/* Tiêu đề: ẩn trên mobile nếu có bộ chọn, ngược lại hiện trên cả mobile và desktop */}
-            <h2 className={`desktop-only text-gray-900 whitespace-nowrap text-sm sm:text-base md:text-lg`} style={{ fontWeight: 600 }}>
+            <h2 className="hidden whitespace-nowrap text-lg text-gray-900 xl:block" style={{ fontWeight: 600 }}>
               Hệ thống hỗ trợ quản lý học tập
             </h2>
             <h2
-              className="mobile-only flex items-center gap-2 whitespace-nowrap text-sm text-gray-900 sm:text-base md:text-lg"
+              className="flex items-center gap-2 whitespace-nowrap text-sm text-gray-900 sm:text-base xl:hidden"
               style={{ fontWeight: 600 }}
             >
               <GraduationCap className="h-8 w-8 shrink-0 rounded-md bg-[#0058B2] p-1 text-white lg:h-9 lg:w-9 lg:rounded-lg" />
@@ -155,8 +155,8 @@ export function Header({
                   className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-[#004A98] text-white rounded-full hover:bg-[#003A78] transition-colors shadow-sm"
                 >
                   {/* Desktop: tên đầy đủ, Mobile: tên rút gọn */}
-                  <span className="hidden md:inline text-sm" style={{ fontWeight: 500 }}>{selectedSemester}</span>
-                  <span className="md:hidden text-xs" style={{ fontWeight: 500 }}>{shortSemester}</span>
+                  <span className="hidden text-sm xl:inline" style={{ fontWeight: 500 }}>{selectedSemester}</span>
+                  <span className="text-xs xl:hidden" style={{ fontWeight: 500 }}>{shortSemester}</span>
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showSemesterDropdown ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -190,51 +190,52 @@ export function Header({
           </div>
 
           {/* ---- Bên phải: thông báo, user, action ---- */}
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 xl:gap-3">
             {/* Notification Menu */}
             <NotificationMenu />
 
             {/* Divider - ẩn trên mobile */}
-            <div className="hidden md:block h-10 w-px bg-gray-200"></div>
+            <div className="hidden lg:block h-10 w-px bg-gray-200"></div>
 
             {hasStudentProfile ? (
               <>
                 {/* User Avatar + Info */}
-                <div className="flex items-center gap-2 md:gap-3 md:px-3 md:py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#004A98] to-[#0066CC] flex items-center justify-center shadow-sm flex-shrink-0">
-                    <span className="text-white text-xs md:text-sm" style={{ fontWeight: 600 }}>{nameInitial}</span>
+                <div className="flex shrink-0 items-center gap-2 rounded-lg p-1 transition-colors hover:bg-gray-50 xl:gap-3 xl:px-3 xl:py-2">
+                  <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#004A98] to-[#0066CC] shadow-sm ring-1 ring-blue-900/10 xl:size-10">
+                    <span className="block text-sm font-semibold leading-none text-white">{nameInitial}</span>
                   </div>
                   {/* Tên sinh viên: ẩn trên mobile */}
-                  <div className="hidden md:block text-left">
-                    <p className="text-gray-900 text-sm" style={{ fontWeight: 500 }}>{studentName || 'Sinh viên'}</p>
+                  <div className="hidden max-w-44 min-w-0 text-left xl:block">
+                    <p className="truncate text-sm text-gray-900" title={studentName || 'Sinh viên'} style={{ fontWeight: 500 }}>{studentName || 'Sinh viên'}</p>
                     <p className="text-gray-500 text-xs" style={{ fontWeight: 400 }}>Đã đồng bộ</p>
                   </div>
                 </div>
 
                 {/* Divider - ẩn trên mobile */}
-                <div className="hidden md:block h-10 w-px bg-gray-200"></div>
+                <div className="hidden xl:block h-10 w-px bg-gray-200"></div>
 
                 {/* Open Portal Button */}
                 <button
                   onClick={() => void handleLogin()}
                   disabled={isOpeningPortal}
-                  className="flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all shadow-sm focus:ring-2 focus:ring-gray-200 focus:ring-offset-2"
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 bg-white p-2.5 text-gray-700 shadow-sm transition-all hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 xl:gap-2 xl:px-4"
                   title={isNativePortalSyncAvailable() ? 'Mở Portal và đồng bộ dữ liệu' : 'Mở HCMUS Portal để đồng bộ dữ liệu'}
                 >
                   {isOpeningPortal
                     ? <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={2.5} />
                     : <ExternalLink className="h-4 w-4" strokeWidth={2.5} />}
-                  <span className="hidden md:inline" style={{ fontWeight: 500 }}>Mở Portal</span>
+                  <span className="hidden xl:inline" style={{ fontWeight: 500 }}>Mở Portal</span>
                 </button>
 
                 {/* Log Out Button */}
                 <button
                   onClick={handleLogOutClick}
-                  className="flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-sm focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                  aria-label="Đăng xuất"
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg bg-red-600 p-2.5 text-white shadow-sm transition-all hover:bg-red-700 focus:ring-2 focus:ring-red-600 focus:ring-offset-2 xl:gap-2 xl:px-4"
                 >
                   <LogOut className="w-4 h-4" strokeWidth={2.5} />
                   {/* Text: ẩn trên mobile */}
-                  <span className="hidden md:inline" style={{ fontWeight: 500 }}>Đăng xuất</span>
+                  <span className="hidden xl:inline" style={{ fontWeight: 500 }}>Đăng xuất</span>
                 </button>
               </>
             ) : (

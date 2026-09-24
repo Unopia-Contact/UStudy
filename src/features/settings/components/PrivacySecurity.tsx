@@ -124,6 +124,8 @@ export function PrivacySecurity() {
                         ))}
                     </div>
 
+                    <AnonymousAnalyticsSettings />
+
                     {/* Sections */}
                     {sections.map((section) => (
                         <div key={section.id} className="ustudy-settings-card">

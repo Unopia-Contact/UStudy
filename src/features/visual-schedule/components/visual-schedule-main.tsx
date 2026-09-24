@@ -157,24 +157,29 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button type="button" className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50" aria-label="Mở tùy chọn thời khóa biểu" title="Tùy chọn thời khóa biểu">
+                  <button
+                    type="button"
+                    className="ustudy-button-normal shrink-0 data-[state=open]:border-[#004A98]/40 data-[state=open]:bg-blue-50 data-[state=open]:text-[#004A98]"
+                    aria-label="Mở tùy chọn thời khóa biểu"
+                    title="Tùy chọn thời khóa biểu"
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                     <span className="hidden sm:inline">Tùy chọn</span>
                     {schedule.overrides.holidays.length > 0 && <span className="ustudy-badge-count text-[10px] font-bold">{schedule.overrides.holidays.length}</span>}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-50 w-56 bg-white">
-                  <DropdownMenuItem onClick={() => setIsHolidayManagerOpen(true)} className="cursor-pointer hover:bg-gray-100">
+                <DropdownMenuContent align="end" sideOffset={8} className="z-50 w-64 rounded-xl border-gray-200 bg-white p-1.5 shadow-xl">
+                  <DropdownMenuItem onClick={() => setIsHolidayManagerOpen(true)} className="cursor-pointer rounded-lg px-3 py-2.5 text-gray-700 focus:bg-blue-50 focus:text-[#004A98]">
                     <Calendar className="mr-2 h-4 w-4" />Quản lý nghỉ lễ
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setIsImageDialogOpen(true)} className="cursor-pointer hover:bg-gray-100">
+                  <DropdownMenuSeparator className="my-1.5 bg-gray-100" />
+                  <DropdownMenuItem onClick={() => setIsImageDialogOpen(true)} className="cursor-pointer rounded-lg px-3 py-2.5 text-gray-700 focus:bg-blue-50 focus:text-[#004A98]">
                     <ImagePlus className="mr-2 h-4 w-4" />Tạo ảnh tổng quan
                   </DropdownMenuItem>
-                  <DropdownMenuItem disabled={isExportingCurrentImage} onClick={() => void exportCurrentScheduleImage()} className="cursor-pointer hover:bg-gray-100">
+                  <DropdownMenuItem disabled={isExportingCurrentImage} onClick={() => void exportCurrentScheduleImage()} className="cursor-pointer rounded-lg px-3 py-2.5 text-gray-700 focus:bg-blue-50 focus:text-[#004A98]">
                     <ImageDown className="mr-2 h-4 w-4" />{isExportingCurrentImage ? 'Đang xuất ảnh…' : 'Xuất ảnh lịch hiện tại'}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExport} className="cursor-pointer hover:bg-gray-100">
+                  <DropdownMenuItem onClick={handleExport} className="cursor-pointer rounded-lg px-3 py-2.5 text-gray-700 focus:bg-blue-50 focus:text-[#004A98]">
                     <Download className="mr-2 h-4 w-4" />Xuất lịch (.ics)
                   </DropdownMenuItem>
                 </DropdownMenuContent>

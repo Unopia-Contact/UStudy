@@ -70,15 +70,15 @@ export function CreditDistributionWidget() {
             <p className="text-xs text-gray-500">Theo danh mục chương trình đào tạo</p>
           </div>
         </div>
-        <div className="ustudy-muted-panel text-right">
+        <div className="ustudy-muted-panel shrink-0 text-right">
           <p className="text-base font-bold text-gray-900">{totalCredits}</p>
           <p className="text-[10px] font-medium uppercase text-gray-500">TC</p>
         </div>
       </div>
 
       {distribution.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-[220px_1fr] md:items-center">
-          <div className="relative h-[220px]">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)] lg:items-center">
+          <div className="relative h-[180px] min-w-0 sm:h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -94,7 +94,7 @@ export function CreditDistributionWidget() {
                     <Cell key={item.key} fill={item.color} />
                   ))}
                 </Pie>
-                <Tooltip content={<CreditTooltip />} />
+                <Tooltip content={<CreditTooltip />} wrapperStyle={{ zIndex: 20 }} />
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -103,9 +103,12 @@ export function CreditDistributionWidget() {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="min-w-0 space-y-2">
             {distribution.map((item) => (
-              <div key={item.key} className="flex items-center gap-3 rounded-lg border border-gray-100 px-3 py-2">
+              <div
+                key={item.key}
+                className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-gray-100 px-2.5 py-2 sm:gap-3 sm:px-3"
+              >
                 <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold text-gray-800">{item.name}</p>

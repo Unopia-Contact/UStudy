@@ -164,7 +164,7 @@ export function DashboardWidgets() {
         header={(
           <PageHeader
             title="Tổng quan"
-            description="Chào mừng bạn trở lại! Đây là tổng quan học tập của bạn."
+            description="Chào mừng bạn trở lại! Đây là tổng quan kết quả học tập của bạn."
           />
         )}
       >
@@ -178,7 +178,7 @@ export function DashboardWidgets() {
       header={(
         <PageHeader
           title="Tổng quan"
-          description="Chào mừng bạn trở lại! Đây là tổng quan học tập của bạn."
+          description="Chào mừng bạn trở lại! Đây là tổng quan kết quả học tập của bạn."
           actions={(
             <button
               type="button"

@@ -390,7 +390,7 @@ export function GPAPullSemesterTable({
                     <tfoot className="border-t border-gray-200 bg-gray-50/80">
                         <tr>
                             <td colSpan={1} className="px-4 py-3 text-right text-xs font-semibold text-gray-500">Tổng tín chỉ kỳ này</td>
-                            <td className="px-4 py-3 text-center text-sm font-bold text-gray-800">{nextSemester.totalCredits} TC</td>
+                            <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-bold text-gray-800">{nextSemester.totalCredits} TC</td>
                             <td colSpan={3} className="px-4 py-3 text-right text-xs font-semibold text-gray-500"></td>
                         </tr>
                     </tfoot>

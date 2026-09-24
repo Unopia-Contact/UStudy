@@ -99,14 +99,14 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
   // ---- Desktop Sidebar (ẩn trên mobile) ----
   const DesktopSidebar = (
     <aside
-      className={`hidden md:flex bg-[#004A98] text-white flex-col flex-shrink-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'}`}
+      className={`hidden md:flex bg-primary text-white flex-col shrink-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'}`}
       style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
     >
       {/* Logo */}
       <div className={`p-6 relative ${isCollapsed ? 'px-4' : ''}`}>
         <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''}`}>
-          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-[#004A98]" style={{ fontWeight: 600 }}>UNP</span>
+          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shrink-0">
+            <span className="text-primary" style={{ fontWeight: 600 }}>UNP</span>
           </div>
           {!isCollapsed && (
             <div className="min-w-0">
@@ -121,9 +121,9 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
           aria-label={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
         >
           {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-[#004A98]" />
+            <ChevronRight className="w-4 h-4 text-primary" />
           ) : (
-            <ChevronLeft className="w-4 h-4 text-[#004A98]" />
+            <ChevronLeft className="w-4 h-4 text-primary" />
           )}
         </button>
       </div>
@@ -152,7 +152,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
                       {isActive && (
                         <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 ${isCollapsed ? 'h-10' : 'h-8'} bg-white rounded-r`}></div>
                       )}
-                      <item.icon className={`w-5 h-5 flex-shrink-0 ${isCollapsed ? '' : 'mt-0.5'}`} strokeWidth={1.5} />
+                      <item.icon className={`w-5 h-5 shrink-0 ${isCollapsed ? '' : 'mt-0.5'}`} strokeWidth={1.5} />
                       {!isCollapsed && (
                         <div className="flex-1 min-w-0">
                           <p className={`truncate ${isActive ? 'text-white' : 'text-blue-100 group-hover:text-white'}`} style={{ fontWeight: isActive ? 500 : 400 }}>

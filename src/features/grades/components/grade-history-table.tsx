@@ -68,7 +68,7 @@ export function GradeHistoryTable({
                     <div className="flex items-center gap-2 md:gap-3">
                         <History className="h-6 w-6 text-[#004A98] md:h-8 md:w-8" />
                         <h3 className="text-sm font-semibold text-gray-800">Lịch sử điểm</h3>
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                        <span className="shrink-0 whitespace-nowrap rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
                             {filteredHistory.length} môn
                         </span>
                     </div>

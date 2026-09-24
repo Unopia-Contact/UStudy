@@ -266,7 +266,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                 </div>
             }
             <h2 className="ustudy-settings-title"><GraduationCap className="ustudy-settings-title-icon" />Chương trình đào tạo</h2>
-            <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành và Năm học để hiển thị đúng dữ liệu của bạn.</p>
+            <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành để hiển thị đúng dữ liệu của bạn.</p>
 
 
             <div className="w grid grid-cols-1 md:grid-cols-1 gap-6">
