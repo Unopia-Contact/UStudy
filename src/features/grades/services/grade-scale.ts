@@ -1,4 +1,4 @@
-/** Quy doi diem he 10 sang thang 4 va thang chu theo cau hinh hien hanh. */
+/** Quy đổi điểm hệ 10 sang thang 4 và thang chữ theo cấu hình hiện hành. */
 export function score10ToFourPoint(score: number): number {
     if (!Number.isFinite(score) || score < 3) return 0;
     if (score >= 9) return 4;

@@ -78,19 +78,19 @@ function hasCalendarChange(base: ScheduleSession, occurrence: ScheduleSession): 
 }
 
 function getTypeLabel(type: ScheduleSession['type']): string {
-    if (type === 'LT') return 'Ly thuyet';
-    if (type === 'TH') return 'Thuc hanh';
-    return 'Bai tap';
+    if (type === 'LT') return 'Lý thuyết';
+    if (type === 'TH') return 'Thực hành';
+    return 'Bài tập';
 }
 
 function getDescription(session: ScheduleSession, calendarWeek?: number): string {
     return [
-        `Mon: ${session.courseName} (${session.courseCode})`,
-        `Lop: ${session.classCode}`,
-        `Loai: ${getTypeLabel(session.type)}`,
-        `Giang vien: ${session.instructor || 'Dang cap nhat'}`,
-        `Tin chi: ${session.credits}`,
-        ...(calendarWeek ? [`Tuan dieu chinh: ${calendarWeek}`] : []),
+        `Môn: ${session.courseName} (${session.courseCode})`,
+        `Lớp: ${session.classCode}`,
+        `Loại: ${getTypeLabel(session.type)}`,
+        `Giảng viên: ${session.instructor || 'Đang cập nhật'}`,
+        `Tín chỉ: ${session.credits}`,
+        ...(calendarWeek ? [`Tuần điều chỉnh: ${calendarWeek}`] : []),
     ].join('\n');
 }
 
@@ -128,7 +128,7 @@ function appendCalendarEvent(lines: string[], input: CalendarEventInput, helpers
 
     lines.push(
         `SUMMARY:${esc(`${input.session.courseCode} - ${input.session.courseName}`)}`,
-        `LOCATION:${esc(input.session.room || 'Chua co phong')}`,
+        `LOCATION:${esc(input.session.room || 'Chưa có phòng')}`,
         `DESCRIPTION:${esc(getDescription(input.session, input.calendarWeek))}`,
         'STATUS:CONFIRMED',
         'TRANSP:OPAQUE',
@@ -149,7 +149,7 @@ export function buildCalendarIcs(schedule: WeeklySchedule, now = new Date()): st
         'PRODID:-//HCMUS Portal Tool//Visual Schedule//VI',
         'CALSCALE:GREGORIAN',
         'METHOD:PUBLISH',
-        `X-WR-CALNAME:${esc(`Thoi khoa bieu - ${schedule.semesterName}`)}`,
+        `X-WR-CALNAME:${esc(`Thời khóa biểu - ${schedule.semesterName}`)}`,
         'X-WR-TIMEZONE:Asia/Ho_Chi_Minh',
     ];
 

@@ -1,4 +1,4 @@
-// Sinh tu danh sach hoc phan nhan dien trong CTDT PDF 2025.
+// Sinh từ danh sách học phần nhận diện trong CTĐT PDF 2025.
 export const courses = [
   {
     "course_id": "ADD00031",

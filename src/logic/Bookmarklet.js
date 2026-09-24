@@ -618,7 +618,7 @@
             };
         }, (done, total) => {
             if (done % 3 === 0 || done === total) {
-                showLoading(`Dang quet chi tiet TH/BT: ${done}/${total}`);
+                showLoading(`Đang quét chi tiết TH/BT: ${done}/${total}`);
             }
         });
 
