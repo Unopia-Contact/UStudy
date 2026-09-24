@@ -10,6 +10,7 @@ import {
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SyntheticEvent } from 'react';
+import { CloseButton } from '../../components/ui/close-button';
 import { useSearchParams } from 'react-router-dom';
 import { CAMPUS_BUILDINGS, findCampusRoom, getFloorRooms, searchCampusRooms } from './campus-data';
 import type { BuildingId, CampusBuilding, CampusRoomSuggestion, RoomSearchResult } from './campus-data';
@@ -202,9 +203,7 @@ export default function CampusMap() {
       <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-7">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#004A98] to-[#0066CC] text-white shadow-sm">
-              <MapPin className="h-5 w-5" />
-            </div>
+            <MapPin className="h-6 w-6 shrink-0 text-[#004A98]" />
 
             <div>
               <h1 className="text-lg font-bold tracking-tight text-slate-950 sm:text-xl">
@@ -339,9 +338,7 @@ export default function CampusMap() {
                       }}
                       className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-blue-50"
                     >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
-                        <DoorOpen className="h-4 w-4" />
-                      </div>
+                      <DoorOpen className="h-5 w-5 shrink-0 text-[#004A98]" />
                       <div className="min-w-0 flex-1">
                         {suggestion.roomName && <p className="font-mono text-sm font-semibold text-slate-900">{suggestion.roomName}</p>}
                         <p className="mt-0.5 truncate text-xs text-slate-500">{suggestion.fullCode}</p>
@@ -1233,14 +1230,10 @@ export default function CampusMap() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-[#004A98]">{selectedBuilding.name}</p>
                 <h2 id="room-list-title" className="mt-1 text-base font-bold text-slate-900">Danh sách phòng</h2>
               </div>
-              <button
-                type="button"
+              <CloseButton
                 onClick={() => setIsRoomListOpen(false)}
-                className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-                aria-label="Đóng danh sách phòng"
-              >
-                <X className="h-5 w-5" />
-              </button>
+                label="Đóng danh sách phòng"
+              />
             </header>
 
             <div className="max-h-[calc(min(680px,100vh-2rem)-84px)] overflow-y-auto p-3">
@@ -1273,9 +1266,7 @@ export default function CampusMap() {
                               }}
                               className="flex w-full items-center gap-3 px-2 py-3 text-left transition-colors hover:bg-blue-50"
                             >
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
-                                <DoorOpen className="h-4 w-4" />
-                              </div>
+                              <DoorOpen className="h-5 w-5 shrink-0 text-[#004A98]" />
                               <div className="min-w-0">
                                 <p className="font-mono text-sm font-semibold text-slate-900">{room.code}</p>
                                 {room.name && <p className="mt-0.5 truncate text-sm text-slate-600">{room.name}</p>}

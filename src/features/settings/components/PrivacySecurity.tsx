@@ -2,9 +2,9 @@ import React from 'react';
 import { PageHeader } from '../../../components/layout/page-header';
 import { PageShell } from '../../../components/layout/page-shell';
 import {
-    Shield, Lock, KeyRound, Server, Eye, EyeOff, Fingerprint,
+    Shield, Lock, KeyRound, Server, Eye, EyeOff,
     HardDriveDownload, Trash2, RefreshCw, AlertTriangle, CheckCircle2,
-    ArrowRight, FileKey2, Globe, Cpu
+    ArrowRight, Globe, Cpu
 } from 'lucide-react';
 import { AnonymousAnalyticsSettings } from './AnonymousAnalyticsSettings';
 
@@ -13,7 +13,6 @@ const sections = [
         id: 'overview',
         icon: Shield,
         iconColor: 'text-blue-600',
-        iconBg: 'bg-blue-50',
         title: 'Tổng quan bảo mật',
         content: 'UStudy được thiết kế với nguyên tắc "Privacy by Design" - quyền riêng tư của bạn được đặt lên hàng đầu trong mọi quyết định kiến trúc. Toàn bộ dữ liệu cá nhân (điểm số, lịch học, thông tin sinh viên) được mã hóa và chỉ lưu trên thiết bị.'
     },
@@ -34,7 +33,6 @@ const sections = [
         id: 'data-storage',
         icon: HardDriveDownload,
         iconColor: 'text-emerald-600',
-        iconBg: 'bg-emerald-50',
         title: 'Nơi lưu trữ dữ liệu',
         items: [
             { icon: Globe, label: 'Dữ liệu học tập trên thiết bị', desc: 'Điểm, lịch học, thông tin sinh viên và dữ liệu Portal chỉ được lưu trong localStorage của trình duyệt bạn.' },
@@ -58,7 +56,6 @@ const sections = [
         id: 'rights',
         icon: Eye,
         iconColor: 'text-purple-600',
-        iconBg: 'bg-purple-50',
         title: 'Quyền dữ liệu cá nhân của bạn',
         items: [
             { icon: Eye, label: 'Quyền được biết', desc: 'Bạn luôn biết chính xác dữ liệu nào được lưu, ở đâu, và được mã hóa bằng cách nào. Trang này chính là minh chứng cho quyền đó.' },
@@ -71,7 +68,6 @@ const sections = [
         id: 'risks',
         icon: AlertTriangle,
         iconColor: 'text-red-600',
-        iconBg: 'bg-red-50',
         title: 'Rủi ro bạn nên biết',
         items: [
             { icon: AlertTriangle, label: 'Quên mật khẩu', desc: 'Nếu quên mật khẩu, dữ liệu đã mã hóa không thể giải mã được. Hệ thống sẽ yêu cầu xóa toàn bộ và đồng bộ lại từ Portal. Đây là đánh đổi cần thiết để bảo vệ quyền riêng tư.' },
@@ -83,7 +79,6 @@ const sections = [
         id: 'recommendations',
         icon: CheckCircle2,
         iconColor: 'text-green-600',
-        iconBg: 'bg-green-50',
         title: 'Khuyến nghị bảo mật',
         items: [
             { icon: KeyRound, label: 'Sử dụng mật khẩu mạnh', desc: 'Chọn mật khẩu từ 8 ký tự trở lên, kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt. Tránh ngày sinh, tên, hoặc mật khẩu đơn giản như "1234".' },
@@ -109,15 +104,13 @@ export function PrivacySecurity() {
                     {/* Quick summary cards */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                         {[
-                            { label: 'Mã hóa', value: 'AES-256', icon: Lock, color: 'text-indigo-600 bg-indigo-50' },
-                            { label: 'Nơi lưu trữ', value: 'Thiết bị bạn', icon: Globe, color: 'text-emerald-600 bg-emerald-50' },
-                            { label: 'Dữ liệu học tập', value: 'Chỉ trên máy', icon: EyeOff, color: 'text-blue-600 bg-blue-50' },
-                            { label: 'PBKDF2', value: '310K vòng', icon: Cpu, color: 'text-amber-600 bg-amber-50' },
+                            { label: 'Mã hóa', value: 'AES-256', icon: Lock, color: 'text-indigo-600' },
+                            { label: 'Nơi lưu trữ', value: 'Thiết bị bạn', icon: Globe, color: 'text-emerald-600' },
+                            { label: 'Dữ liệu học tập', value: 'Chỉ trên máy', icon: EyeOff, color: 'text-blue-600' },
+                            { label: 'PBKDF2', value: '310K vòng', icon: Cpu, color: 'text-amber-600' },
                         ].map((card) => (
                             <div key={card.label} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm text-center">
-                                <div className={`w-10 h-10 rounded-lg ${card.color} flex items-center justify-center mx-auto mb-2`}>
-                                    <card.icon className="w-5 h-5" />
-                                </div>
+                                <card.icon className={`mx-auto mb-2 h-6 w-6 ${card.color}`} />
                                 <p className="text-xs text-gray-500 mb-0.5">{card.label}</p>
                                 <p className="text-sm font-bold text-gray-900">{card.value}</p>
                             </div>
@@ -130,9 +123,7 @@ export function PrivacySecurity() {
                     {sections.map((section) => (
                         <div key={section.id} className="ustudy-settings-card">
                             <h2 className="flex items-center gap-2 text-gray-900 font-semibold mb-4">
-                                <div className={`w-8 h-8 rounded-lg ${section.iconBg} flex items-center justify-center`}>
-                                    <section.icon className={`w-4 h-4 ${section.iconColor}`} />
-                                </div>
+                                <section.icon className={`h-5 w-5 shrink-0 ${section.iconColor}`} />
                                 {section.title}
                             </h2>
 
@@ -144,9 +135,7 @@ export function PrivacySecurity() {
                                 <div className="mt-4 flex flex-col gap-4">
                                     {section.items.map((item) => (
                                         <div key={item.label} className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <item.icon className="w-4 h-4 text-gray-500" />
-                                            </div>
+                                            <item.icon className={`mt-0.5 h-5 w-5 shrink-0 ${section.iconColor}`} />
                                             <div>
                                                 <p className="text-sm font-semibold text-gray-800">{item.label}</p>
                                                 <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
@@ -161,9 +150,7 @@ export function PrivacySecurity() {
                     {/* Architecture diagram */}
                     <div className="ustudy-settings-card">
                         <h2 className="flex items-center gap-2 text-gray-900 font-semibold mb-6">
-                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                                <ArrowRight className="w-4 h-4 text-slate-600" />
-                            </div>
+                            <ArrowRight className="h-5 w-5 shrink-0 text-indigo-600" />
                             Quy trình mã hóa
                         </h2>
                         <div className="flex flex-col md:flex-row items-stretch gap-3">
@@ -194,9 +181,7 @@ export function PrivacySecurity() {
                     {/* Data classification */}
                     <div className="ustudy-settings-card">
                         <h2 className="flex items-center gap-2 text-gray-900 font-semibold mb-4">
-                            <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center">
-                                <Eye className="w-4 h-4 text-sky-600" />
-                            </div>
+                            <Eye className="h-5 w-5 shrink-0 text-sky-600" />
                             Phân loại dữ liệu
                         </h2>
                         <div className="overflow-x-auto">

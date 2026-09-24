@@ -112,9 +112,7 @@ export function NoDataCard() {
             <div className="w-full bg-white px-1 py-3 md:rounded-xl md:border md:border-gray-100 md:p-8 md:shadow-xl md:shadow-gray-200/50">
                 <div className="mb-5 flex flex-col items-center md:mb-8">
                     {isMobile && (
-                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-[#004A98]">
-                            <Smartphone className="h-6 w-6" />
-                        </div>
+                        <Smartphone className="mb-3 h-7 w-7 text-[#004A98]" />
                     )}
                     <h2 className="text-xl font-bold text-gray-900 md:text-2xl">Chưa có dữ liệu</h2>
                     <p className="mt-2 max-w-lg text-center text-sm leading-5 text-gray-500">
@@ -191,9 +189,7 @@ export function NoDataCard() {
                     <div className="mx-auto max-w-lg space-y-4">
                         <section className="overflow-hidden rounded-xl border border-blue-200 bg-blue-50/50">
                             <div className="flex gap-3 p-4">
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-[#004A98] shadow-sm">
-                                    <Download className="h-5 w-5" />
-                                </div>
+                                <Download className="h-6 w-6 shrink-0 text-[#004A98]" />
                                 <div className="min-w-0">
                                     <h3 className="text-sm font-bold text-gray-900">Tải ứng dụng UStudy cho Android</h3>
                                     <p className="mt-1 text-xs leading-5 text-gray-600">
@@ -225,9 +221,7 @@ export function NoDataCard() {
 
                         <section className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 md:hidden">
                             <div className="mb-3 flex items-start gap-3">
-                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#004A98] text-white">
-                                    <Smartphone className="h-4 w-4" />
-                                </div>
+                                <Smartphone className="h-5 w-5 shrink-0 text-[#004A98]" />
                                 <div className="min-w-0">
                                     <h3 className="text-sm font-bold text-gray-900">Nhận từ laptop</h3>
                                     <p className="mt-1 text-xs leading-5 text-gray-600">
@@ -240,9 +234,7 @@ export function NoDataCard() {
 
                         <section className="rounded-xl border border-gray-200 bg-white p-4">
                             <div className="mb-3 flex items-start gap-3">
-                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
-                                    <FileUp className="h-4 w-4" />
-                                </div>
+                                <FileUp className="h-5 w-5 shrink-0 text-slate-600" />
                                 <div className="min-w-0">
                                     <h3 className="text-sm font-bold text-gray-900">Dùng tiếp trên bản web</h3>
                                     <p className="mt-1 text-xs leading-5 text-gray-600">

@@ -476,9 +476,7 @@ export function StudyPlanContainer() {
     if (courses.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-blue-200 bg-white p-8 shadow-sm">
-                <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 shadow-sm ring-4 ring-white">
-                    <DatabaseBackup className="h-10 w-10 text-blue-500" />
-                </div>
+                <DatabaseBackup className="mb-5 h-12 w-12 text-blue-600" />
                 <h2 className="mb-2 text-xl font-bold text-gray-900">Đang cập nhật dữ liệu</h2>
                 <p className="max-w-md text-center leading-relaxed text-gray-500">
                     Chương trình đào tạo cho chuyên ngành và khóa học này hiện đang trong quá trình thu thập.

@@ -34,7 +34,7 @@ await writeFile(
   'utf8',
 );
 await cp(join(projectRoot, 'src', 'logic', 'Bookmarklet.js'), join(outputDir, 'portal-runner.js'));
-await cp(join(projectRoot, 'public', 'favicon.svg'), join(outputDir, 'icon.svg'));
+await cp(join(projectRoot, 'public', 'assets', 'images', 'ustudy-logo.svg'), join(outputDir, 'icon.svg'));
 
 async function addDirectoryToZip(zip, directory) {
   const entries = await readdir(directory, { withFileTypes: true });

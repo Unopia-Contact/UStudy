@@ -346,9 +346,7 @@ export function GPAPullTool({
                 <div className="divide-y divide-gray-200">
                     <section className="pb-4">
                         <div className="flex items-start gap-3">
-                            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
-                                <PencilLine className="h-4.5 w-4.5" />
-                            </div>
+                            <PencilLine className="mt-0.5 h-5 w-5 shrink-0 text-[#004A98]" />
                             <div className="min-w-0">
                                 <h4 className="text-sm font-semibold text-gray-900">Dự đoán kết quả</h4>
                                 <p className="mt-1 text-sm leading-6 text-gray-600">
@@ -363,9 +361,7 @@ export function GPAPullTool({
 
                     <section className="py-4">
                         <div className="flex items-start gap-3">
-                            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
-                                <Target className="h-4.5 w-4.5" />
-                            </div>
+                            <Target className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
                             <div className="min-w-0">
                                 <h4 className="text-sm font-semibold text-gray-900">Lập mục tiêu GPA</h4>
                                 <p className="mt-1 text-sm leading-6 text-gray-600">

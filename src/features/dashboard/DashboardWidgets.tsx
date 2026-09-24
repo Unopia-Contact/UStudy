@@ -24,7 +24,7 @@ import {
   type DashboardWidgetId,
 } from './services/dashboard-layout';
 import {
-  prepareCalendarNotificationPermission,
+  requestCalendarNotificationPermission,
   syncCalendarNotifications,
 } from '../../mobile/calendar-notifications';
 import { useCampus } from '../../context/CampusContext';
@@ -237,6 +237,28 @@ export function DashboardWidgets() {
           notificationsEnabled: calendarNotificationsEnabled,
           reminderMinutes: calendarReminderMinutes,
         }) => {
+          if (calendarNotificationsEnabled) {
+            const permission = await requestCalendarNotificationPermission();
+            if (!permission.granted) {
+              return {
+                saved: false,
+                message: permission.message || 'Không thể bật thông báo lịch trên thiết bị này.',
+              };
+            }
+          }
+
+          const nextCalendarEvents = buildDashboardCalendarEvents(
+            schedule,
+            exams,
+            calendarSources,
+            calendarDays,
+          );
+          await syncCalendarNotifications(
+            nextCalendarEvents,
+            calendarNotificationsEnabled,
+            calendarReminderMinutes,
+          );
+
           updateLayout({
             ...layout,
             calendarSources,
@@ -244,10 +266,6 @@ export function DashboardWidgets() {
             calendarNotificationsEnabled,
             calendarReminderMinutes,
           });
-
-          if (calendarNotificationsEnabled) {
-            prepareCalendarNotificationPermission();
-          }
 
           return { saved: true };
         }}

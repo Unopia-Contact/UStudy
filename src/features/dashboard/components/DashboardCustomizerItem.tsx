@@ -56,9 +56,7 @@ export function DashboardCustomizerItem({
         <GripVertical className="h-4 w-4" />
       </button>
 
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${enabled ? 'bg-[#EAF3FF] text-[#004A98]' : 'bg-gray-100 text-gray-400'}`}>
-        <Icon className="h-4 w-4" />
-      </span>
+      <Icon className={`h-5 w-5 shrink-0 transition-colors ${enabled ? 'text-[#004A98]' : 'text-gray-400'}`} />
 
       <div className="min-w-0 flex-1">
         <p className={`truncate text-sm font-semibold ${enabled ? 'text-gray-900' : 'text-gray-500'}`}>

@@ -86,25 +86,19 @@ const styles = `
     }
 
     .sec-icon-ring {
-        width: 76px;
-        height: 76px;
-        border-radius: 24px;
+        width: 56px;
+        height: 56px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 32px;
-        transition: background 0.4s ease, box-shadow 0.4s ease;
+        transition: color 0.4s ease;
     }
     .sec-icon-ring.indigo {
-        background: #0065d1ff;
-        box-shadow: 0 10px 30px -6px rgba(99,102,241,0.45);
-        animation: sec-pulse 2.8s ease-in-out infinite;
-        color: white;
+        color: #0065d1;
     }
     .sec-icon-ring.green {
-        background: linear-gradient(145deg, #059669, #34d399);
-        box-shadow: 0 10px 30px -6px rgba(5,150,105,0.4);
-        color: white;
+        color: #059669;
     }
 
     .sec-steps {

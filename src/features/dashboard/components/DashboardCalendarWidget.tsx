@@ -102,9 +102,7 @@ export function DashboardCalendarWidget({
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#004A98] shadow-sm shadow-blue-900/10">
-                <CalendarDays className="h-5 w-5 text-white" />
-              </div>
+              <CalendarDays className="h-6 w-6 shrink-0 text-[#004A98]" />
 
               <div className="min-w-0">
                 <h3 className="truncate text-[15px] font-bold tracking-[-0.01em] text-slate-900 md:text-base">
@@ -296,11 +294,7 @@ export function DashboardCalendarWidget({
         /* ================= EMPTY STATE ================= */
         <div className="flex min-h-40 flex-1 flex-col items-center justify-center px-6 text-center">
           <div className="relative">
-            <div className="absolute inset-0 scale-150 rounded-full bg-blue-50 blur-xl" />
-
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50">
-              <CalendarDays className="h-5 w-5 text-[#004A98]" />
-            </div>
+            <CalendarDays className="relative h-8 w-8 text-[#004A98]" />
           </div>
 
           <p className="mt-4 text-sm font-semibold text-slate-800">

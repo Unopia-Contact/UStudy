@@ -7,33 +7,59 @@ interface QuickStatsCardProps {
     title: string;
     value: string;
     subtitle: string;
-    bgColor: string;
+    tone: 'blue' | 'green' | 'orange';
     trend?: { direction: 'up' | 'down'; value: string };
 }
 
-export function QuickStatsCard({ icon: Icon, title, value, subtitle, bgColor, trend }: QuickStatsCardProps) {
+const toneStyles = {
+    blue: {
+        icon: 'text-[#0058B2]',
+        accent: 'bg-[#0058B2]',
+        hover: 'hover:border-blue-300',
+    },
+    green: {
+        icon: 'text-emerald-600',
+        accent: 'bg-emerald-500',
+        hover: 'hover:border-emerald-300',
+    },
+    orange: {
+        icon: 'text-orange-600',
+        accent: 'bg-orange-500',
+        hover: 'hover:border-orange-300',
+    },
+} as const;
+
+export function QuickStatsCard({ icon: Icon, title, value, subtitle, tone, trend }: QuickStatsCardProps) {
+    const styles = toneStyles[tone];
+
     return (
-        <Card className="border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden group">
-            <CardContent className="p-2.5 md:p-6 relative">
-                <div className={`absolute inset-0 ${bgColor} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-4 relative z-10">
-                    <div className={`p-2 md:p-3 rounded-lg ${bgColor} group-hover:scale-110 transition-transform duration-300 shadow-md self-start`}>
-                        <Icon className="w-4 h-4 md:w-6 md:h-6 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[10px] md:text-sm text-gray-600 mb-0.5 md:mb-1 truncate">{title}</p>
-                        <p className="text-base md:text-2xl font-semibold text-gray-900 mb-0.5 md:mb-1 leading-tight">{value}</p>
-                        <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                            <p className="text-[10px] md:text-xs text-gray-500 truncate">{subtitle}</p>
-                            {trend && (
-                                <div className={`flex items-center gap-0.5 text-[10px] md:text-xs font-medium ${trend.direction === 'up' ? 'text-green-600' : 'text-orange-600'
-                                    }`}>
-                                    {trend.direction === 'up' ? <TrendingUp className="w-2.5 h-2.5 md:w-3 md:h-3" /> : <TrendingDown className="w-2.5 h-2.5 md:w-3 md:h-3" />}
-                                    <span className="hidden sm:inline">{trend.value}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+        <Card className={`group relative min-h-[108px] gap-0 overflow-hidden border-gray-200 bg-white shadow-sm transition-[border-color,box-shadow] duration-200 hover:shadow-md md:min-h-[132px] ${styles.hover}`}>
+            <span aria-hidden="true" className={`absolute inset-y-3 left-0 w-1 rounded-r-full ${styles.accent}`} />
+
+            <CardContent className="flex h-full min-w-0 flex-1 flex-col px-3 py-3 pl-4 [&:last-child]:pb-3 md:px-5 md:py-4 md:pl-6 md:[&:last-child]:pb-4">
+                <div className="flex min-w-0 items-center gap-1.5 md:gap-2">
+                    <Icon className={`h-4 w-4 shrink-0 md:h-5 md:w-5 ${styles.icon}`} />
+                    <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 md:text-xs">
+                        {title}
+                    </p>
+                </div>
+
+                <p className="mt-2 truncate text-xl font-bold leading-none tabular-nums text-slate-950 md:mt-3 md:text-3xl">
+                    {value}
+                </p>
+
+                <div className="mt-auto flex min-w-0 items-center gap-1.5 pt-2 md:gap-2 md:pt-3">
+                    <p className="min-w-0 flex-1 truncate text-[10px] font-medium text-slate-500 md:text-xs" title={subtitle}>
+                        {subtitle}
+                    </p>
+                    {trend && (
+                        <span className={`inline-flex shrink-0 items-center gap-0.5 text-[9px] font-semibold md:text-[11px] ${trend.direction === 'up' ? 'text-emerald-600' : 'text-orange-600'}`}>
+                            {trend.direction === 'up'
+                                ? <TrendingUp className="h-3 w-3" />
+                                : <TrendingDown className="h-3 w-3" />}
+                            <span className="hidden sm:inline">{trend.value}</span>
+                        </span>
+                    )}
                 </div>
             </CardContent>
         </Card>

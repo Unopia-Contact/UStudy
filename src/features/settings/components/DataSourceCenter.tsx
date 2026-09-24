@@ -427,7 +427,7 @@ export function DataSourceCenter() {
                 return (
                   <button key={source.id} type="button" onClick={() => setSelectedSource(source)} className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-1 py-3.5 text-left transition hover:bg-gray-50/70 sm:grid-cols-[minmax(220px,1fr)_150px_150px_140px_20px] sm:gap-4 sm:px-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#004A98]"><Icon className="h-4 w-4" /></div>
+                      <Icon className="h-5 w-5 shrink-0 text-[#004A98]" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900">{source.label}</p>
                         <p className="mt-0.5 truncate text-xs text-slate-500 sm:hidden">{source.period} · {formatRelativeTime(source.updatedAt)}</p>
@@ -447,7 +447,7 @@ export function DataSourceCenter() {
             <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#004A98]/10 text-[#004A98]"><History className="h-4 w-4" /></div>
+                  <History className="h-5 w-5 shrink-0 text-[#004A98]" />
                   <div><h4 className="text-sm font-semibold text-gray-900">Lịch sử cập nhật chung</h4><p className="mt-0.5 text-xs text-gray-500">Mỗi dòng là một lần import hoàn chỉnh.</p></div>
                 </div>
               </div>
@@ -606,7 +606,7 @@ export function DataSourceCenter() {
                   onChange={(event) => setSelectedUndoSources((current) => event.target.checked ? [...current, sourceId] : current.filter((item) => item !== sourceId))}
                   className="h-4 w-4 rounded border-slate-300 text-[#004A98] focus:ring-[#004A98]"
                 />
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]"><Icon className="h-4 w-4" /></div>
+                <Icon className="h-5 w-5 shrink-0 text-[#004A98]" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-900">{source.label}</p>
                   <p className="mt-0.5 truncate text-xs text-slate-500">Khôi phục dữ liệu và học kỳ của riêng nguồn này</p>

@@ -75,10 +75,10 @@ export function GradesPage() {
 
   const studentDb = readFromStorage<any>(STORAGE_KEYS.STUDENT_DB, null);
   const gradeMetrics = [
-    { label: 'GPA hiện tại', value10: currentGPA, value4: currentGPA4, description: 'Điểm tích lũy hiện tại', textClass: 'text-[#004A98]', barClass: 'bg-[#004A98]' },
-    { label: 'GPA dự kiến', value10: cumulativeGPA, value4: cumulativeGPA4, description: 'Sau các môn đang học', textClass: 'text-indigo-600', barClass: 'bg-indigo-500' },
-    { label: 'GPA cơ sở ngành', value10: foundationGPA ?? 0, value4: foundationGPA4 ?? 0, description: 'Các môn cơ sở ngành', textClass: 'text-emerald-700', barClass: 'bg-emerald-500' },
-    { label: 'GPA chuyên ngành', value10: majorSpecializedGPA ?? 0, value4: majorSpecializedGPA4 ?? 0, description: 'Các môn chuyên ngành', textClass: 'text-orange-600', barClass: 'bg-orange-500' },
+    { label: 'GPA hiện tại', value10: currentGPA, value4: currentGPA4, description: 'Điểm tích lũy hiện tại', textClass: 'text-[#004A98]' },
+    { label: 'GPA dự kiến', value10: cumulativeGPA, value4: cumulativeGPA4, description: 'Sau các môn đang học', textClass: 'text-indigo-600' },
+    { label: 'GPA cơ sở ngành', value10: foundationGPA ?? 0, value4: foundationGPA4 ?? 0, description: 'Các môn cơ sở ngành', textClass: 'text-emerald-700' },
+    { label: 'GPA chuyên ngành', value10: majorSpecializedGPA ?? 0, value4: majorSpecializedGPA4 ?? 0, description: 'Các môn chuyên ngành', textClass: 'text-orange-600' },
   ];
 
   const renderGradeMetrics = (className: string) => (
@@ -86,7 +86,6 @@ export function GradesPage() {
       <div className="grid grid-cols-2 divide-x divide-y divide-gray-200 md:grid-cols-4 md:divide-y-0">
         {gradeMetrics.map((metric) => (
           <div key={metric.label} className="relative min-w-0 px-4 py-4 md:px-5">
-            <span className={`absolute inset-x-0 top-0 h-0.5 ${metric.barClass}`} />
             <p className="text-xs font-medium text-gray-500">{metric.label}</p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className={`text-2xl font-bold tabular-nums ${metric.textClass}`}>{metric.value10.toFixed(2)}</span>
@@ -117,7 +116,7 @@ export function GradesPage() {
       <PageShell
         header={<PageHeader
           title="Quản lý điểm"
-          description="Xem điểm số, mô phỏng GPA và theo dõi các môn học cần học lại."
+          description="Theo dõi điểm số và đặt mục tiêu GPA."
         />}
       >
         <NoDataCard />
@@ -130,7 +129,7 @@ export function GradesPage() {
       contentClassName="space-y-6"
       header={<PageHeader
         title="Quản lý điểm"
-        description="Xem điểm số, mô phỏng GPA và theo dõi các môn học cần học lại."
+        description="Theo dõi điểm số và đặt mục tiêu GPA."
         actions={hasData && (
           <TranscriptExportMenu
             name={studentDb?.name || 'Sinh viên'}

@@ -88,9 +88,7 @@ function BuildingExplorePanel({
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
-              <Building2 className="h-5 w-5" />
-            </div>
+            <Building2 className="mb-3 h-6 w-6 text-blue-100" />
             <p className="text-xs font-semibold uppercase text-blue-100">Tham quan tòa nhà</p>
             <h2 className="mt-1 text-xl font-bold">{building.name}</h2>
             <p className="mt-2 max-w-sm text-sm leading-6 text-blue-50/90">{building.description}</p>
@@ -150,9 +148,7 @@ function BuildingExplorePanel({
             className="group flex w-full items-center justify-between border-y border-gray-200 py-3 text-left transition-colors hover:bg-blue-50"
           >
             <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
-                <DoorOpen className="h-4 w-4" />
-              </span>
+              <DoorOpen className="h-5 w-5 shrink-0 text-[#004A98]" />
               <span>
                 <span className="block text-sm font-semibold text-gray-900">Xem danh sách phòng</span>
                 <span className="mt-0.5 block text-xs text-gray-500">Danh sách được chia theo từng tầng</span>
@@ -232,9 +228,7 @@ function RoomSearchResultPanel({
         </button>
 
         <div className="mt-5 flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#004A98] text-white">
-            <Navigation className="h-5 w-5" />
-          </div>
+          <Navigation className="h-6 w-6 shrink-0 text-[#004A98]" />
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase text-[#004A98]">Kết quả tìm phòng</p>
             <h2 className="mt-1 text-xl font-bold leading-7 text-gray-900">

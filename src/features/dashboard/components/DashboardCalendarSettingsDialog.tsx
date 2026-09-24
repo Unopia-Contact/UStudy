@@ -181,9 +181,7 @@ export function DashboardCalendarSettingsDialog({
                 aria-pressed={isSelected}
                 className={`flex w-full items-center gap-3 py-3 text-left ${cannotDisable ? 'cursor-default' : ''}`}
               >
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isSelected ? 'bg-blue-50 text-[#004A98]' : 'bg-gray-100 text-gray-400'}`}>
-                  <Icon className="h-4 w-4" />
-                </span>
+                <Icon className={`h-5 w-5 shrink-0 ${isSelected ? 'text-[#004A98]' : 'text-gray-400'}`} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-gray-900">{source.label}</span>
                   <span className="mt-0.5 block text-xs text-gray-500">{source.description}</span>
@@ -210,6 +208,7 @@ export function DashboardCalendarSettingsDialog({
             step={1}
             value={draftDays}
             onChange={(event) => setDraftDays(event.target.value)}
+            onWheel={(event) => event.currentTarget.blur()}
             className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold tabular-nums text-gray-900 outline-none"
             aria-describedby="dashboard-calendar-days-help"
           />
@@ -230,9 +229,9 @@ export function DashboardCalendarSettingsDialog({
               onClick={() => setDraftNotificationsEnabled((current) => !current)}
               className="flex w-full items-center gap-3 text-left"
             >
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${draftNotificationsEnabled ? 'bg-blue-50 text-[#004A98]' : 'bg-gray-100 text-gray-400'}`}>
-                {draftNotificationsEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-              </span>
+              {draftNotificationsEnabled
+                ? <Bell className="h-5 w-5 shrink-0 text-[#004A98]" />
+                : <BellOff className="h-5 w-5 shrink-0 text-gray-400" />}
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold text-gray-900">Thông báo trên điện thoại</span>
                 <span className="mt-0.5 block text-xs text-gray-500">Nhắc cả khi UStudy đang đóng.</span>
@@ -257,6 +256,7 @@ export function DashboardCalendarSettingsDialog({
                         min={1}
                         value={reminder.value}
                         onChange={(event) => updateReminder(reminder.id, { value: event.target.value })}
+                        onWheel={(event) => event.currentTarget.blur()}
                         aria-label="Thời gian nhắc trước"
                         className="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 px-3 text-sm font-semibold tabular-nums outline-none focus:border-[#004A98] focus:ring-2 focus:ring-[#004A98]/15"
                       />

@@ -110,7 +110,7 @@ export function TuitionPage({ selectedSemester }: TuitionPageProps) {
     <PageShell
       header={<PageHeader
         title="Học phí"
-        description={<>Xem chi tiết học phí học kỳ <span className="font-semibold text-[#004A98]">{currentSemesterSummary.semesterName}</span>.</>}
+        description={<>Xem chi tiết học phí <span className="font-semibold text-[#004A98]">{currentSemesterSummary.semesterName}</span>.</>}
         actions={<button
           onClick={handleExport}
           className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-[#004A98] text-white rounded-xl hover:bg-[#003d7a] transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 active:scale-95"

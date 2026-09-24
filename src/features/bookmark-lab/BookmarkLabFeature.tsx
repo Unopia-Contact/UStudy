@@ -53,9 +53,7 @@ export function BookmarkLabFeature() {
     return (
         <section className="mx-auto max-w-2xl overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <div className="flex items-start gap-3 border-b border-gray-100 p-5 md:p-6">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
-                    <FlaskConical className="h-5 w-5" />
-                </div>
+                <FlaskConical className="h-6 w-6 shrink-0 text-[#004A98]" />
                 <div>
                     <h2 className="text-base font-semibold text-gray-900">Bookmarklet dữ liệu rỗng</h2>
                     <p className="mt-1 text-sm leading-6 text-gray-600">Bookmarklet này gửi đúng packet import của Portal, nhưng mọi nguồn dữ liệu đều là mảng rỗng.</p>

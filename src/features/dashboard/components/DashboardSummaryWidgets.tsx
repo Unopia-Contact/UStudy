@@ -131,7 +131,7 @@ export function GpaWidget({ currentGPA, currentGPA4, classification, letterGrade
             footerLabel="Điểm chữ"
             footerValue={letterGrade}
             accentColor="#4F46E5"
-            badgeClassName="bg-indigo-600 text-white"
+            badgeClassName="text-indigo-600"
             hint="Xem hệ 10"
             className="[transform:rotateY(180deg)]"
           />

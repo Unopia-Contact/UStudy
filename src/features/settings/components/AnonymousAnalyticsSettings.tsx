@@ -57,9 +57,7 @@ export function AnonymousAnalyticsSettings() {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h2 id="anonymous-analytics-title" className="mb-4 flex items-center gap-2 font-semibold text-gray-900">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-              <BarChart3 className="h-4 w-4 text-primary" aria-hidden="true" />
-            </span>
+            <BarChart3 className="h-5 w-5 shrink-0 text-[#004A98]" aria-hidden="true" />
             Thống kê sử dụng ẩn danh
           </h2>
           <p className="text-sm leading-relaxed text-gray-600">

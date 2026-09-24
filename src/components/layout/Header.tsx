@@ -134,22 +134,26 @@ export function Header({
         <div className="flex items-center justify-between gap-2">
 
           {/* ---- Bên trái: tiêu đề + bộ chọn học kỳ ---- */}
-          <div className="flex items-center gap-2 md:gap-4 min-w-0">
+          <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-4">
             {/* Tiêu đề: ẩn trên mobile nếu có bộ chọn, ngược lại hiện trên cả mobile và desktop */}
-            <h2 className="hidden whitespace-nowrap text-lg text-gray-900 xl:block" style={{ fontWeight: 600 }}>
+            <h2
+              className="hidden min-w-0 truncate text-lg text-gray-900 xl:block"
+              title="Hệ thống hỗ trợ quản lý học tập"
+              style={{ fontWeight: 600 }}
+            >
               Hệ thống hỗ trợ quản lý học tập
             </h2>
             <h2
               className="flex items-center gap-2 whitespace-nowrap text-sm text-gray-900 sm:text-base xl:hidden"
               style={{ fontWeight: 600 }}
             >
-              <GraduationCap className="h-8 w-8 shrink-0 rounded-md bg-[#0058B2] p-1 text-white lg:h-9 lg:w-9 lg:rounded-lg" />
+              <GraduationCap className="h-8 w-8 shrink-0 text-[#0058B2] lg:h-9 lg:w-9" />
               <span>UStudy</span>
             </h2>
 
             {/* Bộ chọn học kỳ */}
             {showSemesterSelector && (
-              <div className="relative">
+              <div className="relative shrink-0">
                 <button
                   onClick={() => setShowSemesterDropdown(!showSemesterDropdown)}
                   className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-[#004A98] text-white rounded-full hover:bg-[#003A78] transition-colors shadow-sm"
@@ -194,9 +198,6 @@ export function Header({
             {/* Notification Menu */}
             <NotificationMenu />
 
-            {/* Divider - ẩn trên mobile */}
-            <div className="hidden lg:block h-10 w-px bg-gray-200"></div>
-
             {hasStudentProfile ? (
               <>
                 {/* User Avatar + Info */}
@@ -210,9 +211,6 @@ export function Header({
                     <p className="text-gray-500 text-xs" style={{ fontWeight: 400 }}>Đã đồng bộ</p>
                   </div>
                 </div>
-
-                {/* Divider - ẩn trên mobile */}
-                <div className="hidden xl:block h-10 w-px bg-gray-200"></div>
 
                 {/* Open Portal Button */}
                 <button

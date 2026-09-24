@@ -1,6 +1,7 @@
 import { type Course } from '../../../types';
-import { X, ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 import { useDepartmentData } from '../../../context/DepartmentContext';
+import { CloseButton } from '../../../components/ui/close-button';
 
 // định nghĩa props cho PrerequisiteFlowchart
 interface PrerequisiteFlowchartProps {
@@ -124,12 +125,9 @@ export function PrerequisiteFlowchart({ course, allCourses, onClose }: Prerequis
               Chuỗi môn tiên quyết của {course.code} - {course.nameVi}
             </p>
           </div>
-          <button
+          <CloseButton
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
+          />
         </div>
 
         {/* Flowchart Content */}

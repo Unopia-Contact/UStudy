@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, cloneElement, useCallback, useRef, isVali
 import { STORAGE_KEYS } from '../../../config';
 import { SavedSchedulesModal } from '../../group-schedule';
 import { readFromStorage, saveToStorage } from '../../../helpers/localStorage/save';
-import { Calendar, AlertTriangle, Cpu, ChevronLeft, ChevronRight, Settings, Sun, Moon, Zap, X, Save, List, Trash2, Clock, Check, BookOpen, Hash, BarChart2, Layers, Users, ImagePlus } from 'lucide-react';
+import { Calendar, AlertTriangle, Cpu, ChevronLeft, ChevronRight, Settings, Sun, Moon, Zap, Save, List, Trash2, Clock, Check, BookOpen, Hash, BarChart2, Layers, Users, ImagePlus } from 'lucide-react';
 import { type ClassSection, type SavedSchedule } from '../../../types';
 import type { RegisteredCourse } from '../../../logic/scheduler/RegistrationResolver';
 import { type SolverPreferences, type ScheduleOption } from '../hooks/use-schedule-solver';
@@ -12,6 +12,7 @@ import { Note } from './note.tsx'
 import { cycleDayOffSession, formatDayOffSession, getDayOffSession } from '../../../utils/dayOffPreferences';
 import type { Tab } from './../types.ts';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../../components/course';
+import { CloseButton } from '../../../components/ui/close-button';
 import { ScheduleModeToggle, ScheduleOptionSelector, type ScheduleMode } from '../../schedule';
 import { ScheduleBuilder } from './ScheduleBuilder';
 import { BuilderToolbar } from './BuilderToolbar';
@@ -406,9 +407,7 @@ export function CalendarView({
                                 <Save className="w-4 h-4 text-emerald-600" />
                                 Lưu phương án lịch
                             </h3>
-                            <button onClick={() => setShowSaveModal(false)} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                                <X className="w-5 h-5 text-gray-400" />
-                            </button>
+                            <CloseButton onClick={() => setShowSaveModal(false)} />
                         </div>
                         <div className="p-4 md:p-6">
                             <label className="block text-sm font-bold text-gray-700 mb-2">Tên gợi nhớ cho lịch này</label>
@@ -450,9 +449,7 @@ export function CalendarView({
                                 <Settings className="w-4 h-4 md:w-5 md:h-5" />
                                 <h3 className="font-semibold text-sm md:text-base">Cấu hình thuật toán xếp lịch</h3>
                             </div>
-                            <button onClick={() => setIsConfigOpen(false)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
-                                <X className="w-5 h-5" />
-                            </button>
+                            <CloseButton onClick={() => setIsConfigOpen(false)} tone="inverse" />
                         </div>
 
                         <div className="p-4 md:p-6 grid grid-cols-1 gap-5 md:gap-8 overflow-y-auto max-h-[70vh]">

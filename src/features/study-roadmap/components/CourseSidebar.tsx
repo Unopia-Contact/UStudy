@@ -186,7 +186,7 @@ export function CourseSidebar({
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-[#004A98]">{course.courseCode}</span>
                     <span className="min-w-0 flex-1 truncate text-xs font-medium text-gray-800">{course.courseName}</span>
-                    <Lock className="h-3.5 w-3.5 shrink-0 text-[#004A98]" aria-label="Lớp đã được trường đăng ký" />
+                    <Lock className="h-3.5 w-3.5 shrink-0 text-[#004A98]" aria-label="Lớp đã được đăng ký" />
                   </div>
                   <p className="mt-1 truncate text-[10px] text-gray-500">
                     {course.classLabels.join(' / ') || 'Chưa có lớp'} · {course.scheduleLabels.join(' · ') || 'Chưa có lịch học'}

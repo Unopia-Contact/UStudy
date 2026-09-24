@@ -62,17 +62,15 @@ function SummaryItem({
     tone?: 'blue' | 'green' | 'amber' | 'violet';
 }) {
     const toneClass = {
-        blue: 'bg-blue-50 text-[#004A98]',
-        green: 'bg-emerald-50 text-emerald-700',
-        amber: 'bg-amber-50 text-amber-700',
-        violet: 'bg-violet-50 text-violet-700',
+        blue: 'text-[#004A98]',
+        green: 'text-emerald-700',
+        amber: 'text-amber-700',
+        violet: 'text-violet-700',
     }[tone];
 
     return (
         <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3">
-            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${toneClass}`}>
-                <Icon className="h-4 w-4" />
-            </div>
+            <Icon className={`h-5 w-5 shrink-0 ${toneClass}`} />
             <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">{label}</p>
             <p className="ml-auto text-xl font-bold tabular-nums text-gray-900">{value}</p>
         </div>
@@ -735,9 +733,7 @@ export function StudyPlanPreview({
                                 {/* Empty state */}
                                 {!activeRow || activeRow.courseIds.length === 0 ? (
                                     <div className="flex flex-col items-center px-5 py-10 text-center">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
-                                            <BookOpen className="h-5 w-5 text-gray-400" />
-                                        </div>
+                                        <BookOpen className="h-6 w-6 text-[#004A98]" />
 
                                         <p className="mt-3 text-sm font-medium text-gray-700">
                                             Học kỳ này chưa có môn nào

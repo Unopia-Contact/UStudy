@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { CloseButton } from '../../../components/ui/close-button';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
 import type { ClassPreferenceLevel, ClassPreferenceSelection } from '../../group-schedule/types';
@@ -137,13 +138,9 @@ export function CourseClassFilterModal({
             <p className="mt-0.5 text-xs text-gray-500">{courseNameVi}</p>
           </div>
 
-          <button
-            type="button"
+          <CloseButton
             onClick={onClose}
-            className="cursor-pointer rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-200"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          />
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">

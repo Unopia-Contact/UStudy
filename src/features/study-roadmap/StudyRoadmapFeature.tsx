@@ -30,6 +30,10 @@ import {
     omitRegisteredCourseEntries,
     reconcileSelectedCourseIds,
 } from '../../logic/course-identity';
+import {
+    matchesCourseAvailabilityFilter,
+    type CourseAvailabilityFilter,
+} from './course-selection-filter';
 
 // Danh sách các tab
 const isStudyRoadmapTab = (value: unknown): value is Tab =>
@@ -52,6 +56,7 @@ export function StudyRoadmapFeature() {
         return Array.isArray(saved) ? new Set(saved) : new Set();
     });
     const [searchTerm, setSearchTerm] = useState('');
+    const [availabilityFilter, setAvailabilityFilter] = useState<CourseAvailabilityFilter>('all');
     const [showFlowchart, setShowFlowchart] = useState(false);
     const [flowchartCourse, setFlowchartCourse] = useState<Course | null>(null);
     const [allowedClassesMap, setAllowedClassesMap] = useState<Record<string, string[]>>(() => {
@@ -75,6 +80,7 @@ export function StudyRoadmapFeature() {
 
     useEffect(() => {
         setSearchTerm('');
+        setAvailabilityFilter('all');
     }, [activeTab]);
 
     // Đóng basket drawer khi chuyển tab
@@ -144,19 +150,19 @@ export function StudyRoadmapFeature() {
         setShowFlowchart(true);
     };
 
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    const filterCourses = (courses: Course[]) => courses.filter((course) => {
+        const matchesSearch = !normalizedSearchTerm ||
+            course.nameVi.toLowerCase().includes(normalizedSearchTerm) ||
+            course.code.toLowerCase().includes(normalizedSearchTerm) ||
+            course.id.toLowerCase().includes(normalizedSearchTerm);
+
+        return matchesSearch && matchesCourseAvailabilityFilter(course, availabilityFilter);
+    });
     const filteredCourses = {
-        core: currentSource.core.filter(c =>
-            c.nameVi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.id.toLowerCase().includes(searchTerm.toLowerCase())
-        ),
-        major: currentSource.major.filter(c =>
-            c.nameVi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.id.toLowerCase().includes(searchTerm.toLowerCase())
-        ),
-        electives: currentSource.electives.filter(c =>
-            c.nameVi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.id.toLowerCase().includes(searchTerm.toLowerCase())
-        ),
+        core: filterCourses(currentSource.core),
+        major: filterCourses(currentSource.major),
+        electives: filterCourses(currentSource.electives),
     };
 
     const confirmedSections: ClassSection[] = currentSections;
@@ -180,7 +186,8 @@ export function StudyRoadmapFeature() {
                 style={{
                     // Để trên bottom nav (64px)
                     bottom: '64px',
-                    maxHeight: '80vh',
+                    height: 'min(80dvh, calc(100dvh - 80px))',
+                    maxHeight: 'calc(100dvh - 80px)',
                     transform: showMobileBasket ? 'translateY(0)' : 'translateY(110%)',
                     transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
                 }}
@@ -210,7 +217,7 @@ export function StudyRoadmapFeature() {
                 </div>
 
                 {/* Content: SelectionBasket scroll bên trong */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
                     <SelectionBasket
                         selectedCourses={Array.from(pendingSelectedCourses)
                             .map(id => globalAllCourses.find(c => c.id === id)!)
@@ -277,7 +284,7 @@ export function StudyRoadmapFeature() {
             <PageShell
                 header={<PageHeader
                     title="Lộ trình học tập"
-                    description="Chọn môn học và xem lịch trực quan với phát hiện xung đột thời gian."
+                    description="Xem chương trình đào tạo, xây dựng lộ trình học và xếp lịch cho kỳ sau."
                 />}
             >
                 {/* Nội dung chính */}
@@ -342,6 +349,8 @@ export function StudyRoadmapFeature() {
                                             recommended={recommended}
                                             all={all}
                                             filteredCourses={filteredCourses}
+                                            availabilityFilter={availabilityFilter}
+                                            setAvailabilityFilter={setAvailabilityFilter}
                                             selectedCourses={pendingSelectedCourses}
                                             handleCourseToggle={handleCourseToggle}
                                             handleShowFlowchart={handleShowFlowchart}
@@ -358,6 +367,8 @@ export function StudyRoadmapFeature() {
                                             recommended={recommended}
                                             all={all}
                                             filteredCourses={filteredCourses}
+                                            availabilityFilter={availabilityFilter}
+                                            setAvailabilityFilter={setAvailabilityFilter}
                                             selectedCourses={pendingSelectedCourses}
                                             handleCourseToggle={handleCourseToggle}
                                             handleShowFlowchart={handleShowFlowchart}

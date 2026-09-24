@@ -6,6 +6,7 @@ import { AIService } from '../../../logic/ai/aiService';
 import { useStudentDb } from '../../../hooks/useStudentDb';
 import { useStudentGradeData } from '../../grades/hooks/use-student-grade-data';
 import { useSchedule } from '../../visual-schedule/hooks/use-schedule';
+import { CloseButton } from '../../../components/ui/close-button';
 
 interface ChatbotWidgetProps {
     displayMode?: 'floating' | 'page';
@@ -561,9 +562,7 @@ Bạn cần hỗ trợ gì, hãy nhắn cho mình nhé!`,
                         }}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center border border-white/20 shrink-0">
-                                <Bot className={`w-5.5 h-5.5 fill-current text-white ${isLoading ? 'ustudy-bot-loading' : 'animate-pulse'}`} />
-                            </div>
+                            <Bot className={`h-6 w-6 shrink-0 fill-current text-white ${isLoading ? 'ustudy-bot-loading' : 'animate-pulse'}`} />
                             <div>
                                 <p className="text-xs font-bold text-white flex items-center gap-1.5">
                                     Trợ lý UStudy
@@ -586,13 +585,11 @@ Bạn cần hỗ trợ gì, hãy nhắn cho mình nhé!`,
                                 <Trash2 className="w-4 h-4" />
                             </button>
                             {!isPage && (
-                                <button
+                                <CloseButton
                                     onClick={() => setIsOpen(false)}
-                                    className="p-2 text-white/80 rounded-xl hover:bg-white/10 transition-all duration-200 active:scale-95"
-                                    title="Đóng cửa sổ"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
+                                    tone="inverse"
+                                    label="Đóng cửa sổ"
+                                />
                             )}
                         </div>
                     </div>

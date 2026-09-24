@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '../ui/form/button';
-import { KeyRound, ShieldAlert, CheckCircle2, Loader2, X, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, ShieldAlert, CheckCircle2, Loader2, Eye, EyeOff } from 'lucide-react';
+import { CloseButton } from '../ui/close-button';
 import { verifyPin, changePin } from '../../helpers/localStorage/save';
 import { useCrypto } from '../../context/CryptoContext';
 
@@ -143,9 +144,7 @@ export const ChangePinModal: React.FC<ChangePinModalProps> = ({ onClose }) => {
                         <span className="font-bold text-slate-800">Đổi mật khẩu</span>
                     </div>
                     {step !== 'success' && !isProcessing && (
-                        <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
-                            <X className="w-5 h-5" />
-                        </button>
+                        <CloseButton onClick={onClose} />
                     )}
                 </div>
 
@@ -165,9 +164,7 @@ export const ChangePinModal: React.FC<ChangePinModalProps> = ({ onClose }) => {
                     {/* Success State */}
                     {step === 'success' ? (
                         <>
-                            <div className="p-4 mb-5 bg-green-50 text-green-600 rounded-2xl ring-8 ring-green-50/50">
-                                <CheckCircle2 className="w-12 h-12" />
-                            </div>
+                            <CheckCircle2 className="mb-5 h-14 w-14 text-green-600" />
                             <h2 className="text-xl font-extrabold text-slate-900 mb-2">{current.title}</h2>
                             <p className="text-slate-500 text-sm mb-8">{current.subtitle}</p>
                             <Button
@@ -181,9 +178,7 @@ export const ChangePinModal: React.FC<ChangePinModalProps> = ({ onClose }) => {
                     ) : isProcessing && step === 'confirm-password' ? (
                         /* Processing State */
                         <>
-                            <div className="p-4 mb-5 bg-blue-50 text-blue-600 rounded-2xl ring-8 ring-blue-50/50">
-                                <Loader2 className="w-12 h-12 animate-spin" />
-                            </div>
+                            <Loader2 className="mb-5 h-14 w-14 animate-spin text-blue-600" />
                             <h2 className="text-xl font-extrabold text-slate-900 mb-2">Đang xử lý...</h2>
                             <p className="text-slate-500 text-sm mb-2">{progress}</p>
                             <p className="text-xs text-slate-400">Quá trình này có thể mất vài giây.</p>

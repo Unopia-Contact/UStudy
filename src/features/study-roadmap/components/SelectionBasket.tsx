@@ -73,14 +73,25 @@ export function SelectionBasket({
     const totalCredits = selectedCredits + registeredCredits;
     const basketDescription = description ?? [
         `${selectedCourses.length} môn chọn thêm`,
-        registeredOnlyCourseCodes.length > 0 ? `${registeredOnlyCourseCodes.length} môn trường đăng ký` : null,
+        registeredOnlyCourseCodes.length > 0 ? `${registeredOnlyCourseCodes.length} môn đã đăng ký` : null,
     ].filter(Boolean).join(' · ');
 
+    const forecastAcademicYear = '2026-2027';
+    const hasPublishedTuitionRates = tuition_rates.isAvailable !== false
+        && tuition_rates.default_price > 0
+        && academicYear !== forecastAcademicYear;
+    const displayedTuitionRates = hasPublishedTuitionRates
+        ? tuition_rates
+        : getTuitionRates(
+            forecastAcademicYear,
+            { facultyId, majorId },
+            getProgramTuitionProfileId(facultyId, majorId, cohortId),
+        );
     const selectedTuition = selectedCourses.reduce((sum, course) => {
         const { courseFee } = FinancialLogic.calculateCourseFee(
             course.code || course.id,
             course.credits,
-            tuition_rates,
+            displayedTuitionRates,
             allCoursesMeta
         );
         course.price = courseFee;
@@ -92,35 +103,15 @@ export function SelectionBasket({
     }));
     const registeredTuition = FinancialLogic.calculateTotalTuition(
         registeredTuitionCourses,
-        tuition_rates,
+        displayedTuitionRates,
         allCoursesMeta,
     );
     const estimatedTuition = selectedTuition + registeredTuition;
-    const allTuitionCourses = [
-        ...selectedCourses.map((course) => ({
-            id: normalizeCourseCode(course.code || course.id),
-            credits: parseCredits(course.credits),
-        })),
-        ...registeredTuitionCourses,
-    ];
-    const forecastAcademicYear = '2026-2027';
-    const comparisonAcademicYear = academicYear === forecastAcademicYear
-        ? '2025-2026'
-        : forecastAcademicYear;
-    const comparisonTuition = FinancialLogic.calculateTotalTuition(
-        allTuitionCourses,
-        getTuitionRates(
-            comparisonAcademicYear,
-            { facultyId, majorId },
-            getProgramTuitionProfileId(facultyId, majorId, cohortId),
-        ),
-        allCoursesMeta,
-    );
 
     const formatCurrency = (amount: number) => FinancialLogic.formatCurrency(amount);
 
     return (
-        <div className={`ustudy-card flex h-full w-full flex-col overflow-hidden ${compact ? '' : 'shadow-lg'}`}>
+        <div className={`ustudy-card ustudy-scrollbar flex h-full w-full flex-col overflow-y-auto ${compact ? '' : 'shadow-lg'}`}>
             <div className="w-full flex-shrink-0 border-b border-gray-200 p-4">
                 <h3 className="ustudy-card-title">{title}</h3>
                 <p className="ustudy-card-subtitle mt-1">
@@ -128,7 +119,7 @@ export function SelectionBasket({
                 </p>
             </div>
 
-            <div className="ustudy-scrollbar flex-1 space-y-2 overflow-y-auto p-3">
+            <div className="ustudy-scrollbar min-h-40 flex-1 flex-shrink-0 space-y-2 overflow-y-auto p-3">
                 {selectedCourses.length === 0 ? (
                     <div className="ustudy-empty-state flex-col">
                         <div className="ustudy-icon-badge ustudy-icon-primary-soft mx-auto mb-3 h-12 w-12 md:h-12 md:w-12">
@@ -147,7 +138,9 @@ export function SelectionBasket({
                                 <p className="text-xs text-gray-600 truncate">
                                     {course.code}
                                 </p>
-                                <span className="text-sm font-medium text-gray-900 truncate">{course.nameVi}</span>
+                                <p className="break-words text-sm font-medium leading-5 text-gray-900 [overflow-wrap:anywhere]">
+                                    {course.nameVi}
+                                </p>
                                 {course.price !== 0
                                     ? <p className="text-xs text-gray-600 truncate">{formatCurrency(course.price as number)} đ - {course.credits} tín chỉ</p>
                                     : <p className="text-xs text-red-600 truncate">Môn này không nằm trong CTĐT của bạn.</p>
@@ -196,7 +189,7 @@ export function SelectionBasket({
                         </div>
                         {registeredOnlyCourseCodes.length > 0 && (
                             <div className="mb-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
-                                <span>Trường đăng ký <strong className="font-semibold text-gray-700">{registeredCredits} TC</strong></span>
+                                <span>Đã đăng ký <strong className="font-semibold text-gray-700">{registeredCredits} TC</strong></span>
                                 <span>Chọn thêm <strong className="font-semibold text-gray-700">{selectedCredits} TC</strong></span>
                             </div>
                         )}
@@ -219,28 +212,17 @@ export function SelectionBasket({
                         )}
                     </div>
 
-                    {tuition_rates.profileId != 'tuition-cs1' &&
+                    {displayedTuitionRates.profileId != 'tuition-cs1' &&
                         <div className="mb-3">
                             <div className="ustudy-muted-panel border border-blue-100 bg-blue-50">
-                                <div className="flex items-baseline justify-between gap-3">
-                                    <p className="text-xs text-gray-600">Tổng học phí dự kiến</p>
-                                    <p className="shrink-0 text-lg font-bold tabular-nums text-[#004A98]">
+                                <div className="flex min-w-0 items-baseline justify-between gap-2">
+                                    <p className="min-w-0 text-xs text-gray-600">
+                                        {hasPublishedTuitionRates ? 'Tổng học phí' : 'Học phí dự đoán'}
+                                    </p>
+                                    <p className="shrink-0 whitespace-nowrap text-base font-bold tabular-nums text-[#004A98]">
                                         {formatCurrency(estimatedTuition)} VNĐ
                                     </p>
                                 </div>
-                                <div className="mt-1 flex items-center justify-between gap-3 border-t border-blue-100 pt-1.5 text-[11px]">
-                                    <span className="font-medium text-gray-600">
-                                        {academicYear === forecastAcademicYear
-                                            ? `Theo đơn giá ${comparisonAcademicYear}`
-                                            : `Tham khảo ${comparisonAcademicYear}`}
-                                    </span>
-                                    <span className="shrink-0 font-semibold tabular-nums text-[#004A98]">
-                                        {formatCurrency(comparisonTuition)} VNĐ
-                                    </span>
-                                </div>
-                                <p className="mt-1 text-[10px] leading-4 text-gray-500">
-                                    Tổng học phí dự kiến là dự đoán tham khảo, không phải mức thu chính thức của trường.
-                                </p>
                             </div>
                         </div>
                     }

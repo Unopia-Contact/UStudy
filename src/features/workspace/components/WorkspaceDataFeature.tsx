@@ -162,9 +162,7 @@ function AssetRow({ asset, count }: { asset: ProgramDataAsset; count?: number })
 
     return (
         <div className="flex items-center gap-3 px-4 py-3.5 sm:px-5">
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${asset.present ? 'bg-blue-50 text-[#004A98]' : 'bg-gray-100 text-gray-400'}`}>
-                <Icon className="h-4 w-4" />
-            </span>
+            <Icon className={`h-5 w-5 shrink-0 ${asset.present ? 'text-[#004A98]' : 'text-gray-400'}`} />
             <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-gray-900">{asset.label}</p>
                 <p className="mt-0.5 truncate font-mono text-xs text-gray-500">src/assets/data/{asset.path}</p>
@@ -189,9 +187,9 @@ function CoverageRow({ item }: { item: MajorDataCoverage }) {
 
     return (
         <div className="flex items-center gap-3 px-4 py-3.5 sm:px-5">
-            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isComplete ? 'bg-emerald-50 text-emerald-700' : (missing.length === 3 ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' )}`}>
-                {isComplete ? <CheckCircle2 className="h-4 w-4" /> : <CircleAlert className="h-4 w-4" />}
-            </span>
+            {isComplete
+                ? <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-700" />
+                : <CircleAlert className={`h-5 w-5 shrink-0 ${missing.length === 3 ? 'text-red-700' : 'text-amber-700'}`} />}
             <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-gray-900">{item.major.name}</p>
                 <p className="mt-0.5 text-xs text-gray-500">

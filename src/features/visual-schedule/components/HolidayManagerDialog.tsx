@@ -256,7 +256,7 @@ export function HolidayManagerDialog({
                                 return (
                                     <div key={`${isSystemHoliday ? 'system' : 'custom'}-${holiday.id}`} className="px-3 py-3.5">
                                         <div className="flex items-start gap-3">
-                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]"><CalendarDays className="h-4 w-4" /></span>
+                                            <CalendarDays className="h-5 w-5 shrink-0 text-[#004A98]" />
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <p className="text-sm font-bold text-gray-900">{holiday.reason}</p>

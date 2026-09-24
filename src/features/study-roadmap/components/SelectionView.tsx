@@ -2,8 +2,10 @@ import { useMemo, useState } from 'react';
 import { Filter, Search, Info, DatabaseBackup } from 'lucide-react';
 import { CourseRow } from './CourseRow';
 import { MobileCourseDetailContent, MobileCourseSheetFrame } from '../../../components/course';
+import { AppDialog } from '../../../components/ui/overlays/app-dialog';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 import type { Course } from '../../../types';
+import type { CourseAvailabilityFilter } from '../course-selection-filter';
 
 interface SelectionViewProps {
     searchTerm: string;
@@ -13,6 +15,8 @@ interface SelectionViewProps {
     recommended: { core: Course[]; major: Course[]; electives: Course[] };
     all: { core: Course[]; major: Course[]; electives: Course[] };
     filteredCourses: { core: Course[]; major: Course[]; electives: Course[] };
+    availabilityFilter: CourseAvailabilityFilter;
+    setAvailabilityFilter: (filter: CourseAvailabilityFilter) => void;
     selectedCourses: Set<string>;
     handleCourseToggle: (courseId: string) => void;
     handleShowFlowchart: (course: Course) => void;
@@ -28,12 +32,16 @@ export function SelectionView({
     recommended,
     all,
     filteredCourses,
+    availabilityFilter,
+    setAvailabilityFilter,
     selectedCourses,
     handleCourseToggle,
     handleShowFlowchart,
     registeredCourseCodes,
 }: SelectionViewProps) {
     const [mobileDetailCourse, setMobileDetailCourse] = useState<Course | null>(null);
+    const [showFilters, setShowFilters] = useState(false);
+    const [draftFilter, setDraftFilter] = useState<CourseAvailabilityFilter>(availabilityFilter);
     const { data: { courses: courseMetadata } } = useDepartmentData();
     const mobileCourseMetadata = useMemo(() => (
         mobileDetailCourse
@@ -62,11 +70,87 @@ export function SelectionView({
                     />
                 </div>
                 {/* Nút lọc: ẩn label trên mobile */}
-                <button className="flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
+                <button
+                    type="button"
+                    onClick={() => {
+                        setDraftFilter(availabilityFilter);
+                        setShowFilters(true);
+                    }}
+                    aria-label="Lọc môn học"
+                    aria-haspopup="dialog"
+                    className={`relative flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 border rounded-lg transition-colors flex-shrink-0 ${availabilityFilter === 'all'
+                        ? 'border-gray-200 hover:bg-gray-50'
+                        : 'border-blue-300 bg-blue-50 hover:bg-blue-100'
+                        }`}
+                >
                     <Filter className="w-4 h-4 text-gray-600" />
                     <span className="hidden md:inline text-gray-700 text-sm">Lọc</span>
+                    {availabilityFilter !== 'all' && (
+                        <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#004A98]" />
+                    )}
                 </button>
             </div>
+
+            <AppDialog
+                open={showFilters}
+                onOpenChange={setShowFilters}
+                title="Lọc môn học"
+                description="Chọn trạng thái môn bạn muốn hiển thị."
+                icon={Filter}
+                size="sm"
+                footer={(
+                    <div className="flex w-full items-center justify-between gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setDraftFilter('all')}
+                            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+                        >
+                            Đặt lại
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setAvailabilityFilter(draftFilter);
+                                setShowFilters(false);
+                            }}
+                            className="rounded-lg bg-[#004A98] px-4 py-2 text-sm font-semibold text-white hover:bg-[#003A78]"
+                        >
+                            Áp dụng
+                        </button>
+                    </div>
+                )}
+            >
+                <fieldset className="space-y-2">
+                    <legend className="mb-3 text-sm font-semibold text-gray-900">Trạng thái đăng ký</legend>
+                    {([
+                        { value: 'all', label: 'Tất cả môn', description: 'Hiển thị toàn bộ danh sách.' },
+                        { value: 'available', label: 'Sẵn sàng đăng ký', description: 'Đã đủ các điều kiện tiên quyết.' },
+                        { value: 'retake', label: 'Cần học lại', description: 'Các môn cần đăng ký học lại.' },
+                        { value: 'locked', label: 'Chưa đủ điều kiện', description: 'Còn thiếu môn tiên quyết.' },
+                    ] as const).map((option) => (
+                        <label
+                            key={option.value}
+                            className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${draftFilter === option.value
+                                ? 'border-blue-300 bg-blue-50'
+                                : 'border-gray-200 hover:bg-gray-50'
+                                }`}
+                        >
+                            <input
+                                type="radio"
+                                name="course-availability-filter"
+                                value={option.value}
+                                checked={draftFilter === option.value}
+                                onChange={() => setDraftFilter(option.value)}
+                                className="mt-1 h-4 w-4 accent-[#004A98]"
+                            />
+                            <span>
+                                <span className="block text-sm font-medium text-gray-900">{option.label}</span>
+                                <span className="mt-0.5 block text-xs text-gray-500">{option.description}</span>
+                            </span>
+                        </label>
+                    ))}
+                </fieldset>
+            </AppDialog>
 
             {/* Thông tin - gọn hơn trên mobile */}
             <div className="mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2 md:gap-3">
@@ -118,13 +202,27 @@ export function SelectionView({
             {filteredCourses.core.length + filteredCourses.electives.length + filteredCourses.major.length === 0 && (
                 <div className="flex flex-col items-center justify-center mt-4">
                     <div className="flex flex-col items-center w-full justify-center py-12 md:py-20 px-4 bg-white border border-blue-100 rounded-2xl shadow-sm text-center">
-                        <div className="w-14 h-14 md:w-20 md:h-20 p-3 md:p-5 bg-blue-50 rounded-full flex items-center justify-center mb-4 md:mb-5 border border-blue-100 shadow-sm">
-                            <DatabaseBackup className="w-7 h-7 md:w-10 md:h-10 text-blue-500" />
-                        </div>
-                        <h2 className="text-base md:text-xl font-bold text-gray-900 mb-2 md:mb-3">Đang cập nhật dữ liệu</h2>
+                        <DatabaseBackup className="mb-4 h-10 w-10 text-blue-600 md:mb-5 md:h-12 md:w-12" />
+                        <h2 className="text-base md:text-xl font-bold text-gray-900 mb-2 md:mb-3">
+                            {searchTerm || availabilityFilter !== 'all' ? 'Không tìm thấy môn học' : 'Đang cập nhật dữ liệu'}
+                        </h2>
                         <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-                            Danh sách lớp mở cho học kỳ này hiện chưa có.
+                            {searchTerm || availabilityFilter !== 'all'
+                                ? 'Không có môn nào phù hợp với từ khóa và bộ lọc hiện tại.'
+                                : 'Danh sách lớp mở cho học kỳ này hiện chưa có.'}
                         </p>
+                        {(searchTerm || availabilityFilter !== 'all') && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    setAvailabilityFilter('all');
+                                }}
+                                className="mt-4 rounded-lg border border-blue-200 px-4 py-2 text-sm font-semibold text-[#004A98] hover:bg-blue-50"
+                            >
+                                Xóa tìm kiếm và bộ lọc
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

@@ -145,9 +145,7 @@ export function TrainingProgramView() {
             {courses.length === 0 ? (
                 /* --- TRẠNG THÁI TRỐNG (Đã fix lỗi UI) --- */
                 <div className="flex flex-col items-center justify-center p-8 mt-8 bg-white border border-dashed border-blue-200 rounded-2xl shadow-sm">
-                    <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-5 shadow-sm ring-4 ring-white">
-                        <DatabaseBackup className="w-10 h-10 text-blue-500" />
-                    </div>
+                    <DatabaseBackup className="mb-5 h-12 w-12 text-blue-600" />
                     <h2 className="text-xl font-bold text-gray-900 mb-2">Đang cập nhật dữ liệu</h2>
                     <p className="text-gray-500 max-w-md mx-auto text-center leading-relaxed">
                         Chương trình đào tạo cho chuyên ngành và khóa học này hiện đang trong quá trình thu thập. Vui lòng quay lại kiểm tra sau.
