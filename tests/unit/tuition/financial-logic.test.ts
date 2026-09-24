@@ -16,6 +16,42 @@ const metadata = [
 ];
 
 describe('FinancialLogic', () => {
+  it('shows the bookmarklet tuition sync time instead of the Portal or render time', () => {
+    const syncedAt = '2026-08-24T03:15:00.000Z';
+    const result = FinancialLogic.calculateTuitionData(
+      '25-26/2',
+      undefined,
+      {
+        registrations: [],
+        grades: [],
+        tuition: {
+          '25-26/2': {
+            details: [{ code: 'MTH00001', name: 'Math', credits: 3, periods: 45, tuitionCredits: 3, fee: 2_700_000 }],
+            fee: '2700000',
+            updatedDate: '01/01/2020',
+          },
+        },
+      },
+      {
+        scrapedAt: '2026-09-01T00:00:00.000Z',
+        sourceUpdatedAt: { tuition: syncedAt },
+        params: { registration: { year: '2026-2027', sem: 1 } },
+      },
+      rates,
+      metadata,
+    );
+
+    expect(result.source).toBe('tuition_page');
+    expect(result.summary.lastUpdated).toBe(new Date(syncedAt).toLocaleString('vi-VN'));
+  });
+
+  it('does not use a newer partial-import time for tuition', () => {
+    expect(FinancialLogic.formatSourceUpdatedAt({
+      scrapedAt: '2026-09-01T00:00:00.000Z',
+      sourceUpdatedAt: { grades: '2026-09-01T00:00:00.000Z' },
+    }, 'tuition')).toBe('Chưa xác định');
+  });
+
   it('uses the longest matching course-code prefix', () => {
     expect(FinancialLogic.lookupPricePerCredit('CSC10009', rates)).toBe(1_200_000);
     expect(FinancialLogic.lookupPricePerCredit('CSC20001', rates)).toBe(1_000_000);

@@ -276,7 +276,7 @@ export const categories = {
                 "type": "SEMINAR",
                 "name": "Seminar tốt nghiệp",
                 "credits": 10,
-                "note": "Seminar tốt nghiệp (06 tín chỉ) và học phần tự chọn (04 tín chỉ) thuộc khối kiến thức chuyên ngành",
+                "note": "Seminar tốt nghiệp (06 tín chỉ) và học phần tự chọn (04 tín chỉ) thuộc khối Kiến thức chuyên ngành",
                 "courses": [
                     "ENV10190"
                 ]
@@ -285,7 +285,7 @@ export const categories = {
                 "type": "ELECTIVES",
                 "name": "Học phần tự chọn tự do",
                 "credits": 10,
-                "note": "Sinh viên tích lũy 10TC các học phần thuộc khối kiến thức chuyên ngành",
+                "note": "Sinh viên tích lũy 10TC các học phần thuộc khối Kiến thức chuyên ngành",
                 "courses": []
             }
         ]

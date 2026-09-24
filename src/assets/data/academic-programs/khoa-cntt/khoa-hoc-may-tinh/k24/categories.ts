@@ -145,7 +145,7 @@ export const categories = {
         ]
     },
     "MAJOR_CS": {
-        "name": "kiến thức chuyên ngành ngành khoa học máy tính",
+        "name": "Kiến thức chuyên ngành ngành Khoa học máy tính",
         "total_credits_required": 34,
         "breakdown": {
             "MAJOR_COMPUTER_SCIENCE": {

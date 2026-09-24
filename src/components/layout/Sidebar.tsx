@@ -9,16 +9,16 @@ const navGroups = [
   {
     title: 'Chính',
     items: [
-      { icon: Home, label: 'Tổng quan', subtitle: "Điểm & tín chỉ tích lũy", page: 'dashboard' },
-      { icon: Map, label: 'Lộ trình học tập', subtitle: 'Chọn môn & Lịch', page: 'courses' },
-      { icon: BarChart3, label: 'Quản lý điểm', subtitle: 'GPA & Môn học lại', page: 'grades' },
-      { icon: Subtitles, label: 'Lịch thi', subtitle: 'Lịch thi học kỳ', page: 'examSchedule' },
+      { icon: Home, label: 'Tổng quan', subtitle: "GPA & tín chỉ tích lũy", page: 'dashboard' },
+      { icon: Map, label: 'Lộ trình học tập', subtitle: 'CTĐT & Xếp lịch', page: 'courses' },
+      { icon: BarChart3, label: 'Quản lý điểm', subtitle: 'Điểm & Kế hoạch', page: 'grades' },
+      { icon: Subtitles, label: 'Lịch thi', subtitle: 'Lịch thi các kỳ', page: 'examSchedule' },
     ],
   },
   {
     title: 'Tài chính',
     items: [
-      { icon: DollarSign, label: 'Học phí', subtitle: "Học phí năm học", page: 'tuition' },
+      { icon: DollarSign, label: 'Học phí', subtitle: "Học phí các kỳ", page: 'tuition' },
     ],
   },
   {
@@ -28,7 +28,7 @@ const navGroups = [
         ? [{ icon: Bot, label: 'Trợ lý', subtitle: 'Hỏi & Đáp', page: 'chatbot' }]
         : []),
       { icon: Calendar, label: 'Thời khóa biểu', subtitle: 'Lịch đã chốt', page: 'schedule' },
-      { icon: Info, label: 'Thông tin trường', subtitle: 'Bản đồ và kế hoạch năm học', page: 'campusInfo' },
+      { icon: Info, label: 'Thông tin trường', subtitle: 'Bản đồ & kế hoạch năm học', page: 'campusInfo' },
       { icon: Settings, label: 'Cài đặt', subtitle: "Thiết lập cá nhân", page: 'settings' },
       { icon: Shield, label: 'Bảo mật & Quyền', subtitle: 'Quyền riêng tư dữ liệu', page: 'privacy' },
     ],

@@ -59,7 +59,7 @@ export function getTuitionDeadline(
 }
 
 export function formatTuitionDeadline(dateString: string | null | undefined): string {
-    if (!dateString) return 'Chua cong bo';
+    if (!dateString) return 'Chưa công bố';
 
     const date = new Date(`${dateString}T00:00:00`);
     if (Number.isNaN(date.getTime())) return dateString;

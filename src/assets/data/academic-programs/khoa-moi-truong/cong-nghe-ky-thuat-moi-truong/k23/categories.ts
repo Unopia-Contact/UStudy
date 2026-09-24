@@ -272,7 +272,7 @@ export const categories = {
         "courses": [
           "ENE10190"
         ],
-        "note": "Phương án 2: Seminar tốt nghiệp 6 TC và tích lũy thêm 4 TC học phần tự chọn thuộc khối kiến thức chuyên ngành tại mục 7.2.2.1b hoặc 7.2.2.2b. Danh sách 7.2.2.1b (Công nghệ môi trường Nước và Đất): ENE10156, ENE10157, ENE10158, ENE10159, ENE10160, ENE10163, ENE10150, ENE10151, ENE10153, ENE10155, ENE10164, ENE10165, ENE10167, ENE10168, ENE10169, ENE10170, ENE10171, ENE10172, ENE10173, ENE10174, ENE10175, ENE10176, ENE10177, ENE10178. Danh sách 7.2.2.2b (Công nghệ Môi trường Không khí và Chất thải rắn): ENE10156, ENE10157, ENE10158, ENE10159, ENE10160, ENE10163, ENE10103, ENE10104, ENE10105, ENE10164, ENE10165, ENE10166, ENE10167, ENE10168, ENE10169, ENE10170, ENE10171, ENE10172, ENE10173, ENE10174, ENE10175, ENE10176, ENE10178. Không tạo học phần giả cho dòng 4 TC không có mã học phần trong PDF."
+        "note": "Phương án 2: Seminar tốt nghiệp 6 TC và tích lũy thêm 4 TC học phần tự chọn thuộc khối Kiến thức chuyên ngành tại mục 7.2.2.1b hoặc 7.2.2.2b. Danh sách 7.2.2.1b (Công nghệ môi trường Nước và Đất): ENE10156, ENE10157, ENE10158, ENE10159, ENE10160, ENE10163, ENE10150, ENE10151, ENE10153, ENE10155, ENE10164, ENE10165, ENE10167, ENE10168, ENE10169, ENE10170, ENE10171, ENE10172, ENE10173, ENE10174, ENE10175, ENE10176, ENE10177, ENE10178. Danh sách 7.2.2.2b (Công nghệ Môi trường Không khí và Chất thải rắn): ENE10156, ENE10157, ENE10158, ENE10159, ENE10160, ENE10163, ENE10103, ENE10104, ENE10105, ENE10164, ENE10165, ENE10166, ENE10167, ENE10168, ENE10169, ENE10170, ENE10171, ENE10172, ENE10173, ENE10174, ENE10175, ENE10176, ENE10178. Không tạo học phần giả cho dòng 4 TC không có mã học phần trong PDF."
       }
     ]
   }

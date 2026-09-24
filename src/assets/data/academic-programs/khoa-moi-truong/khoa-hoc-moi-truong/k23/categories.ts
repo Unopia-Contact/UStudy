@@ -461,7 +461,7 @@ export const categories = {
         "type": "FREE_ELECTIVES",
         "name": "Phương án 3: Học phần tự chọn tự do",
         "credits": 10,
-        "note": "Tích lũy 10 tín chỉ từ các học phần thuộc khối kiến thức chuyên ngành tại mục 7.2.2.1b, 7.2.2.2b, 7.2.2.3b, 7.2.2.4b, 7.2.2.5b, 7.2.2.6b.",
+        "note": "Tích lũy 10 tín chỉ từ các học phần thuộc khối Kiến thức chuyên ngành tại mục 7.2.2.1b, 7.2.2.2b, 7.2.2.3b, 7.2.2.4b, 7.2.2.5b, 7.2.2.6b.",
         "courses": []
       }
     ]
