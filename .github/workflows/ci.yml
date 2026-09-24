@@ -1,4 +1,4 @@
-name: Web and core tests
+name: Web and extension build
 
 on:
   pull_request:
@@ -38,23 +38,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type-check tests and imported core modules
-        run: pnpm run typecheck:test
-
-      - name: Run core tests with coverage
-        run: pnpm run test:coverage
-
       - name: Build web and extension
         run: pnpm run build
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: core-coverage
-          path: coverage/
-          if-no-files-found: ignore
-          retention-days: 14
 
       - name: Upload extension package
         uses: actions/upload-artifact@v6

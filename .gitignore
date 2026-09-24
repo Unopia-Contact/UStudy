@@ -19,7 +19,14 @@ playwright-report
 test-results
 *.tsbuildinfo
 *.local
+migrations
+artifacts
+docs
 
+scripts/sql
+scripts/analytics-local-query.mjs
+scripts/analytics-query-worker.mjs
+scripts/analytics-snapshot.mjs
 # Local configuration and signing material (keep documented examples).
 .env
 .env.*
@@ -60,3 +67,12 @@ SKILL.md
 
 # Generated web output.
 /build/
+
+# Tests are maintained and run locally by staff, not stored in this repository.
+/tests/
+/android/app/src/test/
+/android/app/src/androidTest/
+/vitest.config.ts
+/playwright.config.ts
+/tsconfig.test.json
+/.github/workflows/e2e.yml

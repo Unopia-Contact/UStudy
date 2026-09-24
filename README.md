@@ -189,10 +189,13 @@ pnpm run build:web       # Build giao diện web
 pnpm run build:extension # Đóng gói extension
 pnpm run test:unit       # Chạy unit test
 pnpm run test:e2e        # Chạy smoke test trên trình duyệt
-pnpm run check           # Type-check, test và build toàn bộ
+pnpm run check           # Build từ bản clone GitHub
+pnpm run check:local     # Type-check, test và build (cần bộ test nội bộ)
 ```
 
 Để build Android, xem hướng dẫn và yêu cầu môi trường trong [docs/android-app.md](docs/android-app.md).
+
+Bộ `tests/` và cấu hình kiểm thử chỉ lưu trên máy nhân viên, không có trong repository. Các lệnh test ở trên cần bộ test nội bộ; bản clone mới từ GitHub chỉ build được, không chạy được test.
 
 </details>
 
