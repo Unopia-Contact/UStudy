@@ -92,7 +92,7 @@ export function GradesPage() {
               <span className={`text-2xl font-bold tabular-nums ${metric.textClass}`}>{metric.value10.toFixed(2)}</span>
               <span className="text-xs font-medium text-gray-400">/ 10</span>
             </div>
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500">
+            <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-gray-500">
               <span>Hệ 4: <strong className="font-semibold tabular-nums text-gray-700">{metric.value4 > 0 ? metric.value4.toFixed(2) : '--'}</strong></span>
               <span className="text-gray-300">|</span>
               <span>Chữ: <strong className="font-semibold text-gray-700">{metric.value4 > 0 ? GPACalculator.gradeToLetter(metric.value4) : '--'}</strong></span>

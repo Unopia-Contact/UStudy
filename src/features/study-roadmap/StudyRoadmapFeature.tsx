@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, Book, ClipboardList, ShoppingCart, X } from 'lucide-react';
+import { Calendar, Book, ClipboardList, ShoppingCart } from 'lucide-react';
 import { useCourseData } from '../../hooks/useCourseData';
 import { useRegisteredCourses } from '../../hooks/useRegisteredCourses';
 import { type ClassSection } from '../../types';
@@ -16,6 +16,7 @@ import { SelectionView } from './components/SelectionView';
 import { CalendarView } from './components/CalenderView';
 import { StudyPlanView } from './components/StudyPlanView';
 import { SelectionBasket } from './components/SelectionBasket';
+import { MobileBottomSheet } from '../../components/ui/overlays/mobile-bottom-sheet';
 import { PrerequisiteFlowchart } from './components/PrerequisiteFlowchart';
 import { useScheduleSolver } from './hooks/use-schedule-solver';
 import { GroupSchedulePage } from '../group-schedule';
@@ -81,6 +82,15 @@ export function StudyRoadmapFeature() {
     useEffect(() => {
         setShowMobileBasket(false);
     }, [activeTab]);
+
+    useEffect(() => {
+        const desktopQuery = window.matchMedia('(min-width: 1024px)');
+        const closeBasketOnDesktop = () => {
+            if (desktopQuery.matches) setShowMobileBasket(false);
+        };
+        desktopQuery.addEventListener('change', closeBasketOnDesktop);
+        return () => desktopQuery.removeEventListener('change', closeBasketOnDesktop);
+    }, []);
 
     useEffect(() => {
         if (!tabFromPath) {
@@ -162,55 +172,19 @@ export function StudyRoadmapFeature() {
     const confirmedSections: ClassSection[] = currentSections;
     const handleGetConflicts = (section: ClassSection) => getConflicts(section, [...registeredSections, ...confirmedSections], defaultCampusId);
     
-    // ---- Mobile Basket Drawer (portal vào body) ----
-    const MobileBasketDrawer = createPortal(
+    const MobileBasketControls = (
         <>
-            {/* Backdrop */}
             {showMobileBasket && (
-                <div
-                    className="md:hidden fixed inset-0 z-40 bg-black/50"
-                    style={{ backdropFilter: 'blur(2px)' }}
-                    onClick={() => setShowMobileBasket(false)}
-                />
-            )}
-
-            {/* Drawer */}
-            <div
-                className="md:hidden ustudy-card fixed left-0 right-0 bottom-0 z-50 flex flex-col rounded-t-2xl shadow-2xl"
-                style={{
-                    // Để trên bottom nav (64px)
-                    bottom: '64px',
-                    maxHeight: '80vh',
-                    transform: showMobileBasket ? 'translateY(0)' : 'translateY(110%)',
-                    transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
-                }}
-            >
-                {/* Handle + Header */}
-                <div className="flex-shrink-0">
-                    <div className="flex justify-center pt-3 pb-1">
-                        <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
-                    </div>
-                    <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
-                        <div className="flex items-center gap-2">
-                            <ShoppingCart className="w-5 h-5 text-[#004A98]" />
-                            <span className="font-semibold text-gray-900">Giỏ môn học</span>
-                            {pendingSelectedCourses.size > 0 && (
-                                <span className="ustudy-badge-count">
-                                    {pendingSelectedCourses.size}
-                                </span>
-                            )}
-                        </div>
-                        <button
-                            onClick={() => setShowMobileBasket(false)}
-                            className="ustudy-action-icon"
-                        >
-                            <X className="w-4 h-4 text-gray-600" />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Content: SelectionBasket scroll bên trong */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <MobileBottomSheet
+                    title="Giỏ môn học"
+                    eyebrow={`${pendingSelectedCourses.size} môn đã chọn`}
+                    ariaLabel="Giỏ môn học"
+                    onClose={() => setShowMobileBasket(false)}
+                    className="lg:hidden"
+                    sheetClassName="h-[min(80dvh,42rem)]"
+                    contentClassName="p-4"
+                    sheetId="study-roadmap-basket"
+                >
                     <SelectionBasket
                         selectedCourses={Array.from(pendingSelectedCourses)
                             .map(id => globalAllCourses.find(c => c.id === id)!)
@@ -221,34 +195,29 @@ export function StudyRoadmapFeature() {
                         allowedClassesMap={allowedClassesMap}
                         setAllowedClassesMap={setAllowedClassesMap}
                     />
-                </div>
-            </div>
+                </MobileBottomSheet>
+            )}
 
             {/* FAB button - chỉ hiện khi đang ở tab selection và chưa mở drawer */}
             {activeTab === 'selection' && !showMobileBasket && (
-                <button
-                    className="md:hidden fixed z-35 flex items-center gap-2 rounded-full bg-[#004A98] text-white shadow-lg transition-all active:scale-95"
-                    style={{
-                        bottom: '80px', // trên bottom nav
-                        right: '16px',
-                        padding: '12px 20px',
-                        boxShadow: '0 4px 20px rgba(0,74,152,0.4)',
-                    }}
-                    onClick={() => setShowMobileBasket(true)}
-                >
-                    <ShoppingCart className="w-5 h-5" />
-                    <span className="font-semibold text-sm">Giỏ hàng</span>
-                    {pendingSelectedCourses.size > 0 && (
-                        <span
-                            className="bg-white text-[#004A98] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
-                        >
-                            {pendingSelectedCourses.size}
-                        </span>
-                    )}
-                </button>
+                createPortal(
+                    <button
+                        type="button"
+                        className="fixed bottom-[calc(var(--ustudy-mobile-nav-height)+1rem)] right-4 z-30 flex min-h-11 items-center gap-2 rounded-lg bg-[#004A98] px-4 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#003A78] md:hidden"
+                        onClick={() => setShowMobileBasket(true)}
+                    >
+                        <ShoppingCart className="h-5 w-5" />
+                        Giỏ môn học
+                        {pendingSelectedCourses.size > 0 && (
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-bold text-[#004A98]">
+                                {pendingSelectedCourses.size}
+                            </span>
+                        )}
+                    </button>,
+                    document.body,
+                )
             )}
-        </>,
-        document.body
+        </>
     );
 
     if (!isReady) {
@@ -283,7 +252,7 @@ export function StudyRoadmapFeature() {
                 {/* Nội dung chính */}
                 <div className="flex-1 w-full min-w-0">
                     {/* Navigation */}
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <NavigationBar
                             tabs={[
                                 // { id: tabs.trainingProgram, label: 'Chương trình đào tạo', icon: Book },
@@ -297,7 +266,7 @@ export function StudyRoadmapFeature() {
                     </div>
 
                     {/* Mobile Navigation */}
-                    <div className="md:hidden">
+                    <div className="lg:hidden">
                         <NavigationBar
                             tabs={[
                                 // { id: tabs.trainingProgram, label: 'Lộ trình', icon: Book },
@@ -324,7 +293,15 @@ export function StudyRoadmapFeature() {
                         {/* Tab 2: Chọn môn học */}
                         {activeTab === 'selection' && (
                             // Desktop: 2 cột. Mobile: 1 cột (giỏ hàng ẩn vào drawer)
-                            <div className="flex flex-col md:flex-row md:flex-nowrap gap-6 items-start w-full">
+                            <div className="flex w-full flex-col items-start gap-6 lg:flex-row lg:flex-nowrap">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowMobileBasket(true)}
+                                    className="hidden min-h-11 w-full items-center justify-between rounded-lg border border-blue-200 bg-white px-4 text-sm font-semibold text-[#004A98] transition-colors hover:bg-blue-50 md:flex lg:hidden"
+                                >
+                                    <span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4" />Giỏ môn học</span>
+                                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs">{pendingSelectedCourses.size} môn</span>
+                                </button>
 
                                 {/* CỘT TRÁI: danh sách môn học */}
                                 <div
@@ -333,7 +310,7 @@ export function StudyRoadmapFeature() {
                                     style={{ height: undefined }}
                                 >
                                     {/* Desktop: fixed height để scroll độc lập */}
-                                    <div className="hidden md:block overflow-y-auto" style={{ height: 'calc(100vh - 11rem)' }}>
+                                    <div className="hidden overflow-y-auto lg:block" style={{ height: 'calc(100vh - 11rem)' }}>
                                         <SelectionView
                                             searchTerm={searchTerm}
                                             setSearchTerm={setSearchTerm}
@@ -349,7 +326,7 @@ export function StudyRoadmapFeature() {
                                         />
                                     </div>
                                     {/* Mobile: không fixed height */}
-                                    <div className="md:hidden pb-36">
+                                    <div className="pb-36 md:pb-4 lg:hidden">
                                         <SelectionView
                                             searchTerm={searchTerm}
                                             setSearchTerm={setSearchTerm}
@@ -368,7 +345,7 @@ export function StudyRoadmapFeature() {
 
                                 {/* CỘT PHẢI: giỏ hàng - chỉ hiện trên desktop */}
                                 <div
-                                    className="hidden md:block w-[26vw] xl:w-[24vw] 2xl:w-[22vw] flex-shrink-0"
+                                    className="hidden w-[26vw] flex-shrink-0 lg:block xl:w-[24vw] 2xl:w-[22vw]"
                                     style={{ height: 'calc(100vh - 11rem)' }}
                                 >
                                     <SelectionBasket
@@ -430,8 +407,7 @@ export function StudyRoadmapFeature() {
                 )}
             </PageShell>
 
-            {/* Mobile Basket Drawer + FAB */}
-            {MobileBasketDrawer}
+            {MobileBasketControls}
         </>
     );
 }

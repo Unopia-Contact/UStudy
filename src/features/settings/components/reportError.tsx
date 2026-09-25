@@ -23,14 +23,16 @@ export function ReportError() {
 
             <input
                 type="text"
-                className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Tiêu đề lỗi"
+                className="mb-4 w-full rounded-lg border border-gray-300 p-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 md:text-sm"
                 placeholder="Tiêu đề lỗi"
                 value={errorTitle}
                 onChange={(e) => setErrorTitle(e.target.value)}
             />
 
             <textarea
-                className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Mô tả lỗi"
+                className="mb-4 w-full rounded-lg border border-gray-300 p-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 md:text-sm"
                 rows={4}
                 placeholder="Mô tả lỗi bạn gặp phải ở đây..."
                 value={errorText}
@@ -40,7 +42,7 @@ export function ReportError() {
             <button
                 type="button"
                 onClick={handleOpenReportEmail}
-                className="ustudy-button-primary h-9 shrink-0 px-3"
+                className="ustudy-button-primary min-h-11 w-full justify-center px-3 sm:w-auto"
             >
                 Gửi
             </button>

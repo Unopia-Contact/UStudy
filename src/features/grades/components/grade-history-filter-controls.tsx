@@ -169,11 +169,11 @@ export function GradeHistoryFilterControls({
                         ...uniqueSemesters.map((semester) => ({ id: semester, name: semester })),
                     ]}
                     ariaLabel="Phạm vi học kỳ"
-                    className="min-w-0 flex-1 md:w-44 md:flex-none"
+                    className="min-w-0 flex-1 lg:w-44 lg:flex-none"
                     triggerClassName="h-9 px-3 py-0 text-xs md:text-sm"
                 />
 
-                <div className="hidden md:block">
+                <div className="hidden lg:block">
                     <Popover
                         open={desktopOpen}
                         onOpenChange={(open) => {
@@ -223,7 +223,7 @@ export function GradeHistoryFilterControls({
                 <button
                     type="button"
                     onClick={() => openFilter('mobile')}
-                    className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-xs font-medium md:hidden ${activeFilterCount > 0
+                    className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-xs font-medium lg:hidden ${activeFilterCount > 0
                         ? 'border-[#004A98] bg-blue-50 text-[#004A98]'
                         : 'border-gray-200 bg-white text-gray-700'
                     }`}
@@ -267,7 +267,7 @@ export function GradeHistoryFilterControls({
                     title="Bộ lọc lịch sử điểm"
                     eyebrow={selectedSemester === 'all' ? 'Tất cả học kỳ' : selectedSemester}
                     onClose={closeFilter}
-                    className="md:hidden"
+                    className="lg:hidden"
                     contentClassName="bg-white"
                     footer={actions}
                     sheetId="grade-history-filter"

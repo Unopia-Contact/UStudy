@@ -262,7 +262,7 @@ export function ScheduleBuilder({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pb-16 md:pb-0">
       {/* Solver error */}
       {solverError && (
         <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -339,7 +339,7 @@ export function ScheduleBuilder({
         <button
           type="button"
           onClick={() => setMobileSidebarOpen(true)}
-          className="fixed bottom-[calc(7.75rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-[#004A98] text-white shadow-lg transition-transform active:scale-95 lg:hidden"
+          className="fixed bottom-[calc(7.75rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-12 w-12 items-center justify-center rounded-lg bg-[#004A98] text-white shadow-lg transition-colors hover:bg-[#003A78] md:bottom-4 lg:hidden"
           style={{ boxShadow: '0 4px 20px rgba(0,74,152,0.4)' }}
           aria-label="Mở danh sách môn và lớp"
           title="Mở danh sách môn và lớp"
@@ -380,7 +380,7 @@ export function ScheduleBuilder({
 
       {/* Mobile summary bar */}
       {!mobileSidebarOpen && (
-      <div className="fixed bottom-[var(--ustudy-mobile-nav-height)] left-0 right-0 z-30 border-t border-gray-200 bg-white px-3 py-2 shadow-lg md:bottom-0 lg:hidden">
+      <div className="fixed bottom-[var(--ustudy-mobile-nav-height)] left-0 right-0 z-30 border-t border-gray-200 bg-white px-3 py-2 shadow-lg md:static md:mt-3 md:rounded-lg md:border md:shadow-sm lg:hidden">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold text-gray-900">
@@ -395,7 +395,7 @@ export function ScheduleBuilder({
               type="button"
               onClick={handleHybridSolve}
               disabled={solving}
-              className="h-9 whitespace-nowrap rounded-lg bg-[#004A98] px-3 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#003A78] disabled:opacity-60"
+              className="min-h-11 whitespace-nowrap rounded-lg bg-[#004A98] px-3 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#003A78] disabled:opacity-60"
             >
               {solving ? 'Đang tạo...' : 'Hoàn thiện'}
             </button>
@@ -403,7 +403,7 @@ export function ScheduleBuilder({
               <button
                 type="button"
                 onClick={onOpenSaveModal}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#004A98]/30 bg-white text-[#004A98] transition-colors hover:bg-blue-50"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#004A98]/30 bg-white text-[#004A98] transition-colors hover:bg-blue-50"
                 aria-label="Lưu phương án"
                 title="Lưu phương án"
               >

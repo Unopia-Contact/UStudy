@@ -185,7 +185,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     >
 
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
+      <div className="mb-4 grid min-w-0 grid-cols-3 gap-2 md:mb-6 md:gap-3">
         <QuickStatsCard
           icon={BookOpen}
           title="Tổng môn"
@@ -215,27 +215,33 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
       <ColorLegend />
 
       {/* Week Navigation */}
-      <div className="bg-white rounded-lg border border-gray-200 px-3 py-2.5 md:p-4 mb-3 md:mb-4 flex items-center justify-between">
+      <div className="mb-3 flex min-w-0 items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 md:mb-4 md:p-4">
         <button
+          type="button"
           onClick={handlePreviousWeek}
           disabled={currentWeek === 1}
-          className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Xem tuần trước"
+          title="Tuần trước"
+          className="flex h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-lg border border-gray-300 px-2 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#004A98]/30 disabled:cursor-not-allowed disabled:opacity-50 md:gap-2 md:px-4"
         >
           <ChevronLeft className="w-4 h-4" />
           <span className="text-xs md:text-sm font-medium hidden sm:inline">Tuần trước</span>
         </button>
 
-        <div className="text-center">
+        <div className="min-w-0 px-2 text-center">
           <div className="text-sm md:text-lg font-semibold text-[#004A98]">
             Tuần {currentWeek}
           </div>
-          <div className="text-[10px] md:text-xs text-gray-500">{weekRangeStr}</div>
+          <div className="truncate text-[10px] text-gray-500 md:text-xs" title={weekRangeStr}>{weekRangeStr}</div>
         </div>
 
         <button
+          type="button"
           onClick={handleNextWeek}
           disabled={currentWeek === totalWeeks}
-          className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Xem tuần sau"
+          title="Tuần sau"
+          className="flex h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-lg border border-gray-300 px-2 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#004A98]/30 disabled:cursor-not-allowed disabled:opacity-50 md:gap-2 md:px-4"
         >
           <span className="text-xs md:text-sm font-medium hidden sm:inline">Tuần sau</span>
           <ChevronRight className="w-4 h-4" />
@@ -261,7 +267,8 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           {getScheduleAxisHint(scheduleAxis)} {getScheduleAxisTimeBreakSummary(scheduleAxis)}
         </p>
       )}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto mb-4 md:mb-6">
+      <p className="mb-2 text-xs text-gray-500 md:hidden">Vuốt ngang để xem các ngày còn lại.</p>
+      <div className="mb-4 overflow-x-auto overscroll-x-contain rounded-lg border border-gray-200 bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#004A98]/30 md:mb-6" tabIndex={0} role="region" aria-label="Bảng thời khóa biểu theo tuần, cuộn ngang để xem thêm ngày">
         <div ref={currentScheduleImageRef} className={calendarMinWidth}>
           <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns }}>
             <div className="sticky left-0 z-30 flex h-11 flex-col items-center justify-center border-r border-white/20 bg-[#004A98] text-[10px] font-semibold text-white md:h-12 md:text-xs">
@@ -344,7 +351,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
       </div>
 
       {/* Course Details Section */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
+      <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 md:p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-[#004A98]" />
           Chi tiết môn học đã đăng ký

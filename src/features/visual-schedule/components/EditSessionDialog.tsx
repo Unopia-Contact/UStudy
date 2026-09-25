@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle, CalendarDays, CalendarOff, Check, Clock3, MapPin, MessageSquare, Palette, Pencil, RotateCcw, StickyNote } from 'lucide-react';
 import { AppSelect, Input, Label, Switch, Textarea } from '../../../components/ui/form';
 import { AppDialog } from '../../../components/ui/overlays/app-dialog';
+import { MobileBottomSheet } from '../../../components/ui/overlays/mobile-bottom-sheet';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '../../../components/ui/overlays/hover-card';
+import { useIsMobile } from '../../../components/ui/use-mobile';
 import { type ScheduleSession, type ScheduleOverrides, type SessionOverride } from '../types';
 import { weekDays } from '../../../constants';
 import type { OpenClassDetailTarget } from '../../../components/course';
@@ -405,6 +407,7 @@ function CourseCard({
 }) {
     const [showInfo, setShowInfo] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const isMobile = useIsMobile();
 
     const colorClasses = {
         blue: 'bg-blue-50 border-blue-500',
@@ -451,6 +454,73 @@ function CourseCard({
         backgroundColor: `${primarySession.color}15`,
         borderColor: primarySession.color,
     } : {};
+
+    const detailActions = (
+        <div className="grid w-full gap-2 sm:grid-cols-2">
+            {onOpenClassDetails && sessionArray.length === 1 && (
+                <button
+                    type="button"
+                    className="ustudy-button-secondary min-h-11 w-full justify-center"
+                    onClick={() => {
+                        setShowInfo(false);
+                        onOpenClassDetails({ courseCode: primarySession.courseCode, courseName: primarySession.courseName, classId: primarySession.classCode });
+                    }}
+                >
+                    Xem chi tiết lớp mở
+                </button>
+            )}
+            <button
+                type="button"
+                className="ustudy-button-primary min-h-11 w-full justify-center"
+                onClick={() => {
+                    setShowInfo(false);
+                    setIsEditOpen(true);
+                }}
+            >
+                <Pencil className="h-4 w-4" />
+                Chỉnh sửa môn học
+            </button>
+        </div>
+    );
+
+    const detailContent = sessionArray.map((sess, idx) => (
+        <section key={sess.id} className={idx > 0 ? 'mt-5 border-t border-gray-200 pt-5' : ''}>
+            {sessionArray.length > 1 && (
+                <div className="mb-4">
+                    <p className="font-mono text-sm font-bold text-[#004A98]">{sess.courseCode}</p>
+                    <p className="mt-0.5 text-sm text-gray-700">{sess.courseName}</p>
+                </div>
+            )}
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-x-3 gap-y-3 text-sm sm:grid-cols-2 sm:gap-x-5">
+                <span className="text-gray-500">Loại học phần</span>
+                <span className="text-right font-semibold text-gray-900">{typeFullLabels[sess.type]}</span>
+                <span className="text-gray-500">Phòng học</span>
+                <span className="break-words text-right font-semibold text-gray-900">{sess.room || '-'}</span>
+                <span className="text-gray-500">Cơ sở</span>
+                <span className="break-words text-right font-semibold text-gray-900">
+                    {getCampusDefinition(sess.campusId ?? 'dong-hoa').shortName}
+                    {sess.isCampusFallback ? ' (mặc định)' : ''}
+                </span>
+                <span className="text-gray-500">Thời gian</span>
+                <span className="break-words text-right font-semibold text-gray-900">{sess.startTime} - {sess.endTime}</span>
+                <span className="text-gray-500">Tiết học</span>
+                <span className="text-right font-semibold text-gray-900">{sess.startPeriod} - {sess.endPeriod}</span>
+                {sess.totalWeeks > 0 && (
+                    <>
+                        <span className="text-gray-500">Thời gian áp dụng</span>
+                        <span className="break-words text-right font-semibold text-gray-900">{sess.startDate} - {sess.endDate}</span>
+                        <span className="text-gray-500">Số tuần học</span>
+                        <span className="text-right font-semibold text-gray-900">{sess.totalWeeks} tuần</span>
+                    </>
+                )}
+            </div>
+            <div className="mt-4 break-words border-t border-gray-200 pt-3 text-sm leading-6 text-gray-600">
+                <p>Giảng viên: <span className="font-medium text-gray-900">{sess.instructor || 'Chưa có dữ liệu'}</span></p>
+                <p>Lớp: <span className="font-medium text-gray-900">{sess.classCode || '-'}</span> · <span className="font-medium text-gray-900">{sess.credits} TC</span></p>
+            </div>
+            {sess.note && <ScheduleNote note={sess.note} />}
+        </section>
+    ));
 
     return (
         <>
@@ -540,85 +610,31 @@ function CourseCard({
                 )}
             </HoverCard>
 
-            <AppDialog
-                open={showInfo}
-                onOpenChange={setShowInfo}
-                title="Chi tiết lịch học"
-                description={sessionArray.length === 1 ? `${primarySession.courseCode} · ${primarySession.courseName}` : conflictLabel}
-                icon={CalendarDays}
-                size="md"
-                contentClassName="space-y-0"
-            >
-                {sessionArray.map((sess, idx) => (
-                    <section key={sess.id} className={idx > 0 ? 'border-t border-gray-200 pt-5 mt-5' : ''}>
-                        {sessionArray.length > 1 && (
-                            <div className="mb-4">
-                                <p className="font-mono text-sm font-bold text-[#004A98]">{sess.courseCode}</p>
-                                <p className="mt-0.5 text-sm text-gray-700">{sess.courseName}</p>
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-x-5 gap-y-3 text-sm">
-                            <span className="text-gray-500">Loại học phần</span>
-                            <span className="text-right font-semibold text-gray-900">{typeFullLabels[sess.type]}</span>
-                            <span className="text-gray-500">Phòng học</span>
-                            <span className="text-right font-semibold text-gray-900">{sess.room || '-'}</span>
-                            <span className="text-gray-500">Cơ sở</span>
-                            <span className="text-right font-semibold text-gray-900">
-                                {getCampusDefinition(sess.campusId ?? 'dong-hoa').shortName}
-                                {sess.isCampusFallback ? ' (mặc định)' : ''}
-                            </span>
-                            <span className="text-gray-500">Thời gian</span>
-                            <span className="text-right font-semibold text-gray-900">{sess.startTime} - {sess.endTime}</span>
-                            <span className="text-gray-500">Tiết học</span>
-                            <span className="text-right font-semibold text-gray-900">{sess.startPeriod} - {sess.endPeriod}</span>
-                            {sess.totalWeeks > 0 && (
-                                <>
-                                    <span className="text-gray-500">Thời gian áp dụng</span>
-                                    <span className="text-right font-semibold text-gray-900">{sess.startDate} - {sess.endDate}</span>
-                                    <span className="text-gray-500">Số tuần học</span>
-                                    <span className="text-right font-semibold text-gray-900">{sess.totalWeeks} tuần</span>
-                                </>
-                            )}
-                        </div>
-
-                        <div className="mt-4 border-t border-gray-200 pt-3 text-sm leading-6 text-gray-600">
-                            <p>Giảng viên: <span className="font-medium text-gray-900">{sess.instructor || 'Chưa có dữ liệu'}</span></p>
-                            <p>Lớp: <span className="font-medium text-gray-900">{sess.classCode || '-'}</span> · <span className="font-medium text-gray-900">{sess.credits} TC</span></p>
-                        </div>
-
-                        {sess.note && (
-                            <ScheduleNote note={sess.note} />
-                        )}
-                    </section>
-                ))}
-
-                <div className="mt-5 grid gap-2 border-t border-gray-200 pt-4 sm:grid-cols-2">
-                    {onOpenClassDetails && sessionArray.length === 1 && (
-                        <button
-                            type="button"
-                            className="ustudy-button-secondary justify-center"
-                            onClick={() => {
-                                onOpenClassDetails({ courseCode: primarySession.courseCode, courseName: primarySession.courseName, classId: primarySession.classCode });
-                                setShowInfo(false);
-                            }}
-                        >
-                            Xem chi tiết lớp mở
-                        </button>
-                    )}
-                    <button
-                        type="button"
-                        className="ustudy-button-primary justify-center"
-                        onClick={() => {
-                            setShowInfo(false);
-                            setIsEditOpen(true);
-                        }}
-                    >
-                        <Pencil className="h-4 w-4" />
-                        Chỉnh sửa môn học
-                    </button>
-                </div>
-            </AppDialog>
+            {isMobile ? showInfo && (
+                <MobileBottomSheet
+                    title={sessionArray.length === 1 ? primarySession.courseName : conflictLabel}
+                    eyebrow={sessionArray.length === 1 ? primarySession.courseCode : 'Chi tiết lịch học'}
+                    onClose={() => setShowInfo(false)}
+                    footer={detailActions}
+                    className="md:hidden"
+                    contentClassName="px-4 py-4"
+                >
+                    {detailContent}
+                </MobileBottomSheet>
+            ) : (
+                <AppDialog
+                    open={showInfo}
+                    onOpenChange={setShowInfo}
+                    title="Chi tiết lịch học"
+                    description={sessionArray.length === 1 ? `${primarySession.courseCode} · ${primarySession.courseName}` : conflictLabel}
+                    icon={CalendarDays}
+                    size="md"
+                    contentClassName="space-y-0"
+                    footer={detailActions}
+                >
+                    {detailContent}
+                </AppDialog>
+            )}
 
             <EditSessionDialog
                 open={isEditOpen}

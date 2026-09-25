@@ -17,17 +17,17 @@ export function GPAPerSemesterTable({ getClassification, gpaPerSemester = [] }: 
                     </div>
 
                     {/* Mobile: Card view */}
-                    <div className="md:hidden divide-y divide-gray-100">
+                    <div className="divide-y divide-gray-100 lg:hidden">
                         {gpaPerSemester.map((s, i) => {
                             const prevGPA = i > 0 ? gpaPerSemester[i - 1].gpa : null;
                             const diff = prevGPA !== null ? s.gpa - prevGPA : null;
                             return (
-                                <div key={s.semester} className="px-4 py-3 flex items-center justify-between">
-                                    <div>
-                                        <p className="text-[11px] font-medium text-gray-800">{s.semester}</p>
-                                        <p className="text-[10px] text-gray-500 mt-0.5">{s.credits} TC tính GPA</p>
+                                <div key={s.semester} className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-gray-800">{s.semester}</p>
+                                        <p className="mt-0.5 text-[11px] text-gray-500">{s.credits} TC tính GPA</p>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-2">
                                         {diff !== null && (
                                             <span className={`text-[10px] font-medium ${diff > 0.05 ? 'text-green-600' : diff < -0.05 ? 'text-red-600' : 'text-gray-500'}`}>
                                                 {diff > 0 ? '+' : ''}{diff.toFixed(2)}
@@ -46,7 +46,7 @@ export function GPAPerSemesterTable({ getClassification, gpaPerSemester = [] }: 
                     </div>
 
                     {/* Desktop: Table view */}
-                    <div className="hidden md:block p-4">
+                    <div className="hidden p-4 lg:block">
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full text-xs">
                                 <thead>

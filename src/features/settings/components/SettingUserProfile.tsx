@@ -258,7 +258,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
             <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành và Năm học để hiển thị đúng dữ liệu của bạn.</p>
 
 
-            <div className="w grid grid-cols-1 md:grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
                 <AppSelect
                     label="Cơ sở mặc định"
                     value={defaultCampusId}
@@ -295,14 +295,16 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                     onChange={setMajor}
                 />
 
-                <AppSelect
-                    label="Năm học"
-                    subLabel="(Học phí)"
-                    value={academicYear}
-                    options={academicYears}
-                    onChange={setAcademicYear}
-                    disabled={true}
-                />
+                <div className="hidden md:block">
+                    <AppSelect
+                        label="Năm học"
+                        subLabel="(Học phí)"
+                        value={academicYear}
+                        options={academicYears}
+                        onChange={setAcademicYear}
+                        disabled={true}
+                    />
+                </div>
             </div>
             {
                 isUsingSharedProgramData && (
@@ -312,27 +314,8 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                 )
             }
 
-            {/* Current selection badges */}
-            <div className="mt-6 p-5 flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                    {/* <span className="px-3 py-1 text-xs rounded-full bg-[#004A98] text-white font-medium">
-                        {currentFaculty?.name}
-                    </span>
-                    <span className="text-gray-400">→</span>
-                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 font-medium">
-                        {currentMajor?.name}
-                    </span>
-                    <span className="text-gray-400">→</span>
-                    <span className="px-3 py-1 text-xs rounded-full bg-green-50 text-green-700 font-medium">
-                        {currentMajor?.cohorts.find(c => c.id === cohortId)?.name}
-                    </span>
-                    <span className="text-gray-400">|</span>
-                    <span className="px-3 py-1 text-xs rounded-full bg-amber-50 text-amber-700 font-medium">
-                        {academicYears.find(y => y.id === academicYear)?.name}
-                    </span> */}
-                </div>
-
-                <div className="flex items-center gap-3">
+            <div className="mt-5 border-t border-gray-200 pt-4 md:mt-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -343,7 +326,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                     {!isConfigured && (
                         <button
                             onClick={handleImportClick}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-[#004A98] text-[#004A98] hover:bg-blue-50 transition-colors"
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#004A98] px-4 text-sm font-medium text-[#004A98] transition-colors hover:bg-blue-50"
                         >
                             <Upload className="w-4 h-4" />
                             Nhập dữ liệu (JSON)
@@ -363,13 +346,10 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                                 type: 'success'
                             });
                         }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isConfigured
-                            ? 'bg-green-50 text-green-700 border border-green-200'
-                            : 'bg-[#004A98] text-white hover:bg-[#003B7A]'
-                            }`}
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#004A98] px-4 text-sm font-medium text-white transition-colors hover:bg-[#003B7A]"
                     >
                         <CheckCircle className="w-4 h-4" />
-                        {isConfigured ? 'Đã lưu thiết lập' : 'Xác nhận thông tin'}
+                        {isConfigured ? 'Lưu thiết lập' : 'Xác nhận thông tin'}
                     </button>
                 </div>
             </div>

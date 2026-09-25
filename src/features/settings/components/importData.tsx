@@ -338,7 +338,7 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
             {transferMode === 'optical' ? <QrCode className="h-5 w-5" /> : <Database className="h-5 w-5" />}
             {transferMode === 'optical' ? 'Đồng bộ với điện thoại' : 'Nhập / Xuất dữ liệu'}
           </h2>
-          <p className="mb-4 flex-grow text-sm text-gray-500">
+          <p className="mb-4 hidden flex-grow text-sm text-gray-500 md:block">
             {transferMode === 'optical'
               ? 'Truyền dữ liệu từ laptop sang điện thoại bằng QR động.'
               : 'Sao lưu hoặc khôi phục từng nhóm dữ liệu bằng tệp JSON.'}
