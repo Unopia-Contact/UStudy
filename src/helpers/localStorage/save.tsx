@@ -369,6 +369,7 @@ async function readLegacySecureValue(payload: string, legacyKey: CryptoKey): Pro
 export function savePlain<T>(key: string, value: T): void {
     try {
         localStorage.setItem(key, JSON.stringify(value));
+        window.dispatchEvent(new Event('ustudy:storage-changed'));
     } catch (err) {
         console.error(`[savePlain] Lỗi khi lưu "${key}":`, err);
     }
@@ -966,7 +967,9 @@ export async function restoreLastImportRollback(): Promise<boolean> {
 }
 
 /** Xóa toàn bộ localStorage + sessionStorage. Caller tự gọi reload nếu cần. */
-export function clearAllStorage(): void {
+export async function clearAllStorage(): Promise<void> {
+    const { clearNativeScheduleWidget } = await import('../../mobile/schedule-widget');
+    await clearNativeScheduleWidget();
     localStorage.clear();
     sessionStorage.clear();
 }

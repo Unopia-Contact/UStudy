@@ -14,6 +14,8 @@ import { buildRawImportPreview, getImportCollectionLabel, mergeSelectedRawImport
 import { mergeImportMetadata, type PortalDataSource } from './logic/import-metadata';
 import { requestPortalExtension } from './portal-sync/bridge';
 import { AnalyticsBootstrap } from './features/analytics/AnalyticsBootstrap';
+import { AndroidWidgetSync } from './mobile/AndroidWidgetSync';
+import { isScheduleWidgetAvailable } from './mobile/schedule-widget';
 import {
   PORTAL_EXTENSION_PENDING_AVAILABLE,
   PORTAL_EXTENSION_READY_EVENT,
@@ -421,6 +423,7 @@ function AppContent() {
         )}
       </AppDialog>
 
+      {isScheduleWidgetAvailable() && <AndroidWidgetSync />}
       <AppRouter />
     </>
   );

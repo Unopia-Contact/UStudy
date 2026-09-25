@@ -201,6 +201,9 @@ export function NoDataCard() {
                                     </p>
                                 </div>
                             </div>
+                            <p className="mx-4 mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+                                Nếu đang dùng APK UStudy cũ, hãy xuất file sao lưu trong Cài đặt → Nhập / Xuất dữ liệu trước khi gỡ app. Bản ký bằng khóa mới không cài đè được bản cũ.
+                            </p>
                             <a
                                 href={ANDROID_APP_DOWNLOAD_URL}
                                 download="UStudy-android.apk"

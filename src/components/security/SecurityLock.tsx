@@ -413,9 +413,9 @@ export const SecurityLock: React.FC<SecurityLockProps> = ({ onUnlock, setupMode 
         }
     };
 
-    const handleForgotPin = () => {
+    const handleForgotPin = async () => {
         if (window.confirm('Hành động này sẽ xóa toàn bộ dữ liệu hiện tại. Bạn có chắc chắn?')) {
-            clearAllStorage();
+            await clearAllStorage();
             window.location.reload();
         }
     };

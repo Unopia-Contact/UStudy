@@ -87,8 +87,8 @@ export function Header({
     setShowLogoutModal(true);
   };
 
-  const handleLogOutConfirm = () => {
-    clearAllStorage();
+  const handleLogOutConfirm = async () => {
+    await clearAllStorage();
     lock();
     addNotification({
       title: 'Đăng xuất thành công',

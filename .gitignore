@@ -34,6 +34,8 @@ scripts/analytics-snapshot.mjs
 !.env.*.example
 *.jks
 *.keystore
+*.p12
+*.pfx
 
 # Editor directories and files
 .vscode/*
