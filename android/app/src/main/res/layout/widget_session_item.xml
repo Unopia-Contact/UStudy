@@ -2,33 +2,49 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="55dp"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingBottom="7dp">
+    android:orientation="vertical"
+    android:paddingBottom="3dp">
 
-    <TextView android:layout_width="3dp" android:layout_height="35dp"
-        android:background="@drawable/widget_schedule_mark" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@drawable/widget_schedule_session_background"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="6dp"
+        android:paddingEnd="7dp">
+        <TextView android:layout_width="3dp" android:layout_height="30dp"
+            android:background="@drawable/widget_schedule_mark" />
 
-    <LinearLayout android:layout_width="59dp" android:layout_height="wrap_content"
-        android:layout_marginStart="8dp" android:orientation="vertical">
-        <TextView android:id="@+id/widget_item_start" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="07:30"
-            android:textColor="#FF004A98" android:textSize="12sp" android:textStyle="bold" />
-        <TextView android:id="@+id/widget_item_end" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="11:00"
-            android:textColor="#FF64748B" android:textSize="11sp" />
-    </LinearLayout>
+        <LinearLayout android:layout_width="43dp" android:layout_height="wrap_content"
+            android:layout_marginStart="8dp" android:orientation="vertical">
+            <TextView android:id="@+id/widget_item_start" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="07:30"
+                android:textColor="#FF123D83" android:textSize="12sp" android:textStyle="bold" />
+            <TextView android:id="@+id/widget_item_end" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="11:00"
+                android:textColor="#FF64748B" android:textSize="10sp" />
+        </LinearLayout>
 
-    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-        android:layout_weight="1" android:orientation="vertical">
-        <TextView android:id="@+id/widget_item_title" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end"
-            android:text="Tên môn học" android:textColor="#FF17233A"
-            android:textSize="12sp" android:textStyle="bold" />
-        <TextView android:id="@+id/widget_item_room" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end"
-            android:text="Phòng D105" android:textColor="#FF526174"
-            android:textSize="11sp" />
+        <TextView android:layout_width="1dp" android:layout_height="29dp"
+            android:layout_marginEnd="8dp" android:background="#FFDCE5F1" />
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical">
+            <TextView android:id="@+id/widget_item_title" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end"
+                android:text="Tên môn học" android:textColor="#FF17233A"
+                android:textSize="11sp" android:textStyle="bold" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center_vertical" android:orientation="horizontal">
+                <ImageView android:layout_width="11dp" android:layout_height="11dp"
+                    android:src="@drawable/widget_next_pin" />
+                <TextView android:id="@+id/widget_item_room" android:layout_width="0dp"
+                    android:layout_height="wrap_content" android:layout_weight="1"
+                    android:layout_marginStart="4dp" android:maxLines="1" android:ellipsize="end"
+                    android:text="Phòng D105" android:textColor="#FF64748B"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

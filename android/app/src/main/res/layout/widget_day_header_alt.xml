@@ -7,7 +7,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="22dp"
-        android:background="@drawable/widget_schedule_day_blue"
+        android:background="@drawable/widget_schedule_day_lilac"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="7dp"
@@ -23,7 +23,7 @@
             android:layout_marginStart="7dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Thứ Ba, 06/10"
+            android:text="Thứ Tư, 07/10"
             android:textColor="#FF123D83"
             android:textSize="11sp"
             android:textStyle="bold" />
