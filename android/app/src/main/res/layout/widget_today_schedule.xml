@@ -1,25 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="4dp"
     android:background="@drawable/widget_schedule_background"
     android:orientation="vertical"
-    android:padding="5dp">
+    android:paddingStart="10dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="10dp">
+
+    <!-- ========================= -->
+    <!-- Header                    -->
+    <!-- ========================= -->
 
     <LinearLayout
         android:id="@+id/widget_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:background="@drawable/widget_schedule_header_background"
-        android:paddingStart="7dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="7dp"
-        android:paddingBottom="6dp">
+        android:orientation="horizontal">
 
+        <!-- Logo -->
         <TextView
             android:layout_width="32dp"
             android:layout_height="32dp"
@@ -30,36 +35,94 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:layout_marginStart="8dp" android:orientation="vertical">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="UStudy" android:textColor="#FF122448"
-                android:textSize="16sp" android:textStyle="bold" />
-            <TextView android:id="@+id/widget_subtitle" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="Lịch học"
-                android:textColor="#FF60718B" android:textSize="10sp" />
+        <!-- App info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:text="UStudy"
+                android:textColor="#FF172B4D"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:includeFontPadding="false"
+                android:text="Lịch học hôm nay"
+                android:textColor="#FF718096"
+                android:textSize="10sp" />
+
         </LinearLayout>
 
-        <TextView android:layout_width="wrap_content" android:layout_height="28dp"
+        <!-- Open -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
             android:background="@drawable/widget_schedule_open_background"
-            android:gravity="center" android:paddingStart="11dp" android:paddingEnd="11dp"
-            android:text="Mở ›" android:textColor="#FF123D83"
-            android:textSize="11sp" android:textStyle="bold" />
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="Mở  ›"
+            android:textColor="#FF004A98"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
     </LinearLayout>
 
-    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1" android:paddingStart="4dp" android:paddingEnd="4dp"
-        android:paddingTop="4dp">
-        <ListView android:id="@+id/widget_schedule_list"
-            android:layout_width="match_parent" android:layout_height="match_parent"
-            android:divider="@android:color/transparent" android:dividerHeight="0dp"
+
+    <!-- ========================= -->
+    <!-- Content card              -->
+    <!-- ========================= -->
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_schedule_content_background"
+        android:paddingStart="6dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="6dp"
+        android:paddingBottom="6dp">
+
+        <ListView
+            android:id="@+id/widget_schedule_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:cacheColorHint="@android:color/transparent"
+            android:clipToPadding="false"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="4dp"
             android:scrollbars="none" />
-        <TextView android:id="@+id/widget_empty"
-            android:layout_width="match_parent" android:layout_height="match_parent"
-            android:background="@drawable/widget_schedule_session_background"
-            android:gravity="center" android:padding="10dp"
-            android:text="Mở UStudy để nạp lịch học."
-            android:textColor="#FF60718B" android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/widget_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="16dp"
+            android:text="Chưa có dữ liệu lịch học.\nMở UStudy để đồng bộ nhé."
+            android:textAlignment="center"
+            android:textColor="#FF718096"
+            android:textSize="11sp"
+            android:lineSpacingExtra="3dp" />
+
     </FrameLayout>
+
 </LinearLayout>

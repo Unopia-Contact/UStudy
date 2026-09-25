@@ -23,6 +23,9 @@ const isWorkspaceEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_WO
 const WorkspacePage = isWorkspaceEnabled
     ? lazy(() => import('../pages/workspace/WorkspacePage').then(({ WorkspacePage: Page }) => ({ default: Page })))
     : null;
+const WidgetPreviewPage = import.meta.env.DEV
+    ? lazy(() => import('../features/widget-preview/WidgetPreviewPage').then(({ WidgetPreviewPage: Page }) => ({ default: Page })))
+    : null;
 
 function RequireConfigured({ isConfigured }: { isConfigured: boolean }) {
     const location = useLocation();
@@ -53,15 +56,16 @@ function RoutedApp() {
     const navigate = useNavigate();
     const currentPage = getPageIdFromPath(location.pathname);
     const isPublicPage = currentPage === 'privacy' || currentPage === 'guide';
-    const visiblePage = isConfigured || isPublicPage ? currentPage : 'setup';
+    const isWidgetPreview = import.meta.env.DEV && location.pathname === '/widget-preview';
+    const visiblePage = isWidgetPreview ? 'widget-preview' : isConfigured || isPublicPage ? currentPage : 'setup';
 
     const handlePageChange = (page: string) => {
         navigate(getPathForPage(page));
     };
 
     useEffect(() => {
-        sessionStorage.setItem(STORAGE_KEYS.PAGE, currentPage);
-    }, [currentPage]);
+        if (!isWidgetPreview) sessionStorage.setItem(STORAGE_KEYS.PAGE, currentPage);
+    }, [currentPage, isWidgetPreview]);
 
     useEffect(() => {
         if (Capacitor.getPlatform() !== 'android') return;
@@ -110,6 +114,16 @@ function RoutedApp() {
                         element={(
                             <Suspense fallback={<div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#004A98]" /></div>}>
                                 <WorkspacePage />
+                            </Suspense>
+                        )}
+                    />
+                )}
+                {WidgetPreviewPage && (
+                    <Route
+                        path="/widget-preview"
+                        element={(
+                            <Suspense fallback={<div className="flex h-40 items-center justify-center text-sm text-slate-500">Đang mở bản xem trước…</div>}>
+                                <WidgetPreviewPage />
                             </Suspense>
                         )}
                     />

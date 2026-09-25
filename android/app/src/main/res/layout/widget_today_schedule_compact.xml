@@ -6,20 +6,20 @@
     android:layout_margin="4dp"
     android:background="@drawable/widget_schedule_background"
     android:orientation="vertical"
-    android:padding="4dp">
+    android:padding="6dp">
 
     <LinearLayout
         android:id="@+id/widget_header"
         android:layout_width="match_parent"
-        android:layout_height="28dp"
+        android:layout_height="32dp"
         android:background="@drawable/widget_schedule_header_background"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="5dp"
-        android:paddingEnd="5dp">
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
         <TextView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:background="@drawable/widget_schedule_logo_background"
             android:gravity="center"
             android:text="U"
@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:text="UStudy"
                 android:textColor="#FF122448"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="match_parent"
@@ -48,7 +48,7 @@
         </LinearLayout>
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="22dp"
+            android:layout_height="24dp"
             android:background="@drawable/widget_schedule_open_background"
             android:gravity="center"
             android:paddingStart="9dp"
@@ -64,7 +64,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingStart="4dp"
-        android:paddingTop="3dp"
+        android:paddingTop="5dp"
         android:paddingEnd="4dp">
         <ListView
             android:id="@+id/widget_schedule_list"
