@@ -53,12 +53,12 @@ export function GradeHistoryTable({
 
     const getSortIcon = (key: keyof StudentCourseGrade) => {
         if (!sortConfig || sortConfig.key !== key) {
-            return <ArrowUpDown className="w-4 h-4 ml-1 inline-block text-gray-400 group-hover:text-gray-600 transition-colors" />;
+            return <ArrowUpDown className="absolute left-full top-1/2 ml-0.5 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-hover:text-gray-600" />;
         }
         if (sortConfig.direction === 'asc') {
-            return <ArrowUp className="w-4 h-4 ml-1 inline-block text-[#004A98]" />;
+            return <ArrowUp className="absolute left-full top-1/2 ml-0.5 h-4 w-4 -translate-y-1/2 text-[#004A98]" />;
         }
-        return <ArrowDown className="w-4 h-4 ml-1 inline-block text-[#004A98]" />;
+        return <ArrowDown className="absolute left-full top-1/2 ml-0.5 h-4 w-4 -translate-y-1/2 text-[#004A98]" />;
     };
 
     return (
@@ -105,80 +105,81 @@ export function GradeHistoryTable({
                 <table className="w-full table-fixed">
                     <colgroup>
                         <col className="w-[12%]" />
-                        <col className="w-[31%]" />
+                        <col className="w-[28%]" />
                         <col className="w-[11%]" />
                         <col className="w-[9%]" />
                         <col className="w-[10%]" />
                         <col className="w-[9%]" />
                         <col className="w-[7%]" />
-                        <col className="w-[11%]" />
+                        <col className="w-[14%]" />
                     </colgroup>
 
                     <thead className="border-b border-gray-200 bg-gray-50">
                         <tr>
                             <th
-                                className="cursor-pointer select-none px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
+                                className="group cursor-pointer select-none px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
                                 onClick={() => requestSort("code")}
                             >
-                                <div className="flex items-center gap-2">
+                                <div className="relative inline-block whitespace-nowrap">
                                     Mã môn
                                     {getSortIcon("code")}
                                 </div>
                             </th>
 
                             <th
-                                className="cursor-pointer select-none px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
+                                className="group cursor-pointer select-none px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
                                 onClick={() => requestSort("nameVi")}
                             >
-                                <div className="flex items-center gap-2">
+                                <div className="relative inline-block whitespace-nowrap">
                                     Tên môn học
                                     {getSortIcon("nameVi")}
                                 </div>
                             </th>
 
                             <th
-                                className="cursor-pointer select-none px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
+                                className="group cursor-pointer select-none px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
                                 onClick={() => requestSort("semester")}
                             >
-                                <div className="flex items-center justify-center gap-2">
+                                <div className="relative inline-block whitespace-nowrap">
                                     Học kỳ
                                     {getSortIcon("semester")}
                                 </div>
                             </th>
 
                             <th
-                                className="cursor-pointer select-none px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
+                                className="group cursor-pointer select-none px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
                                 onClick={() => requestSort("credits")}
                             >
-                                <div className="flex items-center justify-center gap-2">
+                                <div className="relative inline-block whitespace-nowrap">
                                     Tín chỉ
                                     {getSortIcon("credits")}
                                 </div>
                             </th>
 
                             <th
-                                className="cursor-pointer select-none px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
+                                className="group cursor-pointer select-none px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
                                 onClick={() => requestSort("grade")}
                             >
-                                <div className="flex items-center justify-center gap-2">
+                                <div className="relative inline-block whitespace-nowrap">
                                     Hệ 10
                                     {getSortIcon("grade")}
                                 </div>
                             </th>
 
-                            <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th className="px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Hệ 4
                             </th>
 
-                            <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th className="px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Chữ
                             </th>
 
                             <th
-                                className="cursor-pointer select-none px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
+                                className="group cursor-pointer select-none whitespace-nowrap px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors hover:bg-gray-100"
                                 onClick={() => requestSort("status")}
+                                style={{ whiteSpace: "nowrap" }}
                             >
-                                <div className="flex items-center justify-center gap-2">
+                                <div className="relative inline-block whitespace-nowrap">
                                     Trạng thái
                                     {getSortIcon("status")}
                                 </div>

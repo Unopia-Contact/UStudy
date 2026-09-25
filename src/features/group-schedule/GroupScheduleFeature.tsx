@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from 'react';
-import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap, MoreHorizontal, ChevronDown, ChevronUp, List, Info } from 'lucide-react';
+import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap, List } from 'lucide-react';
 
 import { GroupMemberCard } from './components/GroupMemberCard';
 import { buildSavedGroupSchedule, GroupScheduleCalendarPreview } from './components/GroupScheduleCalendarPreview';
@@ -14,10 +14,9 @@ import { AppDialog } from '../../components/ui/overlays/app-dialog';
 import { AppSelect } from '../../components/ui/form';
 import { Input } from '../../components/ui/form/input';
 import { Textarea } from '../../components/ui/form/textarea';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../../components/ui/overlays/dropdown-menu';
 import { PageHeader } from '../../components/layout/page-header';
-import { buildDensityMap, decodeGroupURL } from './services/group-scheduler';
-import type { ClassPreferenceLevel, ClassPreferenceSelection, CourseSharingMap, GroupMemberToken, GroupScheduleOption } from './types';
+import { buildDensityMap } from './services/group-scheduler';
+import type { ClassPreferenceLevel, ClassPreferenceSelection, CourseSharingMap, GroupMemberToken } from './types';
 import { parseCourseInput, useGroupScheduler } from './hooks/use-group-scheduler';
 import { readFromStorage, saveToStorage } from '../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../config';
@@ -74,17 +73,6 @@ function makeDraft(): GroupMemberToken {
     };
 }
 
-function extractHash(value: string): string {
-    const trimmed = value.trim();
-    if (!trimmed) return '';
-    try {
-        return new URL(trimmed).hash;
-    } catch {
-        const hashIndex = trimmed.indexOf('#');
-        return hashIndex >= 0 ? trimmed.slice(hashIndex) : trimmed;
-    }
-}
-
 function getCourseCode(course: Course): string {
     return (course.code || course.id).toUpperCase();
 }
@@ -138,11 +126,8 @@ function loadClassOptionsByCourse(): Record<string, GroupClassOption[]> {
 }
 
 export function GroupSchedulePage({
-    onPageChange,
     selectedCourseIds,
     allCourses = [],
-    allowedClassesMap = {},
-    setAllowedClassesMap,
     onRemoveSelectedCourse,
     embedded = false,
     modeSwitch,
@@ -150,8 +135,6 @@ export function GroupSchedulePage({
     const { defaultCampusId } = useCampus();
     const {
         members,
-        shareUrl,
-        urlWarning,
         decodeError,
         solving,
         result,
@@ -168,7 +151,6 @@ export function GroupSchedulePage({
         analyzeTradeoff,
         clearResult,
         setResult,
-        getOptionRegistrations,
     } = useGroupScheduler();
 
     const savedUIState = useMemo(() => {
@@ -190,7 +172,6 @@ export function GroupSchedulePage({
     const [resultViewMode, setResultViewMode] = useState<GroupScheduleResultViewMode>(savedUIState.resultViewMode);
     const [draft, setDraft] = useState<GroupMemberToken>(makeDraft);
     const [manualCourseInput, setManualCourseInput] = useState('');
-    const [mergeInput, setMergeInput] = useState('');
     const [localNotice, setLocalNotice] = useState<string | null>(null);
 
     const [showListModal, setShowListModal] = useState(false);
@@ -229,7 +210,7 @@ export function GroupSchedulePage({
         });
     }, [courseSharing, groupPreferredClasses, groupPrefs, setShareConfig]);
     const [expandedClassCourseId, setExpandedClassCourseId] = useState<string | null>(null);
-    const [isAdvancedOpen, setIsAdvancedOpen] = useState(savedUIState.isAdvancedOpen);
+    const [isAdvancedOpen] = useState(savedUIState.isAdvancedOpen);
     const [showMembersPanel, setShowMembersPanel] = useState(savedUIState.showMembersPanel);
     const [filterModalCourse, setFilterModalCourse] = useState<Course | null>(null);
     const [editingMemberIndex, setEditingMemberIndex] = useState<number | null>(null);
@@ -291,18 +272,6 @@ export function GroupSchedulePage({
     const groupCourses = useMemo(() => buildDensityMap(members), [members]);
     const classOptionsByCourse = useMemo(() => loadClassOptionsByCourse(), []);
     const selectedOption = result?.solutions[activeResultIndex] ?? result?.solutions[0];
-    const sharedCourseCount = useMemo(() => groupCourses.filter((course) => course.isShared).length, [groupCourses]);
-    const groupClassPreferenceSummary = useMemo(() => {
-        return Object.values(groupPreferredClasses).reduce(
-            (summary, selection) => ({
-                excluded: summary.excluded + (selection.excluded?.length ?? 0),
-                preferred: summary.preferred + (selection.preferred?.length ?? 0),
-                required: summary.required + (selection.required?.length ?? 0),
-            }),
-            { excluded: 0, preferred: 0, required: 0 },
-        );
-    }, [groupPreferredClasses]);
-
     const buildDraftClassPreferences = (): Record<string, ClassPreferenceSelection> => {
         const next = Object.fromEntries(
             Object.entries(personalClassPreferences).map(([courseId, selection]) => [
@@ -392,26 +361,6 @@ export function GroupSchedulePage({
 
         if (addMember(nextDraft)) {
             resetMemberDraft();
-        }
-    };
-
-    const mergeMembersFromLink = () => {
-        try {
-            const decoded = decodeGroupURL(extractHash(mergeInput));
-            const existingIds = new Set(members.map((member) => member.id).filter((id): id is string => Boolean(id)));
-            const merged = [...members];
-            decoded.forEach((member) => {
-                const incoming = member.id ? member : { ...member, id: createMemberId() };
-                if (!existingIds.has(incoming.id)) {
-                    existingIds.add(incoming.id);
-                    merged.push(incoming);
-                }
-            });
-            replaceMembers(merged);
-            setMergeInput('');
-            setLocalNotice(`Đã gộp ${merged.length - members.length} thành viên từ link.`);
-        } catch (error) {
-            setLocalNotice(error instanceof Error ? error.message : 'Không đọc được link nhóm.');
         }
     };
 
@@ -540,18 +489,6 @@ export function GroupSchedulePage({
         solve(config);
     };
 
-
-    const handleUseSchedule = (option: GroupScheduleOption, memberIndex: number) => {
-        const registrations = getOptionRegistrations(option, memberIndex);
-        saveToStorage(STORAGE_KEYS.ACTIVE_GROUP_SCHEDULE, {
-            source: 'group-scheduler',
-            updatedAt: new Date().toISOString(),
-            registrations,
-            option: option.option,
-            memberIndex,
-        });
-        onPageChange?.('schedule');
-    };
 
     const saveSelectedGroupSchedule = () => {
         const fallbackMemberIndex = selectedOption?.schedules[0]?.memberIndex ?? activePreviewMemberIndex;
@@ -1461,50 +1398,6 @@ export function GroupSchedulePage({
                         Lưu cả nhóm và các lớp của phương án đang xem. Khi mở lại, bạn vẫn có thể đổi thành viên để xem lịch riêng từng người.
                     </p>
                 </AppDialog>
-            )}
-
-            {false && showSaveGroupScheduleModal && selectedOption && (
-                <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-                    <div className="w-full overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl">
-                        <div className="flex items-center justify-between border-b border-gray-100 p-4 md:p-5">
-                            <h3 className="flex items-center gap-2 text-base font-bold text-gray-900">
-                                <Save className="h-4 w-4 text-emerald-600" />
-                                Lưu lịch nhóm
-                            </h3>
-                            <button type="button" onClick={() => setShowSaveGroupScheduleModal(false)} className="rounded-full p-1 transition-colors hover:bg-gray-100">
-                                <X className="h-5 w-5 text-gray-400" />
-                            </button>
-                        </div>
-                        <div className="p-4 md:p-6">
-                            <label className="mb-2 block text-sm font-bold text-gray-700">Tên gợi nhớ cho lịch này</label>
-                            <input
-                                autoFocus
-                                type="text"
-                                value={groupScheduleName}
-                                onChange={(event) => setGroupScheduleName(event.target.value)}
-                                placeholder={`VD: Nhóm - PA ${selectedOption.option}`}
-                                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
-                                onKeyDown={(event) => event.key === 'Enter' && saveSelectedGroupSchedule()}
-                            />
-                            <p className="mt-3 text-xs italic text-gray-400">
-                                Lưu toàn bộ thành viên trong phương án hiện tại. Khi mở lại ở tab lịch dự kiến, bạn có thể chuyển qua lại giữa các thành viên.
-                            </p>
-                        </div>
-                        <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4 md:p-5">
-                            <button type="button" onClick={() => setShowSaveGroupScheduleModal(false)} className="px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-800">
-                                Hủy
-                            </button>
-                            <button
-                                type="button"
-                                onClick={saveSelectedGroupSchedule}
-                                disabled={!groupScheduleName.trim()}
-                                className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow transition-all hover:bg-emerald-700 disabled:opacity-50"
-                            >
-                                Xác nhận lưu
-                            </button>
-                        </div>
-                    </div>
-                </div>
             )}
 
             <SavedSchedulesModal

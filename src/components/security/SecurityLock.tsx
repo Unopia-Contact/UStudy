@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Lock, ShieldAlert, Trash2, KeyRound, CheckCircle2, Timer, ArrowRight, ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Lock, ShieldAlert, Trash2, CheckCircle2, Timer, ArrowRight, ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 import {
     verifyPin,
     setupPin,

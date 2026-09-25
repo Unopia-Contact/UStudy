@@ -92,7 +92,7 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "pnpm run build:extension && vite build",
+        "build": "node scripts/build-extension.mjs && vite build",
         "build:web": "vite build",
         "build:cloudflare": "vite build",
         "deploy:cloudflare": "pnpm run build:cloudflare && pnpm exec wrangler deploy --env=\"\"",

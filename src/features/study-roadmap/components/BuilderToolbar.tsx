@@ -1,5 +1,4 @@
 import { Cpu, List, Save, Settings, Trash2 } from 'lucide-react';
-import type { SavedSchedule } from '../../../types';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 

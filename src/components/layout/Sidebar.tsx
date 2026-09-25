@@ -1,4 +1,4 @@
-import { Home, Map, Bot, MapPinned, Info, BarChart3, DollarSign, Calendar, Settings, ChevronLeft, ChevronRight, Subtitles, Menu, Shield } from 'lucide-react';
+import { Home, Map, Bot, Info, BarChart3, DollarSign, Calendar, Settings, ChevronLeft, ChevronRight, Subtitles, Menu, Shield } from 'lucide-react';
 import { CloseButton } from '../ui/close-button';
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';

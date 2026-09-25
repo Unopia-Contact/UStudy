@@ -22,7 +22,7 @@ import { GroupSchedulePage } from '../group-schedule';
 import type { Course } from '../../types';
 import { createPortal } from 'react-dom';
 import { useCampus } from '../../context/CampusContext';
-import { APP_ROUTES, STUDY_ROADMAP_TAB_TO_PATH, getStudyRoadmapTabFromPath } from '../../app/routes';
+import { STUDY_ROADMAP_TAB_TO_PATH, getStudyRoadmapTabFromPath } from '../../app/routes';
 import { tabs, type Tab } from './types';
 import {
     createCourseCodeSet,

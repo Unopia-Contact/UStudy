@@ -3,9 +3,7 @@ import { useStudentDb } from '../../../hooks/useStudentDb';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
-import { getTuitionDeadline } from '../../../config/tuitionDeadlines';
 import { FinancialLogic } from '../services/financial-logic';
-import type { TuitionCourse, TuitionSummary } from '../types';
 import { useCampus } from '../../../context/CampusContext';
 
 export function useTuitionCalculator(selectedSemesterName: string) {

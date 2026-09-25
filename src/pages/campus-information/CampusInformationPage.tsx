@@ -1,11 +1,10 @@
-import { Building2, CalendarRange, MapPinned } from 'lucide-react';
+import { Building2, CalendarRange } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { APP_ROUTES } from '../../app/routes';
 import { PageHeader, PageShell } from '../../components/layout';
 import { SectionTabs } from '../../components/ui/navigation/section-tabs';
 import { AcademicCalendarFeature } from '../../features/academic-calendar';
 import { CampusDirectoryFeature } from '../../features/campus-directory';
-import CampusMap from '../../features/campus-map/campusmap';
 
 const tabs = [
     // {
@@ -49,11 +48,7 @@ export function CampusInformationPage() {
                 onChange={(tabId) => navigate(tabs.find((tab) => tab.id === tabId)?.path ?? APP_ROUTES.campusMap)}
             />
 
-            {activeTab === 'map' ? (
-                <div className="mt-5">
-                    <CampusMap />
-                </div>
-            ) : activeTab === 'academic-calendar' ? (
+            {activeTab === 'academic-calendar' ? (
                 <AcademicCalendarFeature />
             ) : (
                 <CampusDirectoryFeature />

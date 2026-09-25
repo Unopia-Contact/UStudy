@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 export function PrivacyFooter() {
   return (
     <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 py-3">

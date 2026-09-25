@@ -1,5 +1,4 @@
 import { Database } from "lucide-react";
-import { BookmarkletButton } from "../portal/BookmarkletButton";
 
 export function NoDataCard() {
     return (
