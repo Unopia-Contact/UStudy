@@ -27,7 +27,7 @@
             android:textSize="11sp" android:textStyle="bold" />
     </LinearLayout>
 
-    <View android:layout_width="match_parent" android:layout_height="1dp"
+    <TextView android:layout_width="match_parent" android:layout_height="1dp"
         android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
         android:background="#FFE5EAF2" />
 
@@ -39,7 +39,7 @@
             android:textSize="11sp" android:textStyle="bold" />
         <LinearLayout android:layout_width="match_parent" android:layout_height="55dp"
             android:gravity="center_vertical" android:orientation="horizontal">
-            <View android:layout_width="3dp" android:layout_height="35dp"
+            <TextView android:layout_width="3dp" android:layout_height="35dp"
                 android:background="@drawable/widget_schedule_mark" />
             <LinearLayout android:layout_width="59dp" android:layout_height="wrap_content"
                 android:layout_marginStart="8dp" android:orientation="vertical">
@@ -59,7 +59,7 @@
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="55dp"
             android:gravity="center_vertical" android:orientation="horizontal">
-            <View android:layout_width="3dp" android:layout_height="35dp"
+            <TextView android:layout_width="3dp" android:layout_height="35dp"
                 android:background="@drawable/widget_schedule_mark" />
             <LinearLayout android:layout_width="59dp" android:layout_height="wrap_content"
                 android:layout_marginStart="8dp" android:orientation="vertical">
