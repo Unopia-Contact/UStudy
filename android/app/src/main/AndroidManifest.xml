@@ -41,6 +41,19 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/today_schedule_widget_info" />
         </receiver>
 
+        <receiver
+            android:name=".NextScheduleWidgetProvider"
+            android:exported="true"
+            android:label="UStudy · Buổi học tiếp theo">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/next_schedule_widget_info" />
+        </receiver>
+
         <service
             android:name=".ScheduleWidgetListService"
             android:exported="true"

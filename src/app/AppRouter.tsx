@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { StudyRoadmapPage } from '../pages/study-roadmap/StudyRoadmapPage';
 import { GradesPage } from '../pages/grades/GradesPage';
@@ -63,6 +64,20 @@ function RoutedApp() {
     }, [currentPage]);
 
     useEffect(() => {
+        if (Capacitor.getPlatform() !== 'android') return;
+        let active = true;
+        const openWidgetRoute = (url?: string) => {
+            if (active && url === 'com.ustudy.app://schedule') navigate(APP_ROUTES.schedule);
+        };
+        const listener = CapacitorApp.addListener('appUrlOpen', ({ url }) => openWidgetRoute(url));
+        void CapacitorApp.getLaunchUrl().then((launch) => openWidgetRoute(launch?.url)).catch(() => {});
+        return () => {
+            active = false;
+            void listener.then((handle) => handle.remove());
+        };
+    }, [navigate]);
+
+    useEffect(() => {
         const handleBackButton = () => {
             if (location.pathname !== APP_ROUTES.dashboard) {
                 navigate(APP_ROUTES.dashboard);
@@ -72,10 +87,10 @@ function RoutedApp() {
             CapacitorApp.exitApp();
         };
 
-        CapacitorApp.addListener('backButton', handleBackButton);
+        const listener = CapacitorApp.addListener('backButton', handleBackButton);
 
         return () => {
-            CapacitorApp.removeAllListeners();
+            void listener.then((handle) => handle.remove());
         };
     }, [location.pathname, navigate]);
 
