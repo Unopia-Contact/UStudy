@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
+    android:background="@drawable/widget_schedule_background"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="USTUDY  ·  LỊCH HỌC HÔM NAY" android:textColor="#FF004A98"
+        android:textSize="12sp" android:textStyle="bold" android:paddingBottom="7dp" />
+
+    <LinearLayout android:id="@+id/widget_row_1" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="4dp">
+        <TextView android:id="@+id/widget_time_1" android:layout_width="78dp" android:layout_height="wrap_content"
+            android:textColor="#FF004A98" android:textSize="11sp" android:textStyle="bold" />
+        <TextView android:id="@+id/widget_title_1" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end"
+            android:textColor="#FF17233A" android:textSize="12sp" />
+        <TextView android:id="@+id/widget_room_1" android:layout_width="60dp" android:layout_height="wrap_content"
+            android:gravity="end" android:maxLines="1" android:ellipsize="end"
+            android:textColor="#FF526174" android:textSize="11sp" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/widget_row_2" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="4dp">
+        <TextView android:id="@+id/widget_time_2" android:layout_width="78dp" android:layout_height="wrap_content"
+            android:textColor="#FF004A98" android:textSize="11sp" android:textStyle="bold" />
+        <TextView android:id="@+id/widget_title_2" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end"
+            android:textColor="#FF17233A" android:textSize="12sp" />
+        <TextView android:id="@+id/widget_room_2" android:layout_width="60dp" android:layout_height="wrap_content"
+            android:gravity="end" android:maxLines="1" android:ellipsize="end"
+            android:textColor="#FF526174" android:textSize="11sp" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/widget_row_3" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="4dp">
+        <TextView android:id="@+id/widget_time_3" android:layout_width="78dp" android:layout_height="wrap_content"
+            android:textColor="#FF004A98" android:textSize="11sp" android:textStyle="bold" />
+        <TextView android:id="@+id/widget_title_3" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end"
+            android:textColor="#FF17233A" android:textSize="12sp" />
+        <TextView android:id="@+id/widget_room_3" android:layout_width="60dp" android:layout_height="wrap_content"
+            android:gravity="end" android:maxLines="1" android:ellipsize="end"
+            android:textColor="#FF526174" android:textSize="11sp" />
+    </LinearLayout>
+
+    <TextView android:id="@+id/widget_message" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:paddingTop="5dp"
+        android:text="Bật widget trong Cài đặt UStudy"
+        android:textColor="#FF526174" android:textSize="11sp" />
+</LinearLayout>

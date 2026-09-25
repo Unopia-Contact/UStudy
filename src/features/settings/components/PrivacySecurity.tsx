@@ -15,7 +15,7 @@ const sections = [
         iconColor: 'text-blue-600',
         iconBg: 'bg-blue-50',
         title: 'Tổng quan bảo mật',
-        content: 'UStudy được thiết kế với nguyên tắc "Privacy by Design" - quyền riêng tư của bạn được đặt lên hàng đầu trong mọi quyết định kiến trúc. Toàn bộ dữ liệu cá nhân (điểm số, lịch học, thông tin sinh viên) được mã hóa và chỉ lưu trên thiết bị.'
+        content: 'UStudy được thiết kế với nguyên tắc "Privacy by Design". Dữ liệu học tập chính được mã hóa và lưu trên thiết bị. Nếu bạn tự bật widget Android, bản lịch rút gọn được lưu riêng trong ứng dụng, không mã hóa, để hiển thị trên màn hình chính ngay cả khi UStudy đang khóa.'
     },
     // {
     //     id: 'encryption',
@@ -37,7 +37,7 @@ const sections = [
         iconBg: 'bg-emerald-50',
         title: 'Nơi lưu trữ dữ liệu',
         items: [
-            { icon: Globe, label: 'Dữ liệu học tập trên thiết bị', desc: 'Điểm, lịch học, thông tin sinh viên và dữ liệu Portal chỉ được lưu trong localStorage của trình duyệt bạn.' },
+            { icon: Globe, label: 'Dữ liệu học tập trên thiết bị', desc: 'Dữ liệu chính lưu trong localStorage của UStudy. Nếu bật widget Android, tên môn, giờ và phòng của lịch 30 ngày tới còn được lưu trong vùng riêng của ứng dụng; tắt widget sẽ xóa bản này.' },
             { icon: EyeOff, label: 'Không fingerprinting', desc: 'UStudy không dùng cookie theo dõi hay fingerprint thiết bị. Mã installation là UUID ngẫu nhiên và có thể tắt bất cứ lúc nào.' },
             { icon: Server, label: 'Database thống kê tối giản', desc: 'Cloudflare D1 chỉ lưu mã đã băm, domain, phiên bản và lịch sử ngày hoạt động; không chứa thông tin sinh viên hay dữ liệu Portal.' },
         ],

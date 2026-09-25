@@ -118,7 +118,7 @@ Bạn có thể xuất dữ liệu để sao lưu, nhập lại từ JSON hoặc
 
 UStudy được xây dựng theo hướng **local-first**: dữ liệu học tập được lưu trên thiết bị của người dùng thay vì tạo một tài khoản tập trung trên máy chủ của dự án.
 
-- Dữ liệu nhạy cảm được mã hóa trước khi lưu cục bộ.
+- Dữ liệu học tập chính được mã hóa trước khi lưu cục bộ; ngoại lệ là bản lịch rút gọn của widget Android nếu người dùng chủ động bật.
 - Mật khẩu mở khóa không được lưu trực tiếp.
 - Dữ liệu sau khi giải mã chỉ được giữ trong bộ nhớ trong phiên sử dụng.
 - Công cụ đồng bộ cho phép xem trước thay đổi trước khi ghi dữ liệu.
@@ -127,6 +127,10 @@ UStudy được xây dựng theo hướng **local-first**: dữ liệu học t�
 
 > [!NOTE]
 > Vì dữ liệu nằm trên thiết bị, hãy chủ động tạo bản sao lưu trước khi xóa dữ liệu trình duyệt, đổi máy hoặc gỡ ứng dụng.
+
+### Widget lịch học Android
+
+Trên APK từ phiên bản **0.2.4**, vào **Cài đặt → Widget lịch học Android** để bật (mặc định tắt). Sau đó giữ một khoảng trống trên màn hình chính Android, chọn **Widget → UStudy**. Widget hiển thị tối đa ba buổi hôm nay; chạm vào để mở ứng dụng. Khi bật, UStudy lưu tên môn, giờ và phòng của lịch 30 ngày tới trong vùng riêng của APK để widget hoạt động cả khi ứng dụng đang khóa. Bản này không gửi lên server và được xóa khi tắt widget hoặc xóa toàn bộ dữ liệu. Mở UStudy để làm mới lịch khi đã quá 30 ngày.
 
 Tìm hiểu thêm tại [Kiến trúc bảo mật](docs/security_architecture.md), [Quyền riêng tư](https://ustudy.hakhoi.io.vn/privacy) và [Cấu trúc lưu trữ cục bộ](docs/local-storage-schema.md).
 

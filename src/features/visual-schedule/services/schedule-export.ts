@@ -1,5 +1,5 @@
 import { ScheduleLogic } from './schedule-logic';
-import { getScheduleCalendarWeekCount, isSessionActiveInWeek } from './holiday-logic';
+import { getScheduleCalendarWeekCount, isSessionActiveInWeek, toDateInputValue } from './holiday-logic';
 import type { ScheduleSession, WeeklySchedule } from '../types';
 import { tryResolvePeriodRange } from '../../../domain/campus';
 import { createIcsHelpers, downloadCalendarIcs } from '../../calendar-export';
@@ -7,6 +7,51 @@ import { createIcsHelpers, downloadCalendarIcs } from '../../calendar-export';
 interface CalendarOccurrence {
     calendarWeek: number;
     session: ScheduleSession;
+}
+
+export interface WidgetScheduleEvent {
+    date: string;
+    startTime: string;
+    endTime: string;
+    title: string;
+    room: string;
+    campusId: string;
+}
+
+export interface WidgetScheduleSnapshot {
+    version: 1;
+    generatedAt: number;
+    validUntil: string;
+    events: WidgetScheduleEvent[];
+}
+
+/** Bản lịch tối thiểu cho Android, dùng cùng quy tắc lặp/nghỉ/bù với xuất ICS. */
+export function buildWidgetScheduleSnapshot(schedule: WeeklySchedule, now = new Date()): WidgetScheduleSnapshot | null {
+    if (!schedule.semesterStartDate) return null;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const lastDay = new Date(today);
+    lastDay.setDate(lastDay.getDate() + 30);
+    const events: WidgetScheduleEvent[] = [];
+    const totalWeeks = getExportWeekCount(schedule);
+
+    for (const session of schedule.sessions) {
+        for (const occurrence of getSessionOccurrences(schedule, session, totalWeeks)) {
+            const current = occurrence.session;
+            const date = getDateForWeek(schedule.semesterStartDate, occurrence.calendarWeek, current.dayOfWeek);
+            if (date < today || date > lastDay) continue;
+            events.push({
+                date: toDateInputValue(date),
+                startTime: current.startTime,
+                endTime: current.endTime,
+                title: current.courseName.slice(0, 160),
+                room: (current.room || '').slice(0, 80),
+                campusId: (current.campusId || '').slice(0, 40),
+            });
+        }
+    }
+
+    events.sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime) || a.title.localeCompare(b.title));
+    return { version: 1, generatedAt: now.getTime(), validUntil: toDateInputValue(lastDay), events: events.slice(0, 256) };
 }
 
 function getExportWeekCount(schedule: WeeklySchedule): number {

@@ -63,6 +63,16 @@ export function useSchedule(): WeeklySchedule & {
     }, [overridesStorageKey]);
 
     useEffect(() => {
+        const refreshOverrides = () => setOverrides(readOverridesForSemester());
+        window.addEventListener('ustudy:storage-changed', refreshOverrides);
+        window.addEventListener('storage', refreshOverrides);
+        return () => {
+            window.removeEventListener('ustudy:storage-changed', refreshOverrides);
+            window.removeEventListener('storage', refreshOverrides);
+        };
+    }, [overridesStorageKey]);
+
+    useEffect(() => {
         fetch(`/data/campuses/${defaultCampusId}/holidays.json`)
             .then(res => res.json())
             .then(data => setSystemHolidays(Array.isArray(data) ? data : []))
