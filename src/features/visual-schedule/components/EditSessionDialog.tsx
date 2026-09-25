@@ -4,10 +4,13 @@ import { AlertTriangle, CalendarDays, CalendarOff, Check, Clock3, MapPin, Messag
 import { AppSelect, Input, Label, Switch, Textarea } from '../../../components/ui/form';
 import { AppDialog } from '../../../components/ui/overlays/app-dialog';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '../../../components/ui/overlays/hover-card';
-import { type ScheduleSession, type ScheduleOverrides, type SessionOverride, DAYS } from '../types';
+import { type ScheduleSession, type ScheduleOverrides, type SessionOverride } from '../types';
+import { weekDays } from '../../../constants';
 import type { OpenClassDetailTarget } from '../../../components/course';
 import { calculateRowSpan, getDisplayEnd } from '../services/schedule-helpers';
 import { ScheduleNote } from './schedule-note';
+import { CAMPUS_OPTIONS, getCampusDefinition, tryResolvePeriodRange, type CampusId } from '../../../domain/campus';
+import { getCompactCampusLabel } from '../../../components/schedule/campus-label';
 
 function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides, onSave }: {
     open: boolean;
@@ -23,12 +26,14 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
     const baseValues = session.baseValues ?? {
         room: session.room, dayOfWeek: session.dayOfWeek, startPeriod: session.startPeriod,
         endPeriod: session.endPeriod, note: undefined, color: session.color,
+        campusId: session.campusId,
     };
     const [scope, setScope] = useState<'semester' | 'week'>('semester');
     const [room, setRoom] = useState(session.room);
     const [startPeriod, setStartPeriod] = useState(String(session.startPeriod));
     const [endPeriod, setEndPeriod] = useState(String(session.endPeriod));
     const [dayOfWeek, setDayOfWeek] = useState(String(session.dayOfWeek));
+    const [campusId, setCampusId] = useState<CampusId>(session.campusId ?? 'dong-hoa');
     const [note, setNote] = useState(session.note || '');
     const [color, setColor] = useState(session.color);
     const [startWeek, setStartWeek] = useState('');
@@ -49,6 +54,7 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
         endPeriod: override?.endPeriod ?? baseValues.endPeriod,
         note: override?.note ?? baseValues.note ?? '',
         color: override?.color ?? baseValues.color,
+        campusId: override?.campusId ?? baseValues.campusId ?? session.campusId ?? 'dong-hoa',
     });
 
     const resetForm = (nextScope: 'semester' | 'week') => {
@@ -61,6 +67,7 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
         setEndPeriod(String(values.endPeriod));
         setNote(values.note || '');
         setColor(values.color);
+        setCampusId(values.campusId);
         setStartWeek(nextScope === 'semester' && globalOverride?.startWeek !== undefined ? String(globalOverride.startWeek) : '');
         setEndWeek(nextScope === 'semester' && globalOverride?.endWeek !== undefined ? String(globalOverride.endWeek) : '');
         setIsCurrentWeekVisible(!(globalOverride?.hiddenWeeks || []).includes(weekNumber));
@@ -84,13 +91,14 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
         const parsedDay = Number(dayOfWeek);
         const parsedStartWeek = startWeek ? Number(startWeek) : undefined;
         const parsedEndWeek = endWeek ? Number(endWeek) : undefined;
-        const duration = Number.isInteger(parsedEnd) ? parsedEnd - parsedStart + 1 : parsedEnd - parsedStart;
+        const periodRange = tryResolvePeriodRange(campusId, parsedStart, parsedEnd);
+        const duration = periodRange ? (periodRange.endMinute - periodRange.startMinute) / 50 : 0;
 
-        if (!Number.isFinite(parsedStart) || !Number.isFinite(parsedEnd) || parsedStart < 1 || parsedEnd > 10.5 || duration <= 0) {
-            setError('Tiết học chưa hợp lệ. Hãy nhập từ tiết 1 đến tiết 10.5 và đảm bảo tiết kết thúc sau tiết bắt đầu.');
+        if (!Number.isFinite(parsedStart) || !Number.isFinite(parsedEnd) || !periodRange || duration <= 0) {
+            setError(`Tiết học chưa hợp lệ với ${getCampusDefinition(campusId).name}.`);
             return;
         }
-        if (![...DAYS.map((day) => day.value), 8].includes(parsedDay as 2 | 3 | 4 | 5 | 6 | 7 | 8)) {
+        if (!weekDays.some((day) => day.day === parsedDay)) {
             setError('Vui lòng chọn ngày học hợp lệ.');
             return;
         }
@@ -106,6 +114,7 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
         const update: SessionOverride = {
             room: room.trim(), startPeriod: parsedStart, endPeriod: parsedEnd,
             dayOfWeek: parsedDay as ScheduleSession['dayOfWeek'], note: note.trim() || undefined, color,
+            campusId,
         };
         const hiddenWeeks = isCurrentWeekVisible
             ? (globalOverride?.hiddenWeeks || []).filter((week) => week !== weekNumber)
@@ -223,12 +232,25 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
                         </div>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="sm:col-span-2">
+                            <Label className="mb-1.5 block text-sm font-medium text-slate-700">Cơ sở học</Label>
+                            <AppSelect
+                                value={campusId}
+                                onChange={(value) => setCampusId(value as CampusId)}
+                                options={CAMPUS_OPTIONS}
+                                ariaLabel="Chọn cơ sở học cho buổi này"
+                                triggerClassName="h-10 px-3 py-0 text-sm"
+                            />
+                            {session.isCampusFallback && campusId === session.campusId && (
+                                <p className="mt-1.5 text-xs text-amber-700">Chưa đối chiếu được từ lớp mở, đang dùng cơ sở mặc định.</p>
+                            )}
+                        </div>
                         <div>
                             <Label className="mb-1.5 block text-sm font-medium text-slate-700">Ngày học</Label>
                             <AppSelect
                                 value={dayOfWeek}
                                 onChange={setDayOfWeek}
-                                options={[...DAYS.map((day) => ({ id: day.value, name: day.label })), { id: '8', name: 'Chủ Nhật' }]}
+                                options={weekDays.map((day) => ({ id: String(day.day), name: day.label }))}
                                 ariaLabel="Chọn ngày học"
                                 triggerClassName="h-10 px-3 py-0 text-sm"
                             />
@@ -245,10 +267,10 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
                             <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
                                 <div className="relative">
                                     <Clock3 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                                    <Input aria-label="Tiết bắt đầu" type="number" min="1" max="10.5" step="0.5" value={startPeriod} onChange={(event) => setStartPeriod(event.target.value)} placeholder="Bắt đầu" className="h-10 rounded-lg bg-white pl-9" />
+                                    <Input aria-label="Tiết bắt đầu" type="number" min="1" max={getCampusDefinition(campusId).periodCount} step="0.5" value={startPeriod} onChange={(event) => setStartPeriod(event.target.value)} placeholder="Bắt đầu" className="h-10 rounded-lg bg-white pl-9" />
                                 </div>
                                 <span className="text-xs font-medium text-slate-400">đến</span>
-                                <Input aria-label="Tiết kết thúc" type="number" min="1" max="10.5" step="0.5" value={endPeriod} onChange={(event) => setEndPeriod(event.target.value)} placeholder="Kết thúc" className="h-10 rounded-lg bg-white" />
+                                <Input aria-label="Tiết kết thúc" type="number" min="1" max={getCampusDefinition(campusId).periodCount} step="0.5" value={endPeriod} onChange={(event) => setEndPeriod(event.target.value)} placeholder="Kết thúc" className="h-10 rounded-lg bg-white" />
                             </div>
                         </div>
                     </div>
@@ -370,7 +392,8 @@ function CourseCard({
     weekNumber,
     overrides,
     onSave,
-    onOpenClassDetails
+    onOpenClassDetails,
+    timelineMode = false,
 }: {
     sessions: ScheduleSession | ScheduleSession[];
     hasConflict?: boolean;
@@ -378,6 +401,7 @@ function CourseCard({
     overrides: ScheduleOverrides;
     onSave: (newOverrides: ScheduleOverrides) => void;
     onOpenClassDetails?: (target: OpenClassDetailTarget) => void;
+    timelineMode?: boolean;
 }) {
     const [showInfo, setShowInfo] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -434,7 +458,7 @@ function CourseCard({
                 <HoverCardTrigger asChild>
             <div
                 className="relative w-full h-full"
-                style={{ minHeight: `calc(var(--schedule-row-height, 36px) * ${rowSpan})` }}
+                style={{ minHeight: timelineMode ? '100%' : `calc(var(--schedule-row-height, 36px) * ${rowSpan})` }}
             >
                 {/* Card chính - click để toggle info */}
                 <div
@@ -443,8 +467,8 @@ function CourseCard({
                         ${showInfo ? 'ring-2 ring-blue-400 ring-inset' : ''}
                     `}
                     style={{
-                        top: `${topOffsetPercent}%`,
-                        height: `calc(${heightPercent}% - 6px)`,
+                        top: timelineMode ? 0 : `${topOffsetPercent}%`,
+                        height: timelineMode ? 'calc(100% - 4px)' : `calc(${heightPercent}% - 6px)`,
                         ...customStyle
                     }}
                     onClick={(e) => {
@@ -477,7 +501,7 @@ function CourseCard({
                                 {sess.courseCode}
                             </div>
                             <div className={`text-[8px] md:text-[10px] leading-tight truncate ${hasConflict ? 'text-red-600' : 'text-gray-600'}`}>
-                                {sess.type} | {sess.room}
+                                {sess.type} | {sess.room} | {getCompactCampusLabel(sess.campusId)}
                             </div>
                         </div>
                     ))}
@@ -539,10 +563,15 @@ function CourseCard({
                             <span className="text-right font-semibold text-gray-900">{typeFullLabels[sess.type]}</span>
                             <span className="text-gray-500">Phòng học</span>
                             <span className="text-right font-semibold text-gray-900">{sess.room || '-'}</span>
+                            <span className="text-gray-500">Cơ sở</span>
+                            <span className="text-right font-semibold text-gray-900">
+                                {getCampusDefinition(sess.campusId ?? 'dong-hoa').shortName}
+                                {sess.isCampusFallback ? ' (mặc định)' : ''}
+                            </span>
                             <span className="text-gray-500">Thời gian</span>
                             <span className="text-right font-semibold text-gray-900">{sess.startTime} - {sess.endTime}</span>
                             <span className="text-gray-500">Tiết học</span>
-                            <span className="text-right font-semibold text-gray-900">{sess.startPeriod} - {Math.floor(sess.endPeriod)}</span>
+                            <span className="text-right font-semibold text-gray-900">{sess.startPeriod} - {sess.endPeriod}</span>
                             {sess.totalWeeks > 0 && (
                                 <>
                                     <span className="text-gray-500">Thời gian áp dụng</span>

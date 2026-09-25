@@ -164,121 +164,148 @@ export const categories = {
             "ALGEBRA": {
                 "name": "Chuyên ngành Đại số",
                 "total_credits_required": 29,
-                "mandatory_credits": 20,
-                "elective_credits": 9,
-                "mandatory_courses": [
-                    "MTH10419",
-                    "MTH10420",
-                    "MTH10421",
-                    "MTH10422",
-                    "MTH10501"
-                ],
-                "elective_courses": [
-                    "MTH10418",
-                    "MTH10492",
-                    "MTH10497",
-                    "MTH10498",
-                    "MTH10503",
-                    "MTH10505",
-                    "MTH10507",
-                    "MTH10525",
-                    "MTH10564",
-                    "MTH10596",
-                    "MTH10601",
-                    "MTH10603"
-                ],
-                "note": "Tích lũy tối thiểu 09 tín chỉ tự chọn trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 20,
+                        "courses": [
+                            "MTH10419",
+                            "MTH10420",
+                            "MTH10421",
+                            "MTH10422",
+                            "MTH10501"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 9,
+                        "note": "Tích lũy tối thiểu 09 tín chỉ tự chọn trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10418",
+                            "MTH10492",
+                            "MTH10497",
+                            "MTH10498",
+                            "MTH10503",
+                            "MTH10505",
+                            "MTH10507",
+                            "MTH10525",
+                            "MTH10564",
+                            "MTH10596",
+                            "MTH10601",
+                            "MTH10603"
+                        ]
+                    }
+                }
             },
+
             "ANALYSIS": {
                 "name": "Chuyên ngành Giải tích",
                 "total_credits_required": 29,
-                "mandatory_credits": 20,
-                "elective_credits": 9,
-                "mandatory_courses": [
-                    "MTH10413",
-                    "MTH10417",
-                    "MTH10436",
-                    "MTH10443",
-                    "MTH10451"
-                ],
-                "elective_courses": [
-                    "MTH10478",
-                    "MTH10480",
-                    "MTH10492",
-                    "MTH10564",
-                    "MTH10409",
-                    "MTH10414",
-                    "MTH10438",
-                    "MTH10439",
-                    "MTH10444",
-                    "MTH10461",
-                    "MTH10473",
-                    "MTH10555",
-                    "MTH10556",
-                    "MTH10604",
-                    "MTH10607"
-                ],
-                "note": "Tích lũy tối thiểu 09 tín chỉ tự chọn trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 20,
+                        "courses": [
+                            "MTH10413",
+                            "MTH10417",
+                            "MTH10436",
+                            "MTH10443",
+                            "MTH10451"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 9,
+                        "note": "Tích lũy tối thiểu 09 tín chỉ tự chọn trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10478",
+                            "MTH10480",
+                            "MTH10492",
+                            "MTH10564",
+                            "MTH10409",
+                            "MTH10414",
+                            "MTH10438",
+                            "MTH10439",
+                            "MTH10444",
+                            "MTH10461",
+                            "MTH10473",
+                            "MTH10555",
+                            "MTH10556",
+                            "MTH10604",
+                            "MTH10607"
+                        ]
+                    }
+                }
             },
+
             "NUMERICAL_ANALYSIS": {
                 "name": "Chuyên ngành Giải tích số",
                 "total_credits_required": 29,
-                "mandatory_credits": 20,
-                "elective_credits": 9,
-                "mandatory_courses": [
-                    "MTH10438",
-                    "MTH10555",
-                    "MTH10556",
-                    "MTH10604",
-                    "MTH10532"
-                ],
-                "elective_courses": [
-                    "MTH10417",
-                    "MTH10478",
-                    "MTH10480",
-                    "MTH10492",
-                    "MTH10564",
-                    "MTH10409",
-                    "MTH10413",
-                    "MTH10414",
-                    "MTH10436",
-                    "MTH10439",
-                    "MTH10443",
-                    "MTH10444",
-                    "MTH10461",
-                    "MTH10473",
-                    "MTH10607"
-                ],
-                "note": "Tích lũy tối thiểu 09 tín chỉ tự chọn trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 20,
+                        "courses": [
+                            "MTH10438",
+                            "MTH10555",
+                            "MTH10556",
+                            "MTH10604",
+                            "MTH10532"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 9,
+                        "note": "Tích lũy tối thiểu 09 tín chỉ tự chọn trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10417",
+                            "MTH10478",
+                            "MTH10480",
+                            "MTH10492",
+                            "MTH10564",
+                            "MTH10409",
+                            "MTH10413",
+                            "MTH10414",
+                            "MTH10436",
+                            "MTH10439",
+                            "MTH10443",
+                            "MTH10444",
+                            "MTH10461",
+                            "MTH10473",
+                            "MTH10607"
+                        ]
+                    }
+                }
             },
+
             "PROBABILITY_STATISTICS": {
                 "name": "Chuyên ngành Xác suất - Thống kê",
                 "total_credits_required": 29,
-                "mandatory_credits": 20,
-                "elective_credits": 9,
-                "mandatory_courses": [
-                    "MTH10423",
-                    "MTH10424",
-                    "MTH10485",
-                    "MTH10619",
-                    "MTH10508"
-                ],
-                "elective_courses": [
-                    "MTH10564",
-                    "MTH10510",
-                    "MTH10511",
-                    "MTH10512",
-                    "MTH10515",
-                    "MTH10518",
-                    "MTH10519",
-                    "MTH10554",
-                    "MTH10557",
-                    "MTH10558",
-                    "MTH10565",
-                    "MTH10566",
-                    "MTH10708"
-                ],
-                "note": "Tích lũy tối thiểu 09 tín chỉ tự chọn trong Phụ lục 1."
+                "breakdown": {
+                    "mandatory": {
+                        "total_credits_required": 20,
+                        "courses": [
+                            "MTH10423",
+                            "MTH10424",
+                            "MTH10485",
+                            "MTH10619",
+                            "MTH10508"
+                        ]
+                    },
+                    "elective": {
+                        "total_credits_required": 9,
+                        "note": "Tích lũy tối thiểu 09 tín chỉ tự chọn trong Phụ lục 1.",
+                        "courses": [
+                            "MTH10564",
+                            "MTH10510",
+                            "MTH10511",
+                            "MTH10512",
+                            "MTH10515",
+                            "MTH10518",
+                            "MTH10519",
+                            "MTH10554",
+                            "MTH10557",
+                            "MTH10558",
+                            "MTH10565",
+                            "MTH10566",
+                            "MTH10708"
+                        ]
+                    }
+                }
             }
         },
         "talent_core_requirement": {

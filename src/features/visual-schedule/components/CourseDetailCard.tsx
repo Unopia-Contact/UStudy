@@ -1,6 +1,7 @@
 // CourseDetailCard.tsx
 import { type ScheduleSession } from '../types';
 import type { OpenClassDetailTarget } from '../../../components/course';
+import { CampusLabel } from '../../../components/schedule/campus-label';
 
 const colorClasses = {
     blue: 'border-l-blue-600',
@@ -26,6 +27,11 @@ export function CourseDetailCard({ session, onOpenClassDetails }: { session: Sch
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-600">
                         <div>• {session.credits} TC | {typeLabels[session.type]} | Phòng: {session.room}</div>
+                        <CampusLabel
+                            campusId={session.campusId}
+                            isFallback={session.isCampusFallback}
+                            className="text-xs text-gray-600"
+                        />
                         {session.totalWeeks > 0 && (
                             <div>• Học từ: {session.startDate} - {session.endDate} ({session.totalWeeks} tuần)</div>
                         )}

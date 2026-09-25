@@ -1,13 +1,18 @@
 {
   "protocolVersion": "1.0.0",
   "scraperVersion": "0.2.1",
-  "extensionVersion": "0.2.7",
+  "extensionVersion": "0.2.9",
   "portalHostnamePattern": "^new-portal\\d*\\.hcmus\\.edu\\.vn$",
-  "portalLoginUrl": "https://new-portal.hcmus.edu.vn/Login.aspx",
+  "portalLogin": {
+    "urlTemplate": "https://new-portal{shard}.hcmus.edu.vn/Login.aspx",
+    "shardMin": 1,
+    "shardMax": 18
+  },
   "portalLoginPathPattern": "^/+Login\\.aspx(?:/.*)?$",
   "productionAppUrl": "https://ustudy.hakhoi.io.vn/",
   "appOrigins": [
     "https://ustudy.hakhoi.io.vn",
+    "https://ustudy.unopia.io.vn",
     "https://u-study-git-hk-deploy-hakhoicontact-archs-projects.vercel.app",
     "https://localhost:3005",
     "http://localhost:3005",

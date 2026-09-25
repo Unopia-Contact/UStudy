@@ -56,7 +56,7 @@ Sinh viên bị buộc thôi học nếu rơi vào một trong các trường h�
 ## 🎓 3. Điều Kiện Xét Tốt Nghiệp
 
 Sinh viên được xét và công nhận tốt nghiệp nếu hội đủ các điều kiện sau:
-1.  **Tích lũy đủ số tín chỉ:** Hoàn thành tối thiểu `138` tín chỉ (không tính Ngoại ngữ, Giáo dục Thể chất và Giáo dục Quốc phòng - An ninh) hoặc số tín chỉ cụ thể quy định theo từng Khung Chương Trình Đào Tạo của chuyên ngành.
+1.  **Tích lũy đủ số tín chỉ:** Hoàn thành số tín chỉ cụ thể quy định theo Khung Chương Trình Đào Tạo của chuyên ngành (không tính các học phần điều kiện nếu CTĐT quy định riêng).
 2.  **Điểm trung bình tích lũy:** Đạt từ `2.00` trở lên (thang điểm 4).
 3.  **Chứng chỉ điều kiện bắt buộc:**
     *   Có chứng chỉ **Giáo dục Thể chất** (đạt 4 tín chỉ điều kiện).

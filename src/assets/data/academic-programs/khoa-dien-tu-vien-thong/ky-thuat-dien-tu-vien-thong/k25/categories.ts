@@ -115,13 +115,14 @@ export const categories = {
     },
     "MAJOR_ELECTRONICS_TELECOMMUNICATIONS": {
         "name": "Kiến thức chuyên ngành",
-        "specializations": {
+        "total_credits_required": 34,
+        "breakdown": {
             "ELECTRONICS": {
                 "name": "Kỹ thuật điện tử",
                 "total_credits_required": 34,
                 "breakdown": {
-                    "MANDATORY": {
-                        "credits": 26,
+                    "mandatory": {
+                        "total_credits_required": 26,
                         "courses": [
                             "ETC10101",
                             "ETC10102",
@@ -136,8 +137,8 @@ export const categories = {
                             "ETC10111"
                         ]
                     },
-                    "ELECTIVE": {
-                        "credits": 8,
+                    "elective": {
+                        "total_credits_required": 8,
                         "note": "Theo các nhóm tự chọn trong CTĐT.",
                         "courses": [
                             "ETC10112",
@@ -159,8 +160,8 @@ export const categories = {
                 "name": "Kỹ thuật máy tính và hệ thống nhúng",
                 "total_credits_required": 34,
                 "breakdown": {
-                    "MANDATORY": {
-                        "credits": 26,
+                    "mandatory": {
+                        "total_credits_required": 26,
                         "courses": [
                             "ETC10201",
                             "ETC10202",
@@ -179,8 +180,8 @@ export const categories = {
                             "ETC10215"
                         ]
                     },
-                    "ELECTIVE": {
-                        "credits": 8,
+                    "elective": {
+                        "total_credits_required": 8,
                         "note": "TC1 2TC; TC2 3TC theo cặp; TC3 3TC theo cặp.",
                         "courses": [
                             "ETC10216",
@@ -208,8 +209,8 @@ export const categories = {
                 "name": "Viễn thông và mạng",
                 "total_credits_required": 34,
                 "breakdown": {
-                    "MANDATORY": {
-                        "credits": 22,
+                    "mandatory": {
+                        "total_credits_required": 22,
                         "courses": [
                             "ETC10301",
                             "ETC10302",
@@ -226,8 +227,8 @@ export const categories = {
                             "ETC10313"
                         ]
                     },
-                    "ELECTIVE": {
-                        "credits": 12,
+                    "elective": {
+                        "total_credits_required": 12,
                         "note": "Tích lũy 12TC theo các nhóm tự chọn của CTĐT.",
                         "courses": [
                             "ETC10314",

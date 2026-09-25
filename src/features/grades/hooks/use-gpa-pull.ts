@@ -201,10 +201,7 @@ export function useGPAPull({
         };
     }, [scopedGradesHistory]);
 
-    const currentSemesterCredits = useMemo(() => {
-        return simulatorCourses.reduce((sum, course) => sum + (course.credits ?? 0), 0);
-    }, [simulatorCourses]);
-    const scopedTotalCredits = isFoundationMajorScopeActive ? foundationMajorTotalCredits : (ACADEMIC_RULES.TOTAL_CREDITS ?? totalCredits);
+    const scopedTotalCredits = isFoundationMajorScopeActive ? foundationMajorTotalCredits : totalCredits;
     const displayCurrentGPA = isFoundationMajorScopeActive ? scopedCurrentSnapshot.gpa : currentGPA;
     const displayAccumulatedCredits = isFoundationMajorScopeActive ? scopedCurrentSnapshot.earnedCredits : accumulatedCredits;
     const scopeLabelSuffix = isFoundationMajorScopeActive ? ' (Cơ sở ngành)' : '';
@@ -273,6 +270,33 @@ export function useGPAPull({
             : simulatorCourses;
     }, [simulatorCourses, isFoundationMajorScopeActive, foundationCourseCodes, courseCategoryByCode]);
 
+    const gpaPlanningScopedSimulatorCourses = useMemo(() => {
+        return scopedSimulatorCourses.filter((course) => (
+            !AcademicRulesEngine.isCourseExcludedFromGPA(course.code)
+            && (
+                course.currentGrade === null
+                || AcademicRulesEngine.evaluateCourseStatus(course.currentGrade) === 'passed'
+            )
+        ));
+    }, [scopedSimulatorCourses]);
+
+    const semesterGPAScopedSimulatorCourses = useMemo(() => {
+        return scopedSimulatorCourses.filter((course) => (
+            !AcademicRulesEngine.isCourseExcludedFromGPA(course.code)
+        ));
+    }, [scopedSimulatorCourses]);
+
+    const activePlanningSimulatorCourses = mode === 'currentSemester'
+        ? semesterGPAScopedSimulatorCourses
+        : gpaPlanningScopedSimulatorCourses;
+
+    const currentSemesterCredits = useMemo(() => {
+        return activePlanningSimulatorCourses.reduce(
+            (sum, course) => sum + (course.credits ?? 0),
+            0,
+        );
+    }, [activePlanningSimulatorCourses]);
+
     const projectedScopeCourses = useMemo(() => {
         return scopedSimulatorCourses.filter((course) => (
             (course.currentGrade !== null || course.projectedGrade !== null)
@@ -286,11 +310,20 @@ export function useGPAPull({
 
     const projectedScopeGPA = useMemo(() => {
         if (mode === 'currentSemester') {
-            const totalPoints = projectedScopeCourses.reduce(
-                (sum, course) => sum + (course.currentGrade ?? course.projectedGrade ?? 0) * (course.credits ?? 0),
-                0
-            );
-            return projectedScopeCredits > 0 ? totalPoints / projectedScopeCredits : 0;
+            let totalPoints = 0;
+            let gpaCredits = 0;
+            projectedScopeCourses.forEach((course) => {
+                const grade = course.currentGrade ?? course.projectedGrade;
+                if (grade === null) return;
+                const semesterGPAParams = AcademicRulesEngine.calculateSemesterGPAParams(
+                    course.code,
+                    course.credits ?? 0,
+                    grade,
+                );
+                totalPoints += semesterGPAParams.pointsForGPA;
+                gpaCredits += semesterGPAParams.creditsForGPA;
+            });
+            return gpaCredits > 0 ? totalPoints / gpaCredits : 0;
         }
 
         return GPACalculator.calculateProjectedGPA(
@@ -321,7 +354,7 @@ export function useGPAPull({
                     message: 'Chưa có học phần nào trong kỳ hiện tại để tính GPA.',
                 };
             }
-            const officialCourses = scopedSimulatorCourses.filter((course) => (
+            const officialCourses = semesterGPAScopedSimulatorCourses.filter((course) => (
                 course.currentGrade !== null && (course.credits ?? 0) > 0
             ));
             const officialCredits = officialCourses.reduce((sum, course) => sum + (course.credits ?? 0), 0);
@@ -366,7 +399,7 @@ export function useGPAPull({
             scopedTotalCredits,
             scopeName
         );
-    }, [scopedGradesWithManualRetakes, scopedSimulatorCourses, targetGPA, scopedTotalCredits, scopeName, mode, currentSemesterCredits]);
+    }, [scopedGradesWithManualRetakes, semesterGPAScopedSimulatorCourses, targetGPA, scopedTotalCredits, scopeName, mode, currentSemesterCredits]);
 
     /**
      * Dự báo học kỳ tiếp theo dựa trên dữ liệu Simulator.
@@ -377,11 +410,11 @@ export function useGPAPull({
     const nextSemester = useMemo((): GPAPullSemester | null => {
         if (!baseResult?.success || baseResult.requiredAverage == null || baseResult.impossible || baseResult.alreadyAchieved)
             return null;
-        const raw = GPACalculator.buildNextSemesterFromSimulator(scopedSimulatorCourses, baseResult.requiredAverage);
+        const raw = GPACalculator.buildNextSemesterFromSimulator(activePlanningSimulatorCourses, baseResult.requiredAverage);
         if (!raw) return null;
         const courses = redistributeSuggestedGrades(raw.courses, baseResult.requiredAverage);
         return { ...raw, courses };
-    }, [baseResult, scopedSimulatorCourses]);
+    }, [baseResult, activePlanningSimulatorCourses]);
 
     /**
      * Đánh giá hiệu quả học tập của học kỳ dự kiến so với mục tiêu dài hạn.
@@ -563,12 +596,25 @@ export function useGPAPull({
      */
     const manualRetakeImpact = useMemo(() => {
         const totalImpactPoints = manualRetakeItems.reduce((sum, item) => sum + item.impactPoints, 0);
-        const avgGpaLift = scopedTotalCredits > 0 ? totalImpactPoints / scopedTotalCredits : 0;
+        const currentGPA = scopedCurrentSnapshot.gpa;
+        const projectedGPA = manualRetakeItems.length > 0
+            ? GPACalculator.calculateProjectedGPA(
+                scopedGradesHistory,
+                manualRetakeItems.map((item) => ({
+                    code: item.code,
+                    credits: item.credits,
+                    projectedGrade: item.targetGrade,
+                })),
+            )
+            : currentGPA;
+
         return {
             totalImpactPoints,
-            avgGpaLift,
+            currentGPA,
+            projectedGPA,
+            gpaDelta: projectedGPA - currentGPA,
         };
-    }, [manualRetakeItems, scopedTotalCredits]);
+    }, [manualRetakeItems, scopedCurrentSnapshot.gpa, scopedGradesHistory]);
 
     const selectedManualRetakeCodes = useMemo(() => {
         const set = new Set<string>();

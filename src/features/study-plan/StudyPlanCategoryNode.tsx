@@ -1,6 +1,12 @@
 import { CheckCircle2, ChevronDown, ChevronRight } from 'lucide-react';
 import { AcademicRulesEngine } from '../grades';
-import { getCategoryCreditProgress, getRequiredCredits, sumCoursePlanCredits } from './credit-progress';
+import {
+    getCategoryCreditProgress,
+    getCategoryOptionPath,
+    getRequiredCredits,
+    sumCoursePlanCredits,
+    type CategoryCreditProgressMap,
+} from './credit-progress';
 import { StudyPlanCourseRow } from './StudyPlanCourseRow';
 import type { CourseDragStartHandler, CourseMeta, MobilePlannerOpenHandler } from './types';
 
@@ -11,6 +17,7 @@ interface StudyPlanCategoryNodeProps {
     expandedCategories: Record<string, boolean>;
     onCategoryExpandedChange: (categoryKey: string, expanded: boolean) => void;
     manuallyPlannedCourseIds: Set<string>;
+    creditProgressByPath: CategoryCreditProgressMap;
     onDragStart: CourseDragStartHandler;
     onRemoveFromPlan: (courseId: string) => void;
     onOpenMobilePlanner: MobilePlannerOpenHandler;
@@ -23,6 +30,7 @@ export function StudyPlanCategoryNode({
     expandedCategories,
     onCategoryExpandedChange,
     manuallyPlannedCourseIds,
+    creditProgressByPath,
     onDragStart,
     onRemoveFromPlan,
     onOpenMobilePlanner,
@@ -32,7 +40,8 @@ export function StudyPlanCategoryNode({
     const childCategories = category.breakdown ? Object.entries(category.breakdown) : [];
     const optionCategories = Array.isArray(category.options) ? category.options : [];
     const requiredCredits = getRequiredCredits(category);
-    const { earnedCredits, plannedCredits } = getCategoryCreditProgress(category, manuallyPlannedCourseIds);
+    const { earnedCredits, plannedCredits } = creditProgressByPath[categoryKey]?.display
+        ?? getCategoryCreditProgress(category, manuallyPlannedCourseIds);
     const displayCredits = earnedCredits + plannedCredits;
     const isCompleted = requiredCredits > 0 && earnedCredits >= requiredCredits;
     const hasContent =
@@ -103,11 +112,12 @@ export function StudyPlanCategoryNode({
                         const optionCourses = (option.coursesData || []) as CourseMeta[];
                         if (optionCourses.length === 0) return null;
                         const optionRequiredCredits = Number(option.credits) || 0;
-                        const optionProgress = sumCoursePlanCredits(
-                            (option.allCoursesData || option.coursesData || []) as CourseMeta[],
-                            manuallyPlannedCourseIds,
-                            Boolean(category.name && AcademicRulesEngine.isCategoryExcludedFromAccumulation(category.name))
-                        );
+                        const optionProgress = creditProgressByPath[getCategoryOptionPath(categoryKey, index)]?.display
+                            ?? sumCoursePlanCredits(
+                                (option.allCoursesData || option.coursesData || []) as CourseMeta[],
+                                manuallyPlannedCourseIds,
+                                Boolean(category.name && AcademicRulesEngine.isCategoryExcludedFromAccumulation(category.name))
+                            );
                         const optionEarnedCredits = optionProgress.earnedCredits;
                         const optionPlannedCredits = optionProgress.plannedCredits;
                         const optionDisplayCredits = optionEarnedCredits + optionPlannedCredits;
@@ -155,6 +165,7 @@ export function StudyPlanCategoryNode({
                             expandedCategories={expandedCategories}
                             onCategoryExpandedChange={onCategoryExpandedChange}
                             manuallyPlannedCourseIds={manuallyPlannedCourseIds}
+                            creditProgressByPath={creditProgressByPath}
                             onDragStart={onDragStart}
                             onRemoveFromPlan={onRemoveFromPlan}
                             onOpenMobilePlanner={onOpenMobilePlanner}

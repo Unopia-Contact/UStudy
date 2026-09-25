@@ -14,8 +14,9 @@ import {
     LoaderCircle,
     School,
 } from 'lucide-react';
-import { ACADEMIC_YEAR_MAJOR_CATALOGS, FACULTIES, getAcademicYearMajorCatalog, loadCohortData } from '../../../assets/data/academic-programs/registry';
+import { ACADEMIC_YEAR_MAJOR_CATALOGS, FACULTIES, getAcademicYearMajorCatalog, getProgramTuitionProfileId, loadCohortData } from '../../../assets/data/academic-programs/registry';
 import { ACADEMIC_YEARS, getTuitionRateDetails } from '../../../assets/data/tuition';
+import { getCampusDefinition } from '../../../domain/campus';
 import { SectionTabs } from '../../../components/ui/navigation/section-tabs';
 import { AppSelect } from '../../../components/ui/form';
 import {
@@ -196,6 +197,9 @@ function CoverageRow({ item }: { item: MajorDataCoverage }) {
                 <p className="mt-0.5 text-xs text-gray-500">
                     {isComplete ? 'Đủ chương trình, tiên quyết và khung chương trình.' : `Thiếu: ${missing.map((asset) => asset.label.toLowerCase()).join(', ')}.`}
                 </p>
+                <p className="mt-1 text-xs text-gray-500">
+                    {item.campusIds.map((campusId) => getCampusDefinition(campusId).shortName).join(' · ')} · {item.tuitionProfileName}
+                </p>
                 {item.sourceCohort !== item.cohort.id && <p className="mt-1 text-xs font-medium text-[#004A98]">Dùng dữ liệu nguồn {item.sourceCohort.toUpperCase()}</p>}
             </div>
             <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${isComplete ? 'bg-emerald-50 text-emerald-700' : (missing.length === 3 ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' )}`}>
@@ -294,8 +298,12 @@ export function WorkspaceDataFeature() {
 
     const tuitionRows = useMemo(() => {
         if (!major) return [];
-        return ACADEMIC_YEARS.map((year) => ({ year, ...getTuitionRateDetails(year.id, major.id) }));
-    }, [major]);
+        const tuitionProfileId = getProgramTuitionProfileId(faculty.id, major.id, cohortId);
+        return ACADEMIC_YEARS.map((year) => ({
+            year,
+            ...getTuitionRateDetails(year.id, { facultyId: faculty.id, majorId: major.id }, tuitionProfileId),
+        }));
+    }, [faculty, major, cohortId]);
 
     return (
         <section className="space-y-5">
@@ -355,6 +363,9 @@ export function WorkspaceDataFeature() {
                                     <h2 className="text-base font-bold text-gray-900">{major.name}</h2>
                                 </div>
                                 <p className="mt-1 text-sm text-gray-500">{faculty.name} · {selectedCoverage.cohort.name}</p>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Cơ sở đào tạo: {selectedCoverage.campusIds.map((campusId) => getCampusDefinition(campusId).name).join(' · ')} · Đơn giá: {selectedCoverage.tuitionProfileName}
+                                </p>
                             </div>
                             <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${selectedCoverage.availableCount === 3 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
                                 {selectedCoverage.availableCount}/3 dữ liệu chương trình
@@ -386,7 +397,10 @@ export function WorkspaceDataFeature() {
                         <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-4 sm:px-5">
                             <div className="flex items-center gap-2">
                                 <CircleDollarSign className="h-4 w-4 text-[#004A98]" />
-                                <h2 className="text-base font-bold text-gray-900">Đơn giá học phí liên quan</h2>
+                                <div>
+                                    <h2 className="text-base font-bold text-gray-900">Đơn giá học phí liên quan</h2>
+                                    <p className="mt-0.5 text-xs text-gray-500">{selectedCoverage.tuitionProfileName}</p>
+                                </div>
                             </div>
                             <span className="text-xs font-medium text-gray-500">{tuitionRows.length} năm học</span>
                         </div>
@@ -439,7 +453,7 @@ export function WorkspaceDataFeature() {
                     </section>
 
                     <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Khoa</p><p className="mt-1 text-2xl font-bold text-gray-900">{FACULTIES.length}</p></div>
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Khoa</p><p className="mt-1 text-2xl font-bold text-gray-900">{new Set(allCoverage.map((item) => item.faculty.id)).size}</p></div>
                         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Ngành đủ 3 dữ liệu</p><p className="mt-1 text-2xl font-bold text-emerald-700">{completeMajors}/{allCoverage.length}</p></div>
                         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Ngành cần bổ sung</p><p className="mt-1 text-2xl font-bold text-amber-700">{missingMajors}</p></div>
                     </div>

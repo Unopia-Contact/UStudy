@@ -2,8 +2,13 @@ import { useMemo, useState, useEffect } from 'react';
 import { readFromStorage, saveToStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
 import { useDepartmentData } from '../../../context/DepartmentContext';
+import { useCampus } from '../../../context/CampusContext';
 import { ScheduleLogic } from '../services/schedule-logic';
 import { type WeeklySchedule, type ScheduleOverrides, type Holiday } from '../types';
+import {
+    getProgramScheduleWorkloadOverrides,
+    SCHEDULE_WORKLOAD_OVERRIDES_EVENT,
+} from '../../settings/services/schedule-workload-preferences';
 
 const EMPTY_OVERRIDES: ScheduleOverrides = { sessionOverrides: {}, weekOverrides: {}, holidays: [] };
 
@@ -20,8 +25,15 @@ export function useSchedule(): WeeklySchedule & {
     systemHolidays: Holiday[];
     updateOverrides: (newOverrides: ScheduleOverrides) => void
 } {
-    const { data: { courses: allCoursesMeta } } = useDepartmentData();
+    const {
+        data: { courses: allCoursesMeta },
+        facultyId,
+        majorId,
+        cohortId,
+    } = useDepartmentData();
+    const { defaultCampusId, campusRevision } = useCampus();
     const studentDb = readFromStorage<any>(STORAGE_KEYS.STUDENT_DB, null);
+    const openCourses = readFromStorage<any[]>(STORAGE_KEYS.COURSE_DB_OFFLINE, []);
     const metadata = readFromStorage<any>(STORAGE_KEYS.IMPORT_META, null);
     const activeGroupSchedule = readFromStorage<any>(STORAGE_KEYS.ACTIVE_GROUP_SCHEDULE, null);
     const legacySavedSchedules = readFromStorage<any>(STORAGE_KEYS.SAVED_SCHEDULES, null);
@@ -33,6 +45,7 @@ export function useSchedule(): WeeklySchedule & {
         : studentDb?.registrations || [];
 
     const [systemHolidays, setSystemHolidays] = useState<Holiday[]>([]);
+    const [workloadRevision, setWorkloadRevision] = useState(0);
 
     const readOverridesForSemester = () => {
         const semesterOverrides = readFromStorage<ScheduleOverrides | null>(overridesStorageKey, null);
@@ -50,21 +63,48 @@ export function useSchedule(): WeeklySchedule & {
     }, [overridesStorageKey]);
 
     useEffect(() => {
-        fetch('/holidays.json')
+        const refreshOverrides = () => setOverrides(readOverridesForSemester());
+        window.addEventListener('ustudy:storage-changed', refreshOverrides);
+        window.addEventListener('storage', refreshOverrides);
+        return () => {
+            window.removeEventListener('ustudy:storage-changed', refreshOverrides);
+            window.removeEventListener('storage', refreshOverrides);
+        };
+    }, [overridesStorageKey]);
+
+    useEffect(() => {
+        fetch(`/data/campuses/${defaultCampusId}/holidays.json`)
             .then(res => res.json())
             .then(data => setSystemHolidays(Array.isArray(data) ? data : []))
             .catch(err => console.error('Failed to load system holidays:', err));
+    }, [defaultCampusId]);
+
+    useEffect(() => {
+        const refreshWorkload = () => setWorkloadRevision((revision) => revision + 1);
+        window.addEventListener(SCHEDULE_WORKLOAD_OVERRIDES_EVENT, refreshWorkload);
+        window.addEventListener('storage', refreshWorkload);
+        return () => {
+            window.removeEventListener(SCHEDULE_WORKLOAD_OVERRIDES_EVENT, refreshWorkload);
+            window.removeEventListener('storage', refreshWorkload);
+        };
     }, []);
 
     const schedule = useMemo(() => {
+        const academicContext = { campusId: defaultCampusId, facultyId, majorId, cohortId };
         return ScheduleLogic.buildScheduleSessions(
             courses_registered,
             allCoursesMeta,
             metadata,
             overrides,
-            systemHolidays
+            systemHolidays,
+            openCourses,
+            defaultCampusId,
+            {
+                academicContext,
+                userOverrides: getProgramScheduleWorkloadOverrides(academicContext),
+            },
         );
-    }, [courses_registered, metadata, allCoursesMeta, overrides, systemHolidays]);
+    }, [courses_registered, metadata, allCoursesMeta, overrides, systemHolidays, openCourses, defaultCampusId, campusRevision, facultyId, majorId, cohortId, workloadRevision]);
 
     const updateOverrides = (newOverrides: ScheduleOverrides) => {
         const normalized = normalizeOverrides(newOverrides);

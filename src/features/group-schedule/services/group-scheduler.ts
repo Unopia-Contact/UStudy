@@ -27,10 +27,17 @@ import type {
   StateMatrix,
 } from '../types';
 import { formatDaysOff, type DayOffPreference } from '../../../utils/dayOffPreferences';
+import {
+  DEFAULT_CAMPUS_ID,
+  SCHEDULE_MASK_PARTS,
+  getScheduleBitIndex,
+  getScheduleSlotRangeForSession,
+  type CampusId,
+} from '../../../domain/campus';
 
 const GROUP_URL_PREFIX = 'v2_';
 const LEGACY_GROUP_URL_PREFIX = 'v1_';
-const MASK_PARTS = 10;
+const MASK_PARTS = SCHEDULE_MASK_PARTS;
 const MAX_GROUP_URL_COMPRESSED_BYTES = 12 * 1024;
 const MAX_GROUP_URL_JSON_LENGTH = 64 * 1024;
 const MAX_GROUP_MEMBERS = 20;
@@ -68,6 +75,7 @@ type ClassLike = {
   mask?: number[];
   scheduleMask?: Bitset;
   schedule?: string | string[];
+  scheduleEntries?: Array<{ schedule: string[]; campusId: CampusId }>;
 };
 
 type CourseLike = {
@@ -92,12 +100,10 @@ function uniqueCourseIds(courseIds: string[]): string[] {
 }
 
 function normalizeMask(mask?: number[], partCount = MASK_PARTS): number[] {
-  const normalized = new Array(partCount).fill(0);
-  if (!Array.isArray(mask)) return normalized;
-  for (let i = 0; i < Math.min(partCount, mask.length); i++) {
-    normalized[i] = mask[i] | 0;
-  }
-  return normalized;
+  if (!Array.isArray(mask)) return new Array(partCount).fill(0);
+  const bitset = new Bitset();
+  bitset.loadFromData(mask);
+  return bitset.parts.slice(0, partCount);
 }
 
 function getClassMask(cls: ClassLike): number[] {
@@ -347,11 +353,10 @@ function countDayOffViolations(mask: number[], daysOff: DayOffPreference[] | und
     const day = Number(rawDay);
     if (!Number.isInteger(day) || day < 0 || day > 6) return count;
 
-    const startPeriod = rawSession === 'morning' ? 0 : rawSession === 'afternoon' ? 10 : 0;
-    const endPeriod = rawSession === 'morning' ? 9 : rawSession === 'afternoon' ? 19 : 19;
-    for (let period = startPeriod; period <= endPeriod; period++) {
-      const bit = day * 20 + period;
-      if (maskHasBit(mask, bit) || maskHasBit(mask, bit + 140)) return count + 1;
+    const session = rawSession === 'morning' || rawSession === 'afternoon' ? rawSession : 'all';
+    const [startSlot, endSlot] = getScheduleSlotRangeForSession(session);
+    for (let slot = startSlot; slot <= endSlot; slot++) {
+      if (maskHasBit(mask, getScheduleBitIndex(day, slot, 1)) || maskHasBit(mask, getScheduleBitIndex(day, slot, 2))) return count + 1;
     }
     return count;
   }, 0);
@@ -716,10 +721,11 @@ export function validateGroupScheduleConfiguration(
   dbData: unknown,
   members: GroupMemberToken[],
   config: Partial<GroupFitnessConfig> = {},
+  defaultCampusId: CampusId = DEFAULT_CAMPUS_ID,
 ): GroupConfigurationIssue[] {
   const sanitizedMembers = members.map(sanitizeGroupMember);
   const courseDatabase = new CourseDatabase();
-  courseDatabase.loadData(typeof dbData === 'string' ? JSON.parse(dbData) : dbData);
+  courseDatabase.loadData(typeof dbData === 'string' ? JSON.parse(dbData) : dbData, defaultCampusId);
   const courses = buildDensityMap(sanitizedMembers, config.courseSharing);
 
   return courses.flatMap((course) => {
@@ -865,6 +871,7 @@ function toScheduleOption(
         isShared: course.isShared,
         mask: getClassMask(classObj),
         schedule: classObj.schedule,
+        scheduleEntries: classObj.scheduleEntries,
         sharingGroupId: course.sharingGroupId,
         sharingGroupLabel: course.sharingGroupLabel,
       };
@@ -889,6 +896,7 @@ function toScheduleOption(
         isShared: false,
         mask: getClassMask(classObj),
         schedule: classObj.schedule,
+        scheduleEntries: classObj.scheduleEntries,
         sharingGroupId: course.sharingGroupId,
         sharingGroupLabel: course.sharingGroupLabel,
       });
@@ -1104,11 +1112,12 @@ export function runGroupScheduleSolver(
   members: GroupMemberToken[],
   config: Partial<GroupFitnessConfig> = {},
   maxSolutions = GROUP_SCHEDULER_CONFIG.DEFAULT_MAX_SOLUTIONS,
+  defaultCampusId: CampusId = DEFAULT_CAMPUS_ID,
 ): GroupScheduleRunResult {
   const sanitizedMembers = members.map(sanitizeGroupMember).filter((member) => member.sharedCourses.length + member.personalCourses.length > 0);
   const warnings: string[] = [];
   const courseDatabase = new CourseDatabase();
-  courseDatabase.loadData(typeof dbData === 'string' ? JSON.parse(dbData) : dbData);
+  courseDatabase.loadData(typeof dbData === 'string' ? JSON.parse(dbData) : dbData, defaultCampusId);
 
   const missingCourseIds = new Set<string>();
   const density = buildDensityMap(sanitizedMembers, config.courseSharing).filter((course) => {
@@ -1202,12 +1211,13 @@ export function analyzeGroupScheduleTradeoff(
   members: GroupMemberToken[],
   config: Partial<GroupFitnessConfig>,
   tradeoff: GroupScheduleTradeoff,
+  defaultCampusId: CampusId = DEFAULT_CAMPUS_ID,
 ): GroupScheduleTradeoff {
   if (tradeoff.kind !== 'group-day-off' && tradeoff.kind !== 'personal-day-off') return tradeoff;
 
   const sanitizedMembers = members.map(sanitizeGroupMember).filter((member) => member.sharedCourses.length + member.personalCourses.length > 0);
   const courseDatabase = new CourseDatabase();
-  courseDatabase.loadData(typeof dbData === 'string' ? JSON.parse(dbData) : dbData);
+  courseDatabase.loadData(typeof dbData === 'string' ? JSON.parse(dbData) : dbData, defaultCampusId);
   const density = buildDensityMap(sanitizedMembers, config.courseSharing).filter((course) => getClasses(courseDatabase, course.courseId).length > 0);
   const hardConstraints: HardClassConstraints = {};
   const fitnessConfig = buildFitnessConfig(config);

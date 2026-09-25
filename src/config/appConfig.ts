@@ -5,11 +5,6 @@ import portalSyncConfig from '../portal-sync/config.json';
  */
 export const APP_CONFIG = {
     /**
-     * Đường dẫn đăng nhập Portal
-     */
-    PORTAL_LOGIN_URL: portalSyncConfig.portalLoginUrl,
-
-    /**
      * Danh sách học kỳ hiển thị trên dropdown
      */
     AVAILABLE_SEMESTERS: [

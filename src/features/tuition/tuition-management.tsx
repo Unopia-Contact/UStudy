@@ -17,6 +17,7 @@ import { Payment } from './components/payment';
 import { TuitionDeskTopCardList } from './components/tuition-desktop-card-list';
 import { TuitionMobileCardList } from './components/tuition-mobile-card-list';
 import { TuitionSummaryCard } from './components/tuition-summary-card';
+import { useDepartmentData } from '../../context/DepartmentContext';
 
 interface TuitionPageProps {
   selectedSemester?: string;
@@ -53,7 +54,8 @@ const getStatusBadge = (status: string) => {
 };
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount);
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | null | undefined) => {
+  if (!dateString) return 'Chưa có hạn thanh toán';
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('vi-VN', {
     day: 'numeric',
@@ -65,6 +67,7 @@ const formatDate = (dateString: string) => {
 // ==================== MAIN COMPONENT ====================
 
 export function TuitionPage({ selectedSemester }: TuitionPageProps) {
+  const { data: { tuitionRates } } = useDepartmentData();
   const {
     isReady,
     hasData,
@@ -134,6 +137,12 @@ export function TuitionPage({ selectedSemester }: TuitionPageProps) {
       )}
 
       {/* Summary Cards */}
+      {tuitionRates?.profileId === 'tuition-cs1' && (
+        <p className="mb-4 flex items-center gap-2 px-1 text-xs text-gray-500">
+          <CreditCard className="h-3.5 w-3.5 shrink-0 text-[#004A98]" />
+          Không có đơn giá học phí cho cơ sở 1 - Chợ quán. Vui lòng đợi thông báo chính thức từ nhà trường.
+        </p>
+      )}
       <TuitionSummaryCard
         currentSemesterData={currentSemesterData}
         currentSemesterSummary={currentSemesterSummary}

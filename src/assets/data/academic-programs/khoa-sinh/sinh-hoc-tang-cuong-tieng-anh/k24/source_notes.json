@@ -1,0 +1,18 @@
+{
+  "admission_code": "7420101_DKD",
+  "program": "Sinh học — Tăng cường tiếng Anh",
+  "cohort": 2024,
+  "source_status": "official_k2024_source_identified_content_unavailable",
+  "confidence": "structure_supported_exact_course_table_unverified",
+  "official_program_page": "https://tuyensinh.hcmus.edu.vn/nganh-sinh-hoc-chuong-trinh-tang-cuong-tieng-anh/",
+  "official_k2024_source": {
+    "title": "CTDT Sinh hoc_2024_CTDA.pdf",
+    "url": "https://drive.google.com/file/d/1uCkiyjM7VCvUQz5rTb04ijTxtuIzK8wh/view"
+  },
+  "notes": [
+    "Trang tuyển sinh HCMUS xác nhận chương trình Sinh học TCTA, mã ngành 7420101, xây dựng trên nền chương trình chuẩn và khoảng 50–60% số tín chỉ được học bằng tiếng Anh.",
+    "Trang chính thức có liên kết riêng cho Khóa 2024 tới file 'CTDT Sinh hoc_2024_CTDA.pdf'. Trong phiên hiện tại, nội dung PDF đó không tải/đọc được qua công cụ nên chưa thể kiểm chứng từng bảng học phần từ file K2024.",
+    "courses.ts và categories.ts hiện giữ cấu trúc dựa trên CTĐT Sinh học K2024 chuẩn đã dùng trước đó. Không tự suy diễn khác biệt TCTA khi chưa đọc được PDF K2024 exact.",
+    "Các 6 hướng/chuyên ngành Sinh học được trang chương trình chính thức mô tả: Sinh học động vật, Vi sinh, Sinh hóa, Sinh học thực vật, Di truyền – Sinh học phân tử, Sinh thái và Tài nguyên sinh vật."
+  ]
+}

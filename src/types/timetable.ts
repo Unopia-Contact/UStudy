@@ -11,6 +11,11 @@ export interface ClassSection {
     day: number; // 2-8 (Mon-Sun)
     startPeriod: number; // 1-12
     endPeriod: number; // 1-12
+    startTime?: string;
+    endTime?: string;
+    campusId?: import('../domain/campus').CampusId;
+    campusSource?: import('../domain/campus').ResolvedCampusSource;
+    isCampusFallback?: boolean;
     color: string; // màu sắc
     isConfirmed: boolean; // đã xác nhận
     credits: number; // số tín chỉ

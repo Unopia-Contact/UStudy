@@ -228,14 +228,26 @@ export function GPAPullManualRetake({
                                 </tbody>
                                 <tfoot className="border-t border-gray-200 bg-gray-50/70">
                                     <tr>
-                                        <td colSpan={4} className="px-2 py-2.5 text-right text-xs font-medium text-gray-500">Tổng tác động GPA</td>
-                                        <td className="px-2 py-2.5 text-center text-sm font-semibold tabular-nums text-emerald-700">+{manualRetakeImpact.avgGpaLift.toFixed(4)}</td>
+                                        <td colSpan={3} className="px-2 py-2.5 text-right text-xs font-medium text-gray-500">
+                                            GPA {scopeName.toLowerCase()} dự kiến
+                                        </td>
+                                        <td colSpan={2} className="px-2 py-2.5 text-center tabular-nums">
+                                            <div className="flex items-baseline justify-center gap-2">
+                                                <span className="text-sm font-medium text-gray-500">{manualRetakeImpact.currentGPA.toFixed(decimals)}</span>
+                                                <span className="text-xs text-gray-400" aria-hidden="true">→</span>
+                                                <span className="text-base font-semibold text-[#004A98]">{manualRetakeImpact.projectedGPA.toFixed(decimals)}</span>
+                                            </div>
+                                            <p className={`mt-0.5 text-[11px] font-medium ${manualRetakeImpact.gpaDelta > 0 ? 'text-emerald-700' : 'text-gray-500'}`}>
+                                                Thay đổi {manualRetakeImpact.gpaDelta > 0 ? '+' : ''}{manualRetakeImpact.gpaDelta.toFixed(4)}
+                                            </p>
+                                        </td>
                                         <td className="px-2 py-2.5 text-right">
                                             <button
                                                 type="button"
                                                 onClick={clearAllManualRetakes}
-                                                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                                                className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
                                                 title="Xóa toàn bộ môn cải thiện"
+                                                aria-label="Xóa toàn bộ môn cải thiện"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>

@@ -1,0 +1,81 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ustudy",
+  "account_id": "1861eccb6ab24d0621df06f599df42d3",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-09-17",
+  "workers_dev": true,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": false,
+      "head_sampling_rate": 1,
+      "persist": true
+    }
+  },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/analytics/*"]
+  },
+  "vars": {
+    "ANALYTICS_ENABLED": "true",
+    "ANALYTICS_ALLOW_LOCAL": "false"
+  },
+  "ratelimits": [
+    {
+      "name": "ANALYTICS_ID_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 5, "period": 60 }
+    },
+    {
+      "name": "ANALYTICS_IP_RATE_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 300, "period": 60 }
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "ANALYTICS_DB",
+      "database_name": "ustudy-analytics",
+      "database_id": "8363437e-aef6-4f50-a694-06f72a9244b0",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "env": {
+    "unopia": {
+      "name": "ustudy",
+      "account_id": "db7b9bfb49b69cc1407fb28095329f7b",
+      "vars": {
+        "ANALYTICS_ENABLED": "true",
+        "ANALYTICS_ALLOW_LOCAL": "false"
+      },
+      "ratelimits": [
+        {
+          "name": "ANALYTICS_ID_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": { "limit": 5, "period": 60 }
+        },
+        {
+          "name": "ANALYTICS_IP_RATE_LIMITER",
+          "namespace_id": "1002",
+          "simple": { "limit": 300, "period": 60 }
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "ANALYTICS_DB",
+          "database_name": "ustudy-analytics",
+          "database_id": "0bcbba2d-6222-4fd2-a5f1-a4f817fdccfc",
+          "migrations_dir": "./migrations"
+        }
+      ]
+    }
+  }
+}

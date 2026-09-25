@@ -225,7 +225,12 @@ export interface GPAPullManualRetakeProps {
     commitManualRetakeTargetInput: (code: string, current: number) => void;
     draftManualRetakeTargets: Record<string, string>;
     draftManualRetakeTargetErrors: Record<string, string>;
-    manualRetakeImpact: { totalImpactPoints: number; avgGpaLift: number };
+    manualRetakeImpact: {
+        totalImpactPoints: number;
+        currentGPA: number;
+        projectedGPA: number;
+        gpaDelta: number;
+    };
     selectableRetakeCourses: ManualRetakeCandidate[];
     filteredSelectableRetakeCourses: ManualRetakeCandidate[];
     retakeSearchTerm: string;

@@ -40,6 +40,8 @@ export function SettingsPage({ onPageChange }: { onPageChange: (page: string) =>
 
                     <SettingUserProfile onPageChange={onPageChange} />
 
+                    {/* <ScheduleWorkloadSettings /> */}
+
                     {/* Công cụ đồng bộ dữ liệu */}
                     <div className="ustudy-settings-card">
                         <h2 className="ustudy-settings-title">

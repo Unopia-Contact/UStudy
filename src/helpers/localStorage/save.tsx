@@ -1,3 +1,5 @@
+import { isAnalyticsStorageKey, isPrivateAnalyticsStorageKey } from '../../features/analytics/analytics-storage';
+
 /**
  * save.tsx - Secure Storage Layer
  *
@@ -24,6 +26,12 @@ const MIGRATION_STAGE_KEY = '__crypto_v2_migration_stage__';
 const MIGRATION_LEGACY_PREFIX = '__crypto_v2_legacy__:';
 const MIGRATION_DATA_PREFIX = '__crypto_v2_data__:';
 const PIN_CHANGE_STAGE_KEY = '__crypto_v2_pin_change_stage__';
+const SECURE_DATA_SCHEMA_KEY = '__secure_data_schema_version__';
+const SECURE_DATA_SCHEMA_VERSION = 2;
+const LEGACY_PLAINTEXT_SECURE_KEYS = [
+    'solver_preferences',
+    'allowed_classes_map',
+] as const;
 
 /** Keys nội bộ của hệ thống bảo mật, không export ra STORAGE_KEYS */
 const INTERNAL_KEYS = {
@@ -258,10 +266,16 @@ function generateMasterKeyMaterial(): Uint8Array {
     return crypto.getRandomValues(new Uint8Array(MASTER_KEY_BYTES));
 }
 
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+    const copy = new Uint8Array(bytes.byteLength);
+    copy.set(bytes);
+    return copy.buffer;
+}
+
 async function importMasterDataKey(rawMasterKey: Uint8Array): Promise<CryptoKey> {
     return crypto.subtle.importKey(
         'raw',
-        rawMasterKey,
+        toArrayBuffer(rawMasterKey),
         { name: 'AES-GCM' },
         false,
         ['encrypt', 'decrypt'],
@@ -271,9 +285,9 @@ async function importMasterDataKey(rawMasterKey: Uint8Array): Promise<CryptoKey>
 async function wrapMasterKey(rawMasterKey: Uint8Array, kek: CryptoKey): Promise<{ iv: Uint8Array; ciphertext: ArrayBuffer }> {
     const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
     const ciphertext = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv, additionalData: MASTER_KEY_WRAP_AAD },
+        { name: 'AES-GCM', iv: toArrayBuffer(iv), additionalData: toArrayBuffer(MASTER_KEY_WRAP_AAD) },
         kek,
-        rawMasterKey,
+        toArrayBuffer(rawMasterKey),
     );
     return { iv, ciphertext };
 }
@@ -282,9 +296,9 @@ async function unwrapMasterKey(kek: CryptoKey, ivRaw: string, ciphertextRaw: str
     const iv = fromBase64(ivRaw);
     const ciphertext = fromBase64(ciphertextRaw);
     const rawMasterKey = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv, additionalData: MASTER_KEY_WRAP_AAD },
+        { name: 'AES-GCM', iv: toArrayBuffer(iv), additionalData: toArrayBuffer(MASTER_KEY_WRAP_AAD) },
         kek,
-        ciphertext,
+        toArrayBuffer(ciphertext),
     );
     return new Uint8Array(rawMasterKey);
 }
@@ -355,6 +369,7 @@ async function readLegacySecureValue(payload: string, legacyKey: CryptoKey): Pro
 export function savePlain<T>(key: string, value: T): void {
     try {
         localStorage.setItem(key, JSON.stringify(value));
+        window.dispatchEvent(new Event('ustudy:storage-changed'));
     } catch (err) {
         console.error(`[savePlain] Lỗi khi lưu "${key}":`, err);
     }
@@ -388,6 +403,33 @@ export async function readSecure<T>(key: string, cryptoKey: CryptoKey, fallback:
     const raw = localStorage.getItem(key);
     if (raw === null) return fallback;
     return await decryptWithKey(raw, cryptoKey) as T;
+}
+
+/**
+ * Older v2 installations stored these preferences as plain JSON before they
+ * became secure keys. Migrate only that exact allowlist once; later reads must
+ * still pass authenticated AES-GCM decryption.
+ */
+export async function migrateLegacyPlaintextSecureData(cryptoKey: CryptoKey): Promise<void> {
+    const schemaVersion = Number(localStorage.getItem(SECURE_DATA_SCHEMA_KEY) || 0);
+    if (schemaVersion >= SECURE_DATA_SCHEMA_VERSION) return;
+
+    for (const key of LEGACY_PLAINTEXT_SECURE_KEYS) {
+        const raw = localStorage.getItem(key);
+        if (raw === null || decodePayload(raw)) continue;
+
+        let value: unknown;
+        try {
+            value = JSON.parse(raw);
+        } catch {
+            throw new Error(`INVALID_LEGACY_PLAINTEXT:${key}`);
+        }
+
+        const encrypted = await encryptWithKey(value, cryptoKey);
+        localStorage.setItem(key, encrypted);
+    }
+
+    localStorage.setItem(SECURE_DATA_SCHEMA_KEY, String(SECURE_DATA_SCHEMA_VERSION));
 }
 
 // ─── PIN Management ───────────────────────────────────────────────────────────
@@ -804,7 +846,7 @@ export async function createImportRollbackSnapshot(source: string, summary: Impo
         const data: Record<string, string> = {};
         for (let index = 0; index < localStorage.length; index += 1) {
             const key = localStorage.key(index);
-            if (key && key !== IMPORT_ROLLBACK_STORAGE_KEY) {
+            if (key && key !== IMPORT_ROLLBACK_STORAGE_KEY && !isAnalyticsStorageKey(key)) {
                 data[key] = localStorage.getItem(key) || '';
             }
         }
@@ -906,8 +948,16 @@ export async function restoreLastImportRollback(): Promise<boolean> {
                 else data[key] = currentValue;
             }
         }
+        const analyticsData: Record<string, string> = {};
+        for (let index = 0; index < localStorage.length; index += 1) {
+            const key = localStorage.key(index);
+            if (key && isAnalyticsStorageKey(key)) analyticsData[key] = localStorage.getItem(key) || '';
+        }
         localStorage.clear();
-        Object.entries(data).forEach(([key, value]) => localStorage.setItem(key, value));
+        Object.entries(data)
+            .filter(([key]) => !isPrivateAnalyticsStorageKey(key))
+            .forEach(([key, value]) => localStorage.setItem(key, value));
+        Object.entries(analyticsData).forEach(([key, value]) => localStorage.setItem(key, value));
         if (snapshot.storage === 'indexeddb') await deleteImportRollbackData();
         return true;
     } catch (error) {
@@ -917,7 +967,9 @@ export async function restoreLastImportRollback(): Promise<boolean> {
 }
 
 /** Xóa toàn bộ localStorage + sessionStorage. Caller tự gọi reload nếu cần. */
-export function clearAllStorage(): void {
+export async function clearAllStorage(): Promise<void> {
+    const { clearNativeScheduleWidget } = await import('../../mobile/schedule-widget');
+    await clearNativeScheduleWidget();
     localStorage.clear();
     sessionStorage.clear();
 }

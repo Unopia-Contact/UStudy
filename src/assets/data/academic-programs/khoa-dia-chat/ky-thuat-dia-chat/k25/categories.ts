@@ -136,71 +136,86 @@ export const categories = {
         }
     },
     "MAJOR_GEOLOGICAL_ENGINEERING": {
-        "name": "Kiến thức chuyên ngành Kỹ thuật Địa chất",
-        "total_credits_required": 30,
-        "specializations": {
-            "MINERAL_EXPLORATION": {
-                "name": "Tìm kiếm thăm dò khoáng sản",
-                "mandatory_credits": 21,
-                "mandatory_courses": [
-                    "GEO20101",
-                    "GEO20102",
-                    "GEO10113",
-                    "GEO20117",
-                    "GEO20105",
-                    "GEO20108",
-                    "GEO20109",
-                    "GEO20110",
-                    "GEO20118",
-                    "GEO10114"
-                ],
-                "elective_credits_required": 9,
-                "elective_courses": [
-                    "GEO20106",
-                    "GEO20120",
-                    "GEO10112",
-                    "GEO20121",
-                    "GEO20119",
-                    "GEO20114",
-                    "GEO10117",
-                    "GEO10118",
-                    "GEO10119",
-                    "GEO10120",
-                    "GEO10121",
-                    "GEO10122"
-                ]
-            },
-            "GEOTECHNICAL": {
-                "name": "Địa kỹ thuật",
-                "mandatory_credits": 21,
-                "mandatory_courses": [
-                    "GEO20202",
-                    "GEO20204",
-                    "GEO20205",
-                    "GEO20206",
-                    "GEO20207",
-                    "GEO10413",
-                    "GEO20209",
-                    "GEO10114"
-                ],
-                "elective_credits_required": 9,
-                "elective_courses": [
-                    "GEO20214",
-                    "GEO20217",
-                    "GEO20211",
-                    "GEO20218",
-                    "GEO20210",
-                    "GEO20212",
-                    "GEO10117",
-                    "GEO10118",
-                    "GEO10119",
-                    "GEO10120",
-                    "GEO10121",
-                    "GEO10122"
-                ]
+    "name": "Kiến thức chuyên ngành Kỹ thuật Địa chất",
+    "total_credits_required": 30,
+    "breakdown": {
+        "MINERAL_EXPLORATION": {
+            "name": "Tìm kiếm thăm dò khoáng sản",
+            "total_credits_required": 30,
+            "breakdown": {
+                "mandatory": {
+                    "total_credits_required": 21,
+                    "courses": [
+                        "GEO20101",
+                        "GEO20102",
+                        "GEO10113",
+                        "GEO20117",
+                        "GEO20105",
+                        "GEO20108",
+                        "GEO20109",
+                        "GEO20110",
+                        "GEO20118",
+                        "GEO10114"
+                    ]
+                },
+                "elective": {
+                    "total_credits_required": 9,
+                    "courses": [
+                        "GEO20106",
+                        "GEO20120",
+                        "GEO10112",
+                        "GEO20121",
+                        "GEO20119",
+                        "GEO20114",
+                        "GEO10117",
+                        "GEO10118",
+                        "GEO10119",
+                        "GEO10120",
+                        "GEO10121",
+                        "GEO10122"
+                    ]
+                }
+            }
+        },
+
+        "GEOTECHNICAL": {
+            "name": "Địa kỹ thuật",
+            "total_credits_required": 30,
+            "breakdown": {
+                "mandatory": {
+                    "total_credits_required": 21,
+                    "courses": [
+                        "GEO20202",
+                        "GEO20204",
+                        "GEO20205",
+                        "GEO20206",
+                        "GEO20207",
+                        "GEO10413",
+                        "GEO20209",
+                        "GEO10114"
+                    ]
+                },
+                "elective": {
+                    "total_credits_required": 9,
+                    "courses": [
+                        "GEO20214",
+                        "GEO20217",
+                        "GEO20211",
+                        "GEO20218",
+                        "GEO20210",
+                        "GEO20212",
+                        "GEO10117",
+                        "GEO10118",
+                        "GEO10119",
+                        "GEO10120",
+                        "GEO10121",
+                        "GEO10122"
+                    ]
+                }
             }
         }
-    },
+    }
+},
     "GRADUATION": {
         "name": "Kiến thức tốt nghiệp",
         "total_credits_required": 10,

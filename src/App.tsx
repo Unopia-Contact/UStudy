@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Analytics } from '@vercel/analytics/react';
 import { BookOpen, CheckCircle2, ChevronUp, Eye, FileUp, RefreshCw, Trash2 } from 'lucide-react';
 import { AppRouter } from './app/AppRouter';
 import { AppDialog } from './components/ui/overlays/app-dialog';
 import { SecurityGate, SecurityLock } from './components/security';
 import { CryptoProvider, CACHE_POPULATED_EVENT, useCrypto } from './context/CryptoContext';
+import { CampusProvider } from './context/CampusContext';
 import { DepartmentProvider } from './context/DepartmentContext';
 import { NotificationProvider, useAppNotification } from './context/NotificationContext';
 import { createImportRollbackSnapshot, readFromStorage, saveSecure, populateSecureCache } from './helpers/localStorage/save';
@@ -13,6 +13,9 @@ import { processRawData } from './logic/dataProcessor';
 import { buildRawImportPreview, getImportCollectionLabel, mergeSelectedRawImport, type RawImportChange } from './logic/import-preview';
 import { mergeImportMetadata, type PortalDataSource } from './logic/import-metadata';
 import { requestPortalExtension } from './portal-sync/bridge';
+import { AnalyticsBootstrap } from './features/analytics/AnalyticsBootstrap';
+import { AndroidWidgetSync } from './mobile/AndroidWidgetSync';
+import { isScheduleWidgetAvailable } from './mobile/schedule-widget';
 import {
   PORTAL_EXTENSION_PENDING_AVAILABLE,
   PORTAL_EXTENSION_READY_EVENT,
@@ -308,6 +311,7 @@ function AppContent() {
 
   return (
     <>
+      <AnalyticsBootstrap />
       {pendingData && !cryptoKey && (
         <SecurityLock
           setupMode={!hasData}
@@ -419,6 +423,7 @@ function AppContent() {
         )}
       </AppDialog>
 
+      {isScheduleWidgetAvailable() && <AndroidWidgetSync />}
       <AppRouter />
     </>
   );
@@ -431,12 +436,13 @@ function ImportSummary({ label, value, icon }: { label: string; value: number; i
 export default function App() {
   return (
     <CryptoProvider>
-      <Analytics />
       <SecurityGate>
         <NotificationProvider>
-          <DepartmentProvider>
-            <AppContent />
-          </DepartmentProvider>
+          <CampusProvider>
+            <DepartmentProvider>
+              <AppContent />
+            </DepartmentProvider>
+          </CampusProvider>
         </NotificationProvider>
       </SecurityGate>
     </CryptoProvider>

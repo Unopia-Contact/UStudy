@@ -1,26 +1,46 @@
-import { useState } from 'react';
-import { Calendar, Clock, BookOpen, GraduationCap, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { toPng } from 'html-to-image';
+import { Calendar, Clock, BookOpen, GraduationCap, ChevronLeft, ChevronRight, Download, ImageDown, ImagePlus, MoreHorizontal } from 'lucide-react';
 
-import { DAYS } from '../types';
+import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { useVisualSchedule } from '../hooks/use-visual-schedule';
 import { NoDataCard } from '../../../components/feedback';
 import { PageHeader } from '../../../components/layout/page-header';
 import { PageShell } from '../../../components/layout/page-shell';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../components/ui/overlays/dropdown-menu';
 import { ColorLegend } from './ColorLegend';
 import { HolidayManagerDialog } from './HolidayManagerDialog';
 import { CourseDetailCard } from './CourseDetailCard';
-import { PeriodRow } from './PeriodRow';
+import { CourseCard } from './EditSessionDialog';
 import { QuickStatsCard } from './QuickStatsCard';
-import { timePeriods } from '../../../constants';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../../components/course';
+import { getOverlappingSessions } from '../services/schedule-helpers';
+import { useCampus } from '../../../context/CampusContext';
+import { downloadImage } from '../../../utils/export';
+import { ScheduleImageDialog } from '../../schedule-image/ScheduleImageDialog';
+import { fromScheduleSessions } from '../../schedule-image/schedule-image-model';
+import {
+  buildScheduleAxis,
+  getScheduleAxisBreakLabel,
+  getScheduleAxisContext,
+  getScheduleAxisHeader,
+  getScheduleAxisHint,
+  getScheduleAxisPosition,
+  getScheduleAxisTimeBreakSummary,
+} from '../../../components/schedule/schedule-axis';
 
 interface VisualScheduleMainProps {
   selectedSemester?: string;
 }
 
 export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps) {
+  const { defaultCampusId } = useCampus();
   const [isHolidayManagerOpen, setIsHolidayManagerOpen] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isExportingCurrentImage, setIsExportingCurrentImage] = useState(false);
+  const [imageExportError, setImageExportError] = useState('');
   const [openClassDetails, setOpenClassDetails] = useState<OpenClassDetailTarget | null>(null);
+  const currentScheduleImageRef = useRef<HTMLDivElement>(null);
   const {
     isReady,
     hasData,
@@ -34,11 +54,63 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     trends,
     uniqueCourses,
     isToday,
-    currentPeriod,
     handlePreviousWeek,
     handleNextWeek,
     handleExport
   } = useVisualSchedule({ selectedSemester });
+
+  const scheduleAxis = useMemo(
+    () => buildScheduleAxis(displaySessions, defaultCampusId),
+    [displaySessions, defaultCampusId],
+  );
+  const visibleDays = useMemo(
+    () => getVisibleWeekDays([
+      ...schedule.sessions.map((session) => session.dayOfWeek),
+      ...displaySessions.map((session) => session.dayOfWeek),
+    ]),
+    [schedule.sessions, displaySessions],
+  );
+  const dayColumnCount = visibleDays.length;
+  const gridTemplateColumns = getScheduleGridTemplate(64, dayColumnCount);
+  const calendarMinWidth = dayColumnCount === 7
+    ? 'min-w-[644px] md:min-w-[1156px]'
+    : 'min-w-[560px] md:min-w-[1000px]';
+
+  const calendarBlocks = useMemo(() => {
+    const visited = new Set<string>();
+    return displaySessions.flatMap((session) => {
+      if (visited.has(session.id)) return [];
+      const sessions = [session, ...getOverlappingSessions(session, displaySessions)]
+        .filter((candidate, index, values) => values.findIndex((value) => value.id === candidate.id) === index);
+      sessions.forEach((candidate) => visited.add(candidate.id));
+      return [{
+        sessions,
+        day: session.dayOfWeek,
+      }];
+    });
+  }, [displaySessions]);
+
+  const exportCurrentScheduleImage = async () => {
+    const calendar = currentScheduleImageRef.current;
+    if (!calendar || isExportingCurrentImage) return;
+
+    setIsExportingCurrentImage(true);
+    setImageExportError('');
+    try {
+      const dataUrl = await toPng(calendar, {
+        backgroundColor: '#ffffff',
+        width: calendar.scrollWidth,
+        height: calendar.scrollHeight,
+        pixelRatio: 2,
+      });
+      downloadImage(dataUrl, `thoi-khoa-bieu-tuan-${currentWeek}.png`);
+    } catch (error) {
+      console.error('Failed to export current timetable image:', error);
+      setImageExportError('Không thể xuất ảnh lịch hiện tại. Thử tải lại trang rồi xuất lại.');
+    } finally {
+      setIsExportingCurrentImage(false);
+    }
+  };
 
   if (!isReady) {
     return (
@@ -69,22 +141,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           title="Thời khóa biểu"
           description={<>Xem lịch học theo tuần - {schedule.semesterName}</>}
           actions={<>
-            <div className="flex items-center gap-1.5 md:gap-3">
-              {/* Manage Holidays Button */}
-              <button
-                type="button"
-                onClick={() => setIsHolidayManagerOpen(true)}
-                className="flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 text-gray-700 transition-colors hover:border-[#004A98]/40 hover:bg-blue-50 hover:text-[#004A98] md:gap-2 md:px-4"
-              >
-                <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                <span className="hidden text-xs font-semibold sm:inline md:text-sm">Quản lý nghỉ lễ</span>
-                {schedule.overrides.holidays.length > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#004A98] px-1.5 text-[10px] font-bold text-white">
-                    {schedule.overrides.holidays.length}
-                  </span>
-                )}
-              </button>
-
+            <div className="flex items-center">
               <HolidayManagerDialog
                 open={isHolidayManagerOpen}
                 onOpenChange={setIsHolidayManagerOpen}
@@ -98,14 +155,30 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
                 onSave={schedule.updateOverrides}
               />
 
-              {/* Export Button */}
-              <button
-                onClick={handleExport}
-                className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-[#004A98] text-white rounded-lg hover:bg-[#003d7a] transition-colors duration-200 shadow-md hover:shadow-lg"
-              >
-                <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                <span className="text-xs md:text-sm font-medium">Xuất lịch</span>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button type="button" className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50" aria-label="Mở tùy chọn thời khóa biểu" title="Tùy chọn thời khóa biểu">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="hidden sm:inline">Tùy chọn</span>
+                    {schedule.overrides.holidays.length > 0 && <span className="ustudy-badge-count text-[10px] font-bold">{schedule.overrides.holidays.length}</span>}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="z-50 w-56 bg-white">
+                  <DropdownMenuItem onClick={() => setIsHolidayManagerOpen(true)} className="cursor-pointer hover:bg-gray-100">
+                    <Calendar className="mr-2 h-4 w-4" />Quản lý nghỉ lễ
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setIsImageDialogOpen(true)} className="cursor-pointer hover:bg-gray-100">
+                    <ImagePlus className="mr-2 h-4 w-4" />Tạo ảnh tổng quan
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled={isExportingCurrentImage} onClick={() => void exportCurrentScheduleImage()} className="cursor-pointer hover:bg-gray-100">
+                    <ImageDown className="mr-2 h-4 w-4" />{isExportingCurrentImage ? 'Đang xuất ảnh…' : 'Xuất ảnh lịch hiện tại'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExport} className="cursor-pointer hover:bg-gray-100">
+                    <Download className="mr-2 h-4 w-4" />Xuất lịch (.ics)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </>}
         />
@@ -169,7 +242,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
-
+{/* 
       {currentWeekHolidays.length > 0 && (
         <div className="mb-3 flex items-start gap-3 border-y border-amber-200 bg-amber-50 px-3 py-3 md:mb-4 md:px-4">
           <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
@@ -179,71 +252,96 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           </div>
           <button type="button" onClick={() => setIsHolidayManagerOpen(true)} className="shrink-0 text-xs font-semibold text-amber-800 hover:text-amber-950">Xem chi tiết</button>
         </div>
-      )}
+      )} */}
+
+      {imageExportError && <p role="alert" className="mb-3 text-sm font-medium text-red-700">{imageExportError}</p>}
 
       {/* Weekly Calendar Grid */}
+      {scheduleAxis.mode === 'time' && (
+        <p className="mb-2 text-xs text-slate-500" title={getScheduleAxisTimeBreakSummary(scheduleAxis) ?? undefined}>
+          {getScheduleAxisHint(scheduleAxis)} {getScheduleAxisTimeBreakSummary(scheduleAxis)}
+        </p>
+      )}
       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto mb-4 md:mb-6">
-        <table className="w-full border-collapse table-fixed min-w-[560px] md:min-w-[1000px]">
-          <thead>
-            <tr className="bg-[#004A98]">
-              <th className="sticky left-0 bg-[#004A98] z-20 border border-gray-300 p-0.5 md:p-1 text-white text-[10px] md:text-xs font-semibold w-10 md:w-16 min-w-[40px] md:min-w-[64px]">
-                Tiết
-              </th>
-              {DAYS.map((day) => (
-                <th key={day.value} className={`border border-gray-300 p-0.5 md:p-1 text-white text-[10px] md:text-[13px] font-semibold min-w-[80px] md:min-w-[165px] ${isToday(day.value) ? 'bg-green-600' : ''
-                  }`}>
-                  {day.label}
-                  {isToday(day.value) && (
-                    <div className="text-[9px] md:text-[11px] font-normal mt-0.5">Hôm nay</div>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {/* BUỔI SÁNG */}
-            <tr className="bg-green-50">
-              <td colSpan={7} className="text-center font-semibold py-1.5 text-xs text-gray-700 border border-gray-200">
-                SÁNG
-              </td>
-            </tr>
-
-            {timePeriods.slice(0, 5).map((period) => (
-              <PeriodRow
-                key={period.period}
-                period={period.period}
-                time={period.start}
-                schedule={{ ...schedule, weekNumber: currentWeek, sessions: displaySessions }}
-                isToday={isToday}
-                currentPeriod={currentPeriod}
-                overrides={schedule.overrides}
-                onSave={schedule.updateOverrides}
-                onOpenClassDetails={setOpenClassDetails}
-              />
+        <div ref={currentScheduleImageRef} className={calendarMinWidth}>
+          <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns }}>
+            <div className="sticky left-0 z-30 flex h-11 flex-col items-center justify-center border-r border-white/20 bg-[#004A98] text-[10px] font-semibold text-white md:h-12 md:text-xs">
+              <span>{getScheduleAxisHeader(scheduleAxis)}</span>
+              <span className="text-[8px] font-medium text-white/70">{getScheduleAxisContext(scheduleAxis)}</span>
+            </div>
+            {visibleDays.map((day) => (
+              <div key={day.day} className={`flex h-11 flex-col items-center justify-center border-l border-white/15 px-1 text-[10px] font-semibold text-white md:h-12 md:text-[13px] ${isToday(day.day) ? 'bg-green-600' : 'bg-[#004A98]'}`}>
+                {day.label}
+                {isToday(day.day) && <span className="mt-0.5 text-[9px] font-normal md:text-[11px]">Hôm nay</span>}
+              </div>
             ))}
+          </div>
 
-            {/* BUỔI CHIỀU */}
-            <tr className="bg-orange-50">
-              <td colSpan={7} className="text-center font-semibold py-1.5 text-xs text-gray-700 border border-gray-200">
-                <span>CHIỀU</span>
-              </td>
-            </tr>
+          <div className="relative isolate">
+            <div className="relative">
+              {scheduleAxis.rows.map((row) => {
+                const isBreak = row.kind === 'break';
+                const label = row.kind === 'period'
+                  ? row.period
+                  : row.kind === 'time' && row.minute % 60 === 0
+                    ? `${String(Math.floor(row.minute / 60)).padStart(2, '0')}:00`
+                    : '';
 
-            {timePeriods.slice(5, 10).map((period) => (
-              <PeriodRow
-                key={period.period}
-                period={period.period}
-                time={period.start}
-                schedule={{ ...schedule, weekNumber: currentWeek, sessions: displaySessions }}
-                isToday={isToday}
-                currentPeriod={currentPeriod}
-                overrides={schedule.overrides}
-                onSave={schedule.updateOverrides}
-                onOpenClassDetails={setOpenClassDetails}
-              />
-            ))}
-          </tbody>
-        </table>
+                return (
+                  <div
+                    key={row.kind === 'period' ? `period-${row.period}` : row.kind === 'break' ? `break-${row.afterPeriod}` : `time-${row.minute}`}
+                    className="grid"
+                    style={{ gridTemplateColumns, height: row.height }}
+                  >
+                    <div className={`sticky left-0 z-[4] flex items-center justify-center border-b border-r text-[9px] font-medium md:text-[10px] ${isBreak ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
+                      {row.kind === 'period' ? <><span className="sr-only">Tiết </span>{label}</> : isBreak ? 'Trưa' : label}
+                    </div>
+                    {isBreak ? (
+                      <div className="flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700 md:text-xs" style={{ gridColumn: `span ${dayColumnCount}` }}>
+                        {getScheduleAxisBreakLabel(row)}
+                      </div>
+                    ) : visibleDays.map((day) => (
+                      <div key={`${day.day}-${label}`} className={`border-b border-l border-gray-200 ${isToday(day.day) ? 'bg-green-50/30' : 'bg-white'}`} />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pointer-events-none absolute inset-0 z-[2]">
+              {calendarBlocks.map((block) => {
+                const dayIndex = visibleDays.findIndex((day) => day.day === block.day);
+                if (dayIndex < 0) return null;
+                const positions = block.sessions.map((session) => getScheduleAxisPosition(session, scheduleAxis, defaultCampusId));
+                const top = Math.min(...positions.map((position) => position.top));
+                const bottom = Math.max(...positions.map((position) => position.top + position.height));
+                const position = { top, height: bottom - top };
+                return (
+                  <div
+                    key={block.sessions.map((session) => session.id).join(':')}
+                    className="pointer-events-auto absolute p-0.5"
+                    style={{
+                      top: position.top,
+                      height: position.height,
+                      left: `calc(64px + ${dayIndex} * ((100% - 64px) / ${dayColumnCount}))`,
+                      width: `calc((100% - 64px) / ${dayColumnCount})`,
+                    }}
+                  >
+                    <CourseCard
+                      sessions={block.sessions}
+                      hasConflict={block.sessions.length > 1}
+                      weekNumber={currentWeek}
+                      overrides={schedule.overrides}
+                      onSave={schedule.updateOverrides}
+                      onOpenClassDetails={setOpenClassDetails}
+                      timelineMode
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Course Details Section */}
@@ -260,6 +358,16 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
       </div>
 
       <OpenClassDetailDialog target={openClassDetails} onOpenChange={(open) => { if (!open) setOpenClassDetails(null); }} />
+      {isImageDialogOpen && (
+        <ScheduleImageDialog
+          open={isImageDialogOpen}
+          onOpenChange={setIsImageDialogOpen}
+          lessons={fromScheduleSessions(schedule.sessions)}
+          title="Thời khóa biểu"
+          subtitle={schedule.semesterName}
+          filename={`thoi-khoa-bieu-${schedule.semester.replace(/\//g, '-')}`}
+        />
+      )}
 
     </PageShell>
   );

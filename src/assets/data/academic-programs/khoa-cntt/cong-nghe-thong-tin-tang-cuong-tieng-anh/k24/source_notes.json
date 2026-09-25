@@ -1,0 +1,7 @@
+{
+  "admission_code": "7480201_DKD",
+  "curriculum_year": 2024,
+  "confidence": "exact_from_official_scanned_pdf",
+  "source": "CTDT_CLC_Khoa-2024.pdf — CTDA HCMUS, 75 pages.",
+  "note": "Built from sections 6–7 of the official K2024 TCTA curriculum. Named specialist elective and graduation lists are represented; repeated appendix entries are de-duplicated by course_id."
+}

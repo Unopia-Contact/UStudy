@@ -1,6 +1,13 @@
 import { Bitset } from './Bitset';
 import { WEIGHTS } from './Constants';
 import type { DayOffSession } from '../../utils/dayOffPreferences';
+import {
+    SCHEDULE_DAY_COUNT,
+    SCHEDULE_SLOT_MINUTES,
+    SCHEDULE_SLOTS_PER_DAY,
+    getScheduleBitIndex,
+    getScheduleSlotRangeForSession,
+} from '../../domain/campus';
 
 export interface Preferences {
     daysOff?: (number | string)[];
@@ -54,9 +61,7 @@ export class FitnessEvaluator {
     }
 
     getPeriodRangeForDayOff(session: DayOffSession): [number, number] {
-        if (session === 'morning') return [0, 9];
-        if (session === 'afternoon') return [10, 19];
-        return [0, 19];
+        return getScheduleSlotRangeForSession(session);
     }
 
     // --- HÀM TÍNH ĐIỂM (CORE) ---
@@ -113,10 +118,8 @@ export class FitnessEvaluator {
                 if (currentMask) {
                     this.dayOffRules.forEach(({ day, session }) => {
                         const [startPeriodBit, endPeriodBit] = this.getPeriodRangeForDayOff(session);
-                        const startBit = day * 20 + startPeriodBit;
-                        const endBit = day * 20 + endPeriodBit;
-                        for (let k = startBit; k <= endBit; k++) {
-                            if (currentMask.test(k) || currentMask.test(k + 140)) {
+                        for (let slot = startPeriodBit; slot <= endPeriodBit; slot++) {
+                            if (currentMask.test(getScheduleBitIndex(day, slot, 1)) || currentMask.test(getScheduleBitIndex(day, slot, 2))) {
                                 score -= this.prefs.dayOffPenalty ?? WEIGHTS.PENALTY_DAY_OFF;
                                 break; // Dính 1 tiết là phạt, không cần check tiếp
                             }
@@ -197,10 +200,8 @@ export class FitnessEvaluator {
                 if (currentMask) {
                     this.dayOffRules.forEach(({ day, session }) => {
                         const [startPeriodBit, endPeriodBit] = this.getPeriodRangeForDayOff(session);
-                        const startBit = day * 20 + startPeriodBit;
-                        const endBit = day * 20 + endPeriodBit;
-                        for (let k = startBit; k <= endBit; k++) {
-                            if (currentMask.test(k) || currentMask.test(k + 140)) {
+                        for (let slot = startPeriodBit; slot <= endPeriodBit; slot++) {
+                            if (currentMask.test(getScheduleBitIndex(day, slot, 1)) || currentMask.test(getScheduleBitIndex(day, slot, 2))) {
                                 const sessionLabel = session === 'all' ? 'cả ngày' : session === 'morning' ? 'buổi sáng' : 'buổi chiều';
                                 report.penalties.push(`Học ngày nghỉ ${sessionLabel} (Thứ ${day + 2}): ${subjects[idx].id} (${cls.id})`);
                                 break;
@@ -228,14 +229,14 @@ export class FitnessEvaluator {
         let hasMorning = false;
         let hasAfternoon = false;
 
-        for (let d = 0; d < 7; d++) {
-            // Sáng: bit 0-9 (Tiết 1-5)
-            for (let p = 0; p < 10; p++) {
-                if (mask.test(d * 20 + p) || mask.test(140 + d * 20 + p)) hasMorning = true;
+        const [morningStart, morningEnd] = getScheduleSlotRangeForSession('morning');
+        const [afternoonStart, afternoonEnd] = getScheduleSlotRangeForSession('afternoon');
+        for (let day = 0; day < SCHEDULE_DAY_COUNT; day++) {
+            for (let slot = morningStart; slot <= morningEnd; slot++) {
+                if (mask.test(getScheduleBitIndex(day, slot, 1)) || mask.test(getScheduleBitIndex(day, slot, 2))) hasMorning = true;
             }
-            // Chiều: bit 10-19 (Tiết 6-10)
-            for (let p = 10; p < 20; p++) {
-                if (mask.test(d * 20 + p) || mask.test(140 + d * 20 + p)) hasAfternoon = true;
+            for (let slot = afternoonStart; slot <= afternoonEnd; slot++) {
+                if (mask.test(getScheduleBitIndex(day, slot, 1)) || mask.test(getScheduleBitIndex(day, slot, 2))) hasAfternoon = true;
             }
         }
 
@@ -246,62 +247,45 @@ export class FitnessEvaluator {
     }
 
     calculateDailyLoad(combinedMask: Bitset) {
-        const load = new Array(7).fill(0);
-        for (let d = 0; d < 7; d++) {
+        const load = new Array(SCHEDULE_DAY_COUNT).fill(0);
+        for (let day = 0; day < SCHEDULE_DAY_COUNT; day++) {
             let loadP1 = 0;
             let loadP2 = 0;
-            for (let p = 0; p < 20; p++) {
-                if (combinedMask.test(d * 20 + p)) loadP1 += 0.5;
-                if (combinedMask.test(140 + d * 20 + p)) loadP2 += 0.5;
+            for (let slot = 0; slot < SCHEDULE_SLOTS_PER_DAY; slot++) {
+                if (combinedMask.test(getScheduleBitIndex(day, slot, 1))) loadP1 += SCHEDULE_SLOT_MINUTES / 50;
+                if (combinedMask.test(getScheduleBitIndex(day, slot, 2))) loadP2 += SCHEDULE_SLOT_MINUTES / 50;
             }
             // Một ngày chỉ có tối đa load lớn nhất giữa Phase 1 và Phase 2 vì chúng không diễn ra cùng tuần
-            load[d] = Math.max(loadP1, loadP2);
+            load[day] = Math.max(loadP1, loadP2);
         }
         return load;
     }
 
     calculateGaps(combinedMask: Bitset) {
-        let totalGaps = 0;
-        
-        // Tính gap cho Phase 1 (0-139)
-        for (let d = 0; d < 7; d++) {
-            let first = -1;
-            let last = -1;
-            let learningBits = 0;
+        let totalGapMinutes = 0;
+        const sessionRanges = [
+            getScheduleSlotRangeForSession('morning'),
+            getScheduleSlotRangeForSession('afternoon'),
+        ];
 
-            for (let p = 0; p < 20; p++) {
-                if (combinedMask.test(d * 20 + p)) {
-                    if (first === -1) first = p;
-                    last = p;
-                    learningBits++;
+        for (const phase of [1, 2] as const) {
+            for (let day = 0; day < SCHEDULE_DAY_COUNT; day++) {
+                for (const [sessionStart, sessionEnd] of sessionRanges) {
+                    let previousActive = -1;
+                    for (let slot = sessionStart; slot <= sessionEnd; slot++) {
+                        if (!combinedMask.test(getScheduleBitIndex(day, slot, phase))) continue;
+                        if (previousActive >= 0) {
+                            const gapMinutes = (slot - previousActive - 1) * SCHEDULE_SLOT_MINUTES;
+                            // Khoảng nghỉ chuyển tiết 10 phút không được tính là tiết trống.
+                            if (gapMinutes > 15) totalGapMinutes += gapMinutes;
+                        }
+                        previousActive = slot;
+                    }
                 }
             }
-
-            if (first !== -1 && last !== -1) {
-                totalGaps += (last - first + 1 - learningBits);
-            }
         }
-        
-        // Tính gap cho Phase 2 (140-279)
-        for (let d = 0; d < 7; d++) {
-            let first = -1;
-            let last = -1;
-            let learningBits = 0;
 
-            for (let p = 0; p < 20; p++) {
-                if (combinedMask.test(140 + d * 20 + p)) {
-                    if (first === -1) first = p;
-                    last = p;
-                    learningBits++;
-                }
-            }
-
-            if (first !== -1 && last !== -1) {
-                totalGaps += (last - first + 1 - learningBits);
-            }
-        }
-        // totalGaps hiện tại là số lượng "nửa tiết" trống, ta có thể chia 2 để về đơn vị tiết nếu muốn
-        return totalGaps / 2;
+        return totalGapMinutes / 25;
     }
 
     // --- HELPER QUAN TRỌNG: XỬ LÝ MẢNG LỊCH ---

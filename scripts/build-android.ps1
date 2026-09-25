@@ -57,10 +57,10 @@ try {
         Move-Item -LiteralPath $publicDownloadPath -Destination $stashedPublicApk
     }
 
-    npm run build
+    pnpm run build
     if ($LASTEXITCODE -ne 0) { throw 'Web build that bai.' }
 
-    npx cap sync android
+    pnpm exec cap sync android
     if ($LASTEXITCODE -ne 0) { throw 'Capacitor sync that bai.' }
 
     Push-Location (Join-Path $repoRoot 'android')

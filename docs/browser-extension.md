@@ -5,7 +5,7 @@ Extension và Bookmarklet sử dụng chung bộ thu thập tại `src/logic/Boo
 ## Build extension
 
 ```powershell
-npm run build:extension
+pnpm run build:extension
 ```
 
 Lệnh tạo:
@@ -13,11 +13,11 @@ Lệnh tạo:
 - `dist-extension/`: thư mục dùng với **Load unpacked**.
 - `public/downloads/ustudy-portal-sync.zip`: gói tải từ trang Cài đặt của UStudy.
 
-`npm run build` tự build extension trước khi build web để file ZIP luôn được đưa vào bản deploy.
+`pnpm run build` tự build extension trước khi build web để file ZIP luôn được đưa vào bản deploy.
 
 ## Cài trên Chrome hoặc Edge
 
-1. Chạy `npm run build:extension`.
+1. Chạy `pnpm run build:extension`.
 2. Mở `chrome://extensions` hoặc `edge://extensions`.
 3. Bật chế độ dành cho nhà phát triển.
 4. Chọn **Load unpacked** và trỏ tới thư mục `dist-extension`.
@@ -80,18 +80,18 @@ Các phiên bản và URL nằm trong `src/portal-sync/config.json`:
 - `scraperVersion`: phiên bản parser Portal dùng chung với Bookmarklet.
 - `extensionVersion`: phiên bản trong manifest.
 
-Sau khi sửa parser hoặc cấu hình, chạy lại `npm run build:extension` và bấm **Reload** tại trang quản lý extension.
+Sau khi sửa parser hoặc cấu hình, chạy lại `pnpm run build:extension` và bấm **Reload** tại trang quản lý extension.
 
 ## Kiểm tra nhanh
 
 ```powershell
-npm run typecheck
-npm run build:extension
+pnpm run typecheck
+pnpm run build:extension
 node --check dist-extension/background.js
 node --check dist-extension/portal-content.js
 node --check dist-extension/app-bridge.js
 node --check dist-extension/popup.js
-npm run build
+pnpm run build
 ```
 
 Để kiểm tra crawler thực tế, cần đăng nhập Portal bằng tài khoản sinh viên. Xác nhận lần lượt trạng thái tiến trình trên Portal, gói chờ trong popup extension và màn hình xem trước thay đổi tại UStudy.

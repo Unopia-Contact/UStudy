@@ -5,6 +5,7 @@ import { AppDialog } from '../../../components/ui/overlays/app-dialog';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 import { isNativePortalSyncAvailable, openNativePortalSync } from '../../../mobile/portal-sync';
 import { getInjectedPortalExtensionVersion, isPortalExtensionInjected, requestPortalExtension } from '../../../portal-sync/bridge';
+import { getRandomPortalLoginUrl } from '../../../portal-sync/portal-url';
 import { PORTAL_EXTENSION_READY_EVENT, portalSyncConfig, type PortalExtensionState } from '../../../portal-sync/protocol';
 
 type ExtensionDialogMode = 'install' | 'update';
@@ -101,7 +102,7 @@ function BrowserPortalSyncTools() {
   const extensionDownloadUrl = `/downloads/ustudy-portal-sync.zip?v=${encodeURIComponent(latestVersion)}`;
 
   function openPortal() {
-    window.open(portalSyncConfig.portalLoginUrl, '_blank', 'noopener,noreferrer');
+    window.open(getRandomPortalLoginUrl(), '_blank');
   }
 
   return (

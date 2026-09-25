@@ -499,7 +499,8 @@ export function StudyPlanContainer() {
                 <StudyPlanPreview
                     studyPlan={studyPlan}
                     courseById={courseById}
-                    categories={categories}
+                    categories={preprocessedCategories}
+                    manuallyPlannedCourseIds={manuallyPlannedCourseIds}
                     getAccumulationCredits={getAccumulationCredits}
                     getMissingPrerequisites={getMissingPrerequisites}
                     onBackToPlan={() => setRightView('plan')}

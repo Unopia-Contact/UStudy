@@ -19,6 +19,7 @@ import { ScheduleOptionSelector } from '../../schedule/components/ScheduleOption
 import { MobileBottomSheet } from '../../../components/ui/overlays/mobile-bottom-sheet';
 import type { Tab } from '../types';
 import { createCourseCodeSet, excludeRegisteredSections, normalizeCourseCode } from '../../../logic/course-identity';
+import { useCampus } from '../../../context/CampusContext';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -77,6 +78,7 @@ export function ScheduleBuilder({
   onDraftStateChange,
   clearDraftRef,
 }: ScheduleBuilderProps) {
+  const { defaultCampusId } = useCampus();
   const draft = useScheduleDraft();
   const registeredCourseCodeSet = useMemo(
     () => createCourseCodeSet(registeredCourses.map((course) => course.courseCode)),
@@ -96,7 +98,7 @@ export function ScheduleBuilder({
     () => [...registeredSections, ...activeDraftSections],
     [registeredSections, activeDraftSections],
   );
-  const { conflicts } = useConflictValidator(activeDraftSelections, displaySections);
+  const { conflicts } = useConflictValidator(activeDraftSelections, displaySections, defaultCampusId);
   const [focusedCourseCode, setFocusedCourseCode] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -378,7 +380,7 @@ export function ScheduleBuilder({
 
       {/* Mobile summary bar */}
       {!mobileSidebarOpen && (
-      <div className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-0 right-0 z-30 border-t border-gray-200 bg-white px-3 py-2 shadow-lg lg:hidden">
+      <div className="fixed bottom-[var(--ustudy-mobile-nav-height)] left-0 right-0 z-30 border-t border-gray-200 bg-white px-3 py-2 shadow-lg md:bottom-0 lg:hidden">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold text-gray-900">

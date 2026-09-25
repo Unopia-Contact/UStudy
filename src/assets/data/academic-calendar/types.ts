@@ -44,6 +44,7 @@ export interface AcademicCalendarWeek {
 
 export interface AcademicCalendar {
     id: string;
+    campusId: import('../../../../domain/campus').CampusId;
     academicYear: string;
     title: string;
     issuer: string;

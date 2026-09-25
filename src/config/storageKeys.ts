@@ -33,6 +33,8 @@ export const STORAGE_KEYS = {
     ACADEMIC_SEMESTER: 'selected_semester_number',
     /** Khoa đã cấu hình */
     DEPARTMENT_CONFIGURED: 'department_configured',
+    /** Cơ sở được ưu tiên khi không xác định được cơ sở thật của lớp */
+    CAMPUS_PREFERENCES: 'campus_preferences',
 
     /** Metadata từ Bookmarklet (thời gian cào, năm/học kỳ của từng loại dữ liệu) */
     IMPORT_META: 'import_meta',
@@ -74,6 +76,8 @@ export const STORAGE_KEYS = {
     CHAT_HISTORY: 'chatbot_chat_history',
     /** Tiền tố key cho các tùy chỉnh thời khóa biểu theo từng học kỳ */
     SCHEDULE_OVERRIDES: 'schedule_overrides',
+    /** Cách phân bổ giờ LT/TH/BT được người dùng tùy chỉnh theo chương trình đào tạo */
+    SCHEDULE_WORKLOAD_OVERRIDES: 'schedule_workload_overrides',
     /** Thành viên nhóm (lưu tạm) */
     GROUP_SCHEDULER_MEMBERS: 'group_scheduler_members',
     /** Trạng thái UI (chế độ xem, tab đang mở, trạng thái ẩn/hiện) của Xếp lịch Nhóm */
@@ -86,4 +90,8 @@ export const STORAGE_KEYS = {
     SCHEDULE_MODE: 'schedule_mode',
     /** Bản nháp lịch builder (manual + solver selections) */
     SCHEDULE_BUILDER_DRAFT: 'schedule_builder_draft',
+    /** Người dùng có cho phép thống kê installation ẩn danh hay không. */
+    ANONYMOUS_ANALYTICS_ENABLED: 'ustudy_anonymous_analytics_enabled_v1',
+    /** Đã hiển thị thông báo giới thiệu thống kê ẩn danh. */
+    ANONYMOUS_ANALYTICS_NOTICE_SEEN: 'ustudy_anonymous_analytics_notice_seen_v1',
 };

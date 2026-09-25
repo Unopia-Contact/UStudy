@@ -72,7 +72,7 @@ export const categories = {
         ]
       },
       "GENERAL_ENGLISH": {
-        "name": "Ngoại ngữ (Anh văn)",
+        "name": "Ngoại ngữ",
         "credits": 12,
         "mandatory": false,
         "note": "Không tính vào điểm trung bình và tín chỉ tích lũy. SV đạt chuẩn ngoại ngữ đầu ra theo quy định hiện hành thì không đăng ký học",

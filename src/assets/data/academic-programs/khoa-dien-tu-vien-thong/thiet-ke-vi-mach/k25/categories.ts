@@ -178,13 +178,13 @@ export const categories = {
         "name": "Kiến thức chuyên ngành",
         "total_credits_required": 39,
         "note": "Chọn một trong 3 chuyên ngành. Mỗi chuyên ngành tích lũy 36 tín chỉ tự chọn và 3 tín chỉ Tập sự.",
-        "specializations": {
+        "breakdown": {
             "ANALOG_DIGITAL_IC": {
                 "name": "Thiết kế vi mạch tương tự và số",
                 "total_credits_required": 39,
                 "breakdown": {
-                    "ELECTIVE_1": {
-                        "credits": 15,
+                    "elective_1": {
+                        "total_credits_required": 15,
                         "note": "Chọn tối thiểu 15 tín chỉ; học phần lý thuyết/thực hành phải chọn theo cặp tương ứng.",
                         "courses": [
                             "ICD10101",
@@ -201,8 +201,8 @@ export const categories = {
                             "ETC10215"
                         ]
                     },
-                    "ELECTIVE_2": {
-                        "credits": 15,
+                    "elective_2": {
+                        "total_credits_required": 15,
                         "note": "Chọn tối thiểu 15 tín chỉ; học phần lý thuyết/thực hành phải chọn theo cặp tương ứng.",
                         "courses": [
                             "ETC10208",
@@ -219,8 +219,8 @@ export const categories = {
                             "ICD10116"
                         ]
                     },
-                    "ELECTIVE_3": {
-                        "credits": 6,
+                    "elective_3": {
+                        "total_credits_required": 6,
                         "note": "Chọn 1 trong 3 học phần ICD10307/ICD10308/ICD10312 và 1 trong 2 học phần ICD10309/ICD10313.",
                         "courses": [
                             "ICD10307",
@@ -230,20 +230,21 @@ export const categories = {
                             "ICD10313"
                         ]
                     },
-                    "MANDATORY": {
-                        "credits": 3,
+                    "mandatory": {
+                        "total_credits_required": 3,
                         "courses": [
                             "ICD10311"
                         ]
                     }
                 }
             },
+
             "SEMICONDUCTOR_DEVICES": {
                 "name": "Linh kiện vi mạch bán dẫn",
                 "total_credits_required": 39,
                 "breakdown": {
-                    "ELECTIVE_1": {
-                        "credits": 15,
+                    "elective_1": {
+                        "total_credits_required": 15,
                         "note": "Chọn tối thiểu 15 tín chỉ; học phần lý thuyết/thực hành phải chọn theo cặp tương ứng.",
                         "courses": [
                             "ETC10112",
@@ -260,8 +261,8 @@ export const categories = {
                             "ICD10108"
                         ]
                     },
-                    "ELECTIVE_2": {
-                        "credits": 15,
+                    "elective_2": {
+                        "total_credits_required": 15,
                         "note": "Chọn tối thiểu 15 tín chỉ; học phần lý thuyết/thực hành phải chọn theo cặp tương ứng.",
                         "courses": [
                             "ETC10208",
@@ -278,8 +279,8 @@ export const categories = {
                             "ICD10116"
                         ]
                     },
-                    "ELECTIVE_3": {
-                        "credits": 6,
+                    "elective_3": {
+                        "total_credits_required": 6,
                         "note": "Chọn 1 trong 3 học phần ICD10307/ICD10308/ICD10312 và 1 trong 2 học phần ICD10309/ICD10313.",
                         "courses": [
                             "ICD10307",
@@ -289,20 +290,21 @@ export const categories = {
                             "ICD10313"
                         ]
                     },
-                    "MANDATORY": {
-                        "credits": 3,
+                    "mandatory": {
+                        "total_credits_required": 3,
                         "courses": [
                             "ICD10311"
                         ]
                     }
                 }
             },
+
             "SOC_INTEGRATED_SYSTEMS": {
                 "name": "Thiết kế hệ thống tích hợp trên chip và ứng dụng",
                 "total_credits_required": 39,
                 "breakdown": {
-                    "ELECTIVE_1": {
-                        "credits": 15,
+                    "elective_1": {
+                        "total_credits_required": 15,
                         "note": "Chọn tối thiểu 15 tín chỉ; học phần lý thuyết/thực hành phải chọn theo cặp tương ứng.",
                         "courses": [
                             "ETC10112",
@@ -319,8 +321,8 @@ export const categories = {
                             "ICD10108"
                         ]
                     },
-                    "ELECTIVE_2": {
-                        "credits": 15,
+                    "elective_2": {
+                        "total_credits_required": 15,
                         "note": "Chọn tối thiểu 15 tín chỉ; học phần lý thuyết/thực hành phải chọn theo cặp tương ứng.",
                         "courses": [
                             "ETC10120",
@@ -339,8 +341,8 @@ export const categories = {
                             "ICD10116"
                         ]
                     },
-                    "ELECTIVE_3": {
-                        "credits": 6,
+                    "elective_3": {
+                        "total_credits_required": 6,
                         "note": "Chọn 1 trong 3 học phần ICD10307/ICD10308/ICD10312 và 1 trong 2 học phần ICD10309/ICD10313.",
                         "courses": [
                             "ICD10307",
@@ -350,8 +352,8 @@ export const categories = {
                             "ICD10313"
                         ]
                     },
-                    "MANDATORY": {
-                        "credits": 3,
+                    "mandatory": {
+                        "total_credits_required": 3,
                         "courses": [
                             "ICD10311"
                         ]

@@ -121,7 +121,7 @@ export function NoDataCard() {
                         {isMobile
                             ? nativePortalSyncAvailable
                                 ? 'Mở Portal trong ứng dụng để lấy dữ liệu học tập của bạn.'
-                                : 'Bản web trên điện thoại không thể đồng bộ trực tiếp với Portal.'
+                                : 'Web trên điện thoại không thể đồng bộ với Portal. Hãy sử dụng Laptop/PC để sử dụng hoặc sử dụng .apk'
                             : 'Hoàn thành các bước sau để lấy dữ liệu môn học từ cổng thông tin.'}
                     </p>
                 </div>

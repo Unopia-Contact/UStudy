@@ -1,10 +1,57 @@
 import { ScheduleLogic } from './schedule-logic';
-import { getScheduleCalendarWeekCount, isSessionActiveInWeek } from './holiday-logic';
+import { getScheduleCalendarWeekCount, isSessionActiveInWeek, toDateInputValue } from './holiday-logic';
 import type { ScheduleSession, WeeklySchedule } from '../types';
+import { tryResolvePeriodRange } from '../../../domain/campus';
+import { createIcsHelpers, downloadCalendarIcs } from '../../calendar-export';
 
 interface CalendarOccurrence {
     calendarWeek: number;
     session: ScheduleSession;
+}
+
+export interface WidgetScheduleEvent {
+    date: string;
+    startTime: string;
+    endTime: string;
+    title: string;
+    room: string;
+    campusId: string;
+}
+
+export interface WidgetScheduleSnapshot {
+    version: 1;
+    generatedAt: number;
+    validUntil: string;
+    events: WidgetScheduleEvent[];
+}
+
+/** Bản lịch tối thiểu cho Android, dùng cùng quy tắc lặp/nghỉ/bù với xuất ICS. */
+export function buildWidgetScheduleSnapshot(schedule: WeeklySchedule, now = new Date()): WidgetScheduleSnapshot | null {
+    if (!schedule.semesterStartDate) return null;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const lastDay = new Date(today);
+    lastDay.setDate(lastDay.getDate() + 30);
+    const events: WidgetScheduleEvent[] = [];
+    const totalWeeks = getExportWeekCount(schedule);
+
+    for (const session of schedule.sessions) {
+        for (const occurrence of getSessionOccurrences(schedule, session, totalWeeks)) {
+            const current = occurrence.session;
+            const date = getDateForWeek(schedule.semesterStartDate, occurrence.calendarWeek, current.dayOfWeek);
+            if (date < today || date > lastDay) continue;
+            events.push({
+                date: toDateInputValue(date),
+                startTime: current.startTime,
+                endTime: current.endTime,
+                title: current.courseName.slice(0, 160),
+                room: (current.room || '').slice(0, 80),
+                campusId: (current.campusId || '').slice(0, 40),
+            });
+        }
+    }
+
+    events.sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime) || a.title.localeCompare(b.title));
+    return { version: 1, generatedAt: now.getTime(), validUntil: toDateInputValue(lastDay), events: events.slice(0, 256) };
 }
 
 function getExportWeekCount(schedule: WeeklySchedule): number {
@@ -32,14 +79,17 @@ function getSessionForWeek(schedule: WeeklySchedule, session: ScheduleSession, c
     const startPeriod = weekOverride.startPeriod ?? session.startPeriod;
     const endPeriod = weekOverride.endPeriod ?? session.endPeriod;
     const adjusted = ScheduleLogic.adjustPeriodsForPractical(session.type, startPeriod, endPeriod);
+    const campusId = weekOverride.campusId ?? session.campusId ?? 'dong-hoa';
+    const periodRange = tryResolvePeriodRange(campusId, adjusted.startPeriod, adjusted.endPeriod);
 
     return {
         ...session,
         ...weekOverride,
         startPeriod: adjusted.startPeriod,
         endPeriod: adjusted.endPeriod,
-        startTime: ScheduleLogic.periodToTimeString(adjusted.startPeriod, true),
-        endTime: ScheduleLogic.periodToTimeString(adjusted.endPeriod, false),
+        startTime: periodRange?.startTime ?? ScheduleLogic.periodToTimeString(adjusted.startPeriod, true, campusId),
+        endTime: periodRange?.endTime ?? ScheduleLogic.periodToTimeString(adjusted.endPeriod, false, campusId),
+        session: periodRange?.session ?? session.session,
         duration: adjusted.duration,
     };
 }
@@ -87,34 +137,6 @@ function getDescription(session: ScheduleSession, calendarWeek?: number): string
         `Tin chi: ${session.credits}`,
         ...(calendarWeek ? [`Tuan dieu chinh: ${calendarWeek}`] : []),
     ].join('\n');
-}
-
-function createIcsHelpers() {
-    const pad = (value: number) => String(value).padStart(2, '0');
-    const toIcsDateTime = (date: Date) => (
-        `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
-    );
-    const esc = (text: string) => (
-        text.replace(/\r/g, '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
-    );
-    const foldLine = (line: string) => {
-        const encoder = new TextEncoder();
-        const chunks: string[] = [];
-        let current = '';
-        for (const character of line) {
-            const next = current + character;
-            if (current && encoder.encode(next).byteLength > 75) {
-                chunks.push(current);
-                current = ` ${character}`;
-            } else {
-                current = next;
-            }
-        }
-        if (current) chunks.push(current);
-        return chunks;
-    };
-
-    return { toIcsDateTime, esc, foldLine };
 }
 
 interface CalendarEventInput {
@@ -265,14 +287,6 @@ export function exportCalendar(schedule: WeeklySchedule) {
     const ics = buildCalendarIcs(schedule);
     if (!ics) return false;
 
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `TKB_${schedule.semester.replace(/\//g, '-')}_FullSemester.ics`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    downloadCalendarIcs(ics, `TKB_${schedule.semester.replace(/\//g, '-')}_FullSemester.ics`);
     return true;
 }

@@ -1,5 +1,7 @@
 # Kiem thu va CI cho UStudy
 
+> Bo `tests/`, cau hinh Vitest/Playwright va test Android chi duoc giu tren may nhan vien; GitHub khong luu cac file nay. Nhan vien moi can nhan bo test tu noi bo truoc khi chay cac lenh ben duoi. May chi clone repository se build duoc, nhung khong chay duoc test local.
+
 ## Muc tieu
 
 Bo kiem thu bao ve cac luong co rui ro cao nhat cua UStudy:
@@ -14,25 +16,26 @@ Bo kiem thu bao ve cac luong co rui ro cao nhat cua UStudy:
 ## Lenh dung tai local
 
 ```powershell
-npm ci
-npm run typecheck:test
-npm run test:unit
-npm run test:coverage
-npm run build
+pnpm install --frozen-lockfile
+pnpm run typecheck:test
+pnpm run test:unit
+pnpm run test:coverage
+pnpm run build
+pnpm run check:local
 ```
 
 Chay browser smoke test lan dau:
 
 ```powershell
-npx playwright install chromium
-npm run test:e2e
+pnpm exec playwright install chromium
+pnpm run test:e2e
 ```
 
 Chay mot file hoac loc theo ten ca kiem thu:
 
 ```powershell
-npx vitest run tests/unit/imports/import-preview.test.ts
-npx vitest run -t "empty scraped collection"
+pnpm exec vitest run tests/unit/imports/import-preview.test.ts
+pnpm exec vitest run -t "empty scraped collection"
 ```
 
 ## Cau truc
@@ -53,11 +56,11 @@ tests/
 
 ## GitHub Actions
 
-- `Web and core tests`: type-check test va cac core module duoc import, unit/contract test, coverage, build web va extension.
-- `Browser smoke tests`: build production, mo bang Chromium desktop va mobile.
-- `Android debug build`: dong bo Capacitor, chay Android unit test va tao APK debug.
+- `Web and extension build`: cai dependency, build web va extension; khong chay test.
+- `Android debug build`: dong bo Capacitor va tao APK debug; khong chay Android unit test.
+- `Sync mirror repository`: dong bo branch main sang mirror.
 
-APK, coverage va Playwright report duoc luu thanh artifact trong 14 ngay. Release APK khong chay tren pull request vi can signing key; workflow chi tao debug APK de xac minh kha nang build.
+APK va extension duoc luu thanh artifact. Coverage va Playwright report chi tao tren may nhan vien.
 
 ## Quy tac them test
 
@@ -69,12 +72,6 @@ APK, coverage va Playwright report duoc luu thanh artifact trong 14 ngay. Releas
 
 ## Bao ve branch
 
-Trong GitHub, dat `main` va `HK/deploy` yeu cau cac check sau truoc khi merge:
+Neu GitHub branch protection dang yeu cau `Web and core tests / verify` hoac `Browser smoke tests / chromium`, cap nhat required checks sau khi merge thay doi nay; hai check do se khong con chay. Co the yeu cau `Web and extension build / verify` va `Android debug build / debug-apk` neu phu hop.
 
-- `Web and core tests / verify`
-- `Browser smoke tests / chromium`
-- `Android debug build / debug-apk` khi workflow Android duoc kich hoat
-
-Khong bat buoc Android check cho thay doi chi lien quan tai lieu, vi workflow da co `paths` filter.
-
-`npm run typecheck` van la lenh audit toan bo ung dung. Hien tai lenh nay con bao no TypeScript san co o mot so UI sau cac dot merge, nen chua duoc dung lam required check. Production build va type-check cac domain cot loi van la dieu kien bat buoc; full-app type-check chi nen bat buoc sau khi baseline duoc don sach.
+Test, coverage va full-app type-check duoc nhan vien chay local truoc khi merge. `pnpm run typecheck` van la lenh audit toan bo ung dung; viec loai bo test khoi GitHub khong thay the quy trinh kiem tra local.

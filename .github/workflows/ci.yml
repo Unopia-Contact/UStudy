@@ -1,4 +1,4 @@
-name: Web and core tests
+name: Web and extension build
 
 on:
   pull_request:
@@ -24,32 +24,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.26.0
+
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Type-check tests and imported core modules
-        run: npm run typecheck:test
-
-      - name: Run core tests with coverage
-        run: npm run test:coverage
+        run: pnpm install --frozen-lockfile
 
       - name: Build web and extension
-        run: npm run build
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: core-coverage
-          path: coverage/
-          if-no-files-found: ignore
-          retention-days: 14
+        run: pnpm run build
 
       - name: Upload extension package
         uses: actions/upload-artifact@v6

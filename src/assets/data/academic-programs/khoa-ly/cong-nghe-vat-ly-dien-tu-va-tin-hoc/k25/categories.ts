@@ -106,96 +106,102 @@ export const categories = {
             "PET10012"
         ]
     },
-    "MAJOR_PHYSICS_TECH_MATERIALS": {
-        "name": "Chuyên ngành Kỹ thuật vật lý linh kiện",
-        "total_credits_required": 44,
+    "MAJOR": {
+        "name": "Chuyên ngành",
+        "total_credits_required": 48,
         "breakdown": {
-            "MANDATORY": {
-                "credits": 21,
-                "courses": [
-                    "PET10104",
-                    "PET10105",
-                    "PET10109",
-                    "PET10122",
-                    "PET10123",
-                    "PET10124",
-                    "PHY10614"
-                ]
+            "MAJOR_PHYSICS_TECH_MATERIALS": {
+                "name": "Chuyên ngành Kỹ thuật vật lý linh kiện",
+                "total_credits_required": 44,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 21,
+                        "courses": [
+                            "PET10104",
+                            "PET10105",
+                            "PET10109",
+                            "PET10122",
+                            "PET10123",
+                            "PET10124",
+                            "PHY10614"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 23,
+                        "courses": [
+                            "PHY10801",
+                            "PET10107",
+                            "PHY10205",
+                            "PHY10207",
+                            "PHY10211",
+                            "PET10112",
+                            "PET10113",
+                            "PET10125",
+                            "PET10115",
+                            "PET10108",
+                            "PET10110",
+                            "PET10111",
+                            "PET10117",
+                            "PET10119",
+                            "PET10126",
+                            "PET10127",
+                            "PET10204"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 23,
-                "courses": [
-                    "PHY10801",
-                    "PET10107",
-                    "PHY10205",
-                    "PHY10207",
-                    "PHY10211",
-                    "PET10112",
-                    "PET10113",
-                    "PET10125",
-                    "PET10115",
-                    "PET10108",
-                    "PET10110",
-                    "PET10111",
-                    "PET10117",
-                    "PET10119",
-                    "PET10126",
-                    "PET10127",
-                    "PET10204"
-                ]
-            }
-        }
-    },
-    "MAJOR_ELECTRONICS_ROBOTICS": {
-        "name": "Chuyên ngành Kỹ thuật điện tử, máy tính và robot thông minh",
-        "total_credits_required": 44,
-        "breakdown": {
-            "MANDATORY": {
-                "credits": 21,
-                "courses": [
-                    "PET10106",
-                    "PHY10613",
-                    "PHY10124",
-                    "PET10007",
-                    "PET10004",
-                    "PET10005",
-                    "PHY10614"
-                ]
+            "MAJOR_ELECTRONICS_ROBOTICS": {
+                "name": "Chuyên ngành Kỹ thuật điện tử, máy tính và robot thông minh",
+                "total_credits_required": 44,
+                "breakdown": {
+                    "MANDATORY": {
+                        "credits": 21,
+                        "courses": [
+                            "PET10106",
+                            "PHY10613",
+                            "PHY10124",
+                            "PET10007",
+                            "PET10004",
+                            "PET10005",
+                            "PHY10614"
+                        ]
+                    },
+                    "ELECTIVE": {
+                        "credits": 23,
+                        "courses": [
+                            "PHY10801",
+                            "PET10107",
+                            "PHY10625",
+                            "PHY10623",
+                            "PHY10616",
+                            "PHY10610",
+                            "PET10120",
+                            "PET10121",
+                            "PET10101",
+                            "PET10117",
+                            "PET10119",
+                            "PET10112",
+                            "PHY10621",
+                            "PET10118",
+                            "PET10116",
+                            "SEM10136",
+                            "PET10201",
+                            "PET10202",
+                            "PET10203",
+                            "PET10204",
+                            "PET10205",
+                            "PET10206",
+                            "PET10207",
+                            "PET10208",
+                            "PET10209",
+                            "PET10210",
+                            "PET10211",
+                            "PET10212"
+                        ]
+                    }
+                }
             },
-            "ELECTIVE": {
-                "credits": 23,
-                "courses": [
-                    "PHY10801",
-                    "PET10107",
-                    "PHY10625",
-                    "PHY10623",
-                    "PHY10616",
-                    "PHY10610",
-                    "PET10120",
-                    "PET10121",
-                    "PET10101",
-                    "PET10117",
-                    "PET10119",
-                    "PET10112",
-                    "PHY10621",
-                    "PET10118",
-                    "PET10116",
-                    "SEM10136",
-                    "PET10201",
-                    "PET10202",
-                    "PET10203",
-                    "PET10204",
-                    "PET10205",
-                    "PET10206",
-                    "PET10207",
-                    "PET10208",
-                    "PET10209",
-                    "PET10210",
-                    "PET10211",
-                    "PET10212"
-                ]
-            }
-        }
+        },
     },
     "GRADUATION": {
         "name": "Kiến thức tốt nghiệp",

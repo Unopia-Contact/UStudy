@@ -1,6 +1,6 @@
 import { CalendarClock, CircleCheck, CircleDashed } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ACADEMIC_CALENDARS, getAcademicCalendar } from '../../assets/data/academic-calendar';
+import { getAcademicCalendar, getAcademicCalendars } from '../../assets/data/academic-calendar';
 import { useDepartmentData } from '../../context/DepartmentContext';
 import {
     type AcademicCalendarTermFilter,
@@ -11,19 +11,27 @@ import {
 } from './academic-calendar-utils';
 import { AcademicCalendarTable } from './components/AcademicCalendarTable';
 import { AcademicCalendarToolbar } from './components/AcademicCalendarToolbar';
-
-const academicYearOptions = ACADEMIC_CALENDARS.map((calendar) => ({
-    id: calendar.academicYear,
-    name: calendar.academicYear,
-}));
+import { useCampus } from '../../context/CampusContext';
 
 export function AcademicCalendarFeature() {
     const { cohortId, currentCohort } = useDepartmentData();
-    const [academicYear, setAcademicYear] = useState(ACADEMIC_CALENDARS[0]?.academicYear ?? '');
+    const { defaultCampusId, defaultCampus } = useCampus();
+    const campusCalendars = useMemo(() => getAcademicCalendars(defaultCampusId), [defaultCampusId]);
+    const academicYearOptions = useMemo(
+        () => campusCalendars.map((calendar) => ({ id: calendar.academicYear, name: calendar.academicYear })),
+        [campusCalendars],
+    );
+    const [academicYear, setAcademicYear] = useState(campusCalendars[0]?.academicYear ?? '');
     const [term, setTerm] = useState<AcademicCalendarTermFilter>('all');
     const currentWeekRef = useRef<HTMLTableRowElement>(null);
 
-    const calendar = getAcademicCalendar(academicYear);
+    const calendar = getAcademicCalendar(academicYear, defaultCampusId);
+
+    useEffect(() => {
+        if (!campusCalendars.some((item) => item.academicYear === academicYear)) {
+            setAcademicYear(campusCalendars[0]?.academicYear ?? '');
+        }
+    }, [academicYear, campusCalendars]);
     const calendarCohort = useMemo(
         () => calendar ? getCalendarCohort(calendar, cohortId) : null,
         [calendar, cohortId],
@@ -41,7 +49,7 @@ export function AcademicCalendarFeature() {
     }, [academicYear, term, position?.currentWeek?.index, visibleWeeks]);
 
     if (!calendar) {
-        return <div className="py-12 text-center text-sm text-gray-500">Chưa có dữ liệu kế hoạch cho năm học này.</div>;
+        return <div className="py-12 text-center text-sm text-gray-500">Chưa có dữ liệu kế hoạch năm học cho {defaultCampus.name}.</div>;
     }
 
     const currentWeek = position?.currentWeek;

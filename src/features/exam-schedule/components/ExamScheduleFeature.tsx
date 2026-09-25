@@ -7,20 +7,8 @@ import { NoDataCard } from '../../../components/feedback';
 import { PageHeader } from '../../../components/layout/page-header';
 import { PageShell } from '../../../components/layout/page-shell';
 import { AppSelect } from '../../../components/ui/form';
-
-interface ExamData {
-    id: string;
-    courseCode: string;
-    courseName: string;
-    className: string;
-    examDate: string;
-    examTime: string;
-    room: string;
-    location: string;
-    semester: string;
-    examType: 'Giữa kỳ' | 'Cuối kỳ';
-    notes: string;
-}
+import { ExamCalendarExportDialog } from './ExamCalendarExportDialog';
+import type { ExamData } from '../types';
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
@@ -45,6 +33,7 @@ export function ExamScheduleVi() {
     const [selectedType, setSelectedType] = useState<'all' | 'Giữa kỳ' | 'Cuối kỳ'>('all');
     const [selectedLocation, setSelectedLocation] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isCalendarExportOpen, setIsCalendarExportOpen] = useState(false);
 
     // Default to current global semester
     const currentGlobalSemester = `Học kỳ ${semesterNumber}, ${academicYear}`;
@@ -474,8 +463,26 @@ export function ExamScheduleVi() {
                             </svg>
                         </div>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setIsCalendarExportOpen(true)}
+                        disabled={examData.length === 0}
+                        className="ustudy-button-outline h-9 shrink-0 gap-2 px-3 text-xs md:h-10 md:px-4 md:text-sm"
+                    >
+                        <FileDown className="h-4 w-4" />
+                        Xuất lịch
+                    </button>
                 </div>
             </div>
+
+            <ExamCalendarExportDialog
+                open={isCalendarExportOpen}
+                onOpenChange={setIsCalendarExportOpen}
+                exams={examData}
+                filteredExams={filteredData}
+                selectedSemester={selectedSemester}
+            />
 
             {/* Exam card*/}
             <div>

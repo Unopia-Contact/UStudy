@@ -322,7 +322,7 @@ export function GPAPullTool({
                     clearPendingFilteredRetakes={clearPendingFilteredRetakes}
                     clearAllManualRetakes={clearAllManualRetakes}
                     decimals={decimals}
-                    scopeName={scopeName}
+                    scopeName={mode === 'currentSemester' ? 'Toàn khóa' : scopeName}
                 />
             </div>
 

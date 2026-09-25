@@ -10,6 +10,7 @@ import { APP_CONFIG, STORAGE_KEYS } from '../../config';
 import { readFromStorage, clearAllStorage } from '../../helpers/localStorage/save';
 import { useCrypto } from '../../context/CryptoContext';
 import { isNativePortalSyncAvailable, openNativePortalSync } from '../../mobile/portal-sync';
+import { getRandomPortalLoginUrl } from '../../portal-sync/portal-url';
 
 export interface HeaderProps {
   selectedSemester?: string;
@@ -29,6 +30,7 @@ export function Header({
   const [showSemesterDropdown, setShowSemesterDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const isNativeApp = isNativePortalSyncAvailable();
   const { academicYear, semesterNumber, setAcademicYear, setSemesterNumber } = useDepartmentData();
 
   // lấy dữ liệu sinh viên
@@ -85,8 +87,8 @@ export function Header({
     setShowLogoutModal(true);
   };
 
-  const handleLogOutConfirm = () => {
-    clearAllStorage();
+  const handleLogOutConfirm = async () => {
+    await clearAllStorage();
     lock();
     addNotification({
       title: 'Đăng xuất thành công',
@@ -117,8 +119,7 @@ export function Header({
       return;
     }
 
-    const PORTAL_URL = APP_CONFIG.PORTAL_LOGIN_URL;
-    window.open(PORTAL_URL, '_blank');
+    window.open(getRandomPortalLoginUrl(), '_blank');
   };
 
   // lấy chữ cái đầu của tên sinh viên
@@ -246,7 +247,7 @@ export function Header({
                 <button
                   onClick={() => void handleLogin()}
                   disabled={isOpeningPortal}
-                  className="flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-[#004A98] text-white rounded-lg hover:bg-[#003A78] transition-all shadow-sm focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                  className={`${isNativeApp ? 'flex' : 'hidden md:flex'} items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-[#004A98] text-white rounded-lg hover:bg-[#003A78] transition-all shadow-sm focus:ring-2 focus:ring-blue-600 focus:ring-offset-2`}
                 >
                   {isOpeningPortal
                     ? <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={2.5} />

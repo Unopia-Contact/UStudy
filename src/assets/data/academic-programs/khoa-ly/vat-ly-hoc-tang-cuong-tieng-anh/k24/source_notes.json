@@ -1,0 +1,14 @@
+{
+  "admission_code": "7440102_DKD",
+  "program": "Vật lý học - Tăng cường tiếng Anh",
+  "curriculum_year": 2024,
+  "faculty_index": "https://phys.hcmus.edu.vn/vi/dao-tao-dai-hoc",
+  "detailed_course_table": "https://phys.hcmus.edu.vn/vi/chuong-trinh-dao-tao-vat-ly-hoc-khoa-2024",
+  "confidence": "faculty-published-k2024-table-crosschecked-with-tcta-index",
+  "notes": [
+    "Trang Đào tạo đại học của Khoa liệt kê riêng CTĐT Vật lý học K2024 tăng cường Tiếng Anh.",
+    "Bảng mã học phần, số tín chỉ, số tiết và BB/TC được dựng lại từ bảng CTĐT K2024 do chính Khoa Vật lý - Vật lý kỹ thuật công bố.",
+    "K2024 được Khoa tổ chức định hướng theo 7 Bộ môn/chuyên ngành. Không thêm Tính toán lượng tử thành chuyên ngành thứ 8; PHY10536 chỉ được giữ là học phần tự chọn đúng theo bảng K2024.",
+    "Một học phần có thể là BB ở chuyên ngành này nhưng TC ở chuyên ngành khác; breakdown trong categories.ts là nguồn quyết định theo từng chuyên ngành. course_type trong courses.ts được giữ ở mức toàn cục và ghi chú khi có tính ngữ cảnh."
+  ]
+}

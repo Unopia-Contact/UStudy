@@ -1,9 +1,8 @@
 import type { CSSProperties } from 'react';
 import { useMemo, useState, useRef } from 'react';
-import { AlertTriangle, Calendar, Clock, Camera, Download, Loader2 } from 'lucide-react';
-import { STORAGE_KEYS, UI_COLORS } from '../../../config';
-import { readFromStorage, saveToStorage } from '../../../helpers/localStorage/save';
-import { weekDays, timePeriods } from '../../../constants';
+import { AlertTriangle, Calendar, Clock, Camera, Download, Loader2, ImagePlus } from 'lucide-react';
+import { UI_COLORS } from '../../../config';
+import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { maskToSections } from '../../../logic/scheduler/ScheduleDecoder';
 import type { GroupScheduleOption } from '../types';
 import type { ClassSection, SavedSchedule } from '../../../types';
@@ -15,6 +14,24 @@ import { saveAs } from 'file-saver';
 import { captureElementAsDataURL, slugify, downloadImage } from '../../../utils/export';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../../../components/ui/overlays/dropdown-menu';
 import { getScheduleConflictLabel, ScheduleConflictHoverCard } from '../../../components/schedule/schedule-conflict-hover-card';
+import { getCompactCampusLabel } from '../../../components/schedule/campus-label';
+import { useCampus } from '../../../context/CampusContext';
+import { ScheduleImageDialog } from '../../schedule-image/ScheduleImageDialog';
+import { fromClassSections } from '../../schedule-image/schedule-image-model';
+import type { CampusId } from '../../../domain/campus';
+import {
+  classSectionsOverlap,
+  getClassSectionTimeRange,
+} from '../../../components/schedule/schedule-timeline';
+import {
+  buildScheduleAxis,
+  getScheduleAxisBreakLabel,
+  getScheduleAxisContext,
+  getScheduleAxisHeader,
+  getScheduleAxisHint,
+  getScheduleAxisPosition,
+  getScheduleAxisTimeBreakSummary,
+} from '../../../components/schedule/schedule-axis';
 
 interface GroupScheduleCalendarPreviewProps {
   options: GroupScheduleOption[];
@@ -39,7 +56,11 @@ function getSolidTint(hexColor: string, tint = 0.9) {
   return `rgb(${mix(red)}, ${mix(green)}, ${mix(blue)})`;
 }
 
-export function getGroupMemberSections(option: GroupScheduleOption | undefined, memberIndex: number): ClassSection[] {
+export function getGroupMemberSections(
+  option: GroupScheduleOption | undefined,
+  memberIndex: number,
+  defaultCampusId: CampusId = 'dong-hoa',
+): ClassSection[] {
   const memberSchedule = option?.schedules.find((schedule) => schedule.memberIndex === memberIndex);
   if (!memberSchedule) return [];
 
@@ -50,6 +71,7 @@ export function getGroupMemberSections(option: GroupScheduleOption | undefined, 
     item.classId,
     PALETTE[itemIndex % PALETTE.length],
     0,
+    { scheduleEntries: item.scheduleEntries, defaultCampusId },
   ));
 }
 
@@ -57,15 +79,16 @@ export function buildSavedGroupSchedule(
   option: GroupScheduleOption | undefined,
   memberIndex: number,
   scheduleName: string,
+  defaultCampusId: CampusId = 'dong-hoa',
 ): SavedSchedule | null {
   const member = option?.schedules.find((schedule) => schedule.memberIndex === memberIndex) ?? option?.schedules[0];
   if (!option || !member || !scheduleName.trim()) return null;
 
-  const sections = getGroupMemberSections(option, member.memberIndex);
+  const sections = getGroupMemberSections(option, member.memberIndex, defaultCampusId);
   if (sections.length === 0) return null;
 
   const groupMembers = option.schedules.map((schedule) => {
-    const memberSections = getGroupMemberSections(option, schedule.memberIndex);
+    const memberSections = getGroupMemberSections(option, schedule.memberIndex, defaultCampusId);
     const memberCourses = Array.from(new Set(schedule.items.map((item) => item.courseId)));
     const memberAllowedClassesMap = schedule.items.reduce<Record<string, string[]>>((acc, item) => {
       acc[item.courseId] = Array.from(new Set([...(acc[item.courseId] ?? []), item.classId]));
@@ -102,21 +125,23 @@ export function buildSavedGroupSchedule(
   };
 }
 
-function getConflicts(section: ClassSection, sections: ClassSection[]): ClassSection[] {
+function getConflicts(section: ClassSection, sections: ClassSection[], defaultCampusId: CampusId): ClassSection[] {
   return sections.filter((candidate) => (
     candidate.id !== section.id &&
-    candidate.day === section.day &&
-    candidate.startPeriod <= section.endPeriod &&
-    candidate.endPeriod >= section.startPeriod
+    classSectionsOverlap(section, candidate, defaultCampusId)
   ));
 }
 
-function getStats(sections: ClassSection[]) {
-  const totalPeriods = sections.reduce((sum, section) => sum + Math.round(section.endPeriod - section.startPeriod + 1), 0);
+function getStats(sections: ClassSection[], defaultCampusId: CampusId) {
+  const totalPeriods = sections.reduce((sum, section) => {
+    const range = getClassSectionTimeRange(section, defaultCampusId);
+    return sum + (range.endMinute - range.startMinute) / 50;
+  }, 0);
   const periodsPerDay: Record<number, number> = {};
 
   sections.forEach((section) => {
-    periodsPerDay[section.day] = (periodsPerDay[section.day] ?? 0) + Math.round(section.endPeriod - section.startPeriod + 1);
+    const range = getClassSectionTimeRange(section, defaultCampusId);
+    periodsPerDay[section.day] = (periodsPerDay[section.day] ?? 0) + (range.endMinute - range.startMinute) / 50;
   });
 
   return {
@@ -134,15 +159,30 @@ export function GroupScheduleCalendarPreview({
   setActiveMemberIndex,
   onOpenClassDetails,
 }: GroupScheduleCalendarPreviewProps) {
+  const { defaultCampusId } = useCampus();
   const option = options[activeOptionIndex] ?? options[0];
   const member = option?.schedules.find((schedule) => schedule.memberIndex === activeMemberIndex) ?? option?.schedules[0];
   const effectiveMemberIndex = member?.memberIndex ?? 0;
-  const sections = getGroupMemberSections(option, effectiveMemberIndex);
+  const sections = getGroupMemberSections(option, effectiveMemberIndex, defaultCampusId);
+  const visibleDays = useMemo(
+    () => getVisibleWeekDays(sections.map((section) => section.day)),
+    [sections],
+  );
+  const dayColumnCount = visibleDays.length;
+  const gridTemplateColumns = getScheduleGridTemplate(64, dayColumnCount);
+  const calendarMinWidth = dayColumnCount === 7
+    ? 'min-w-[713px] md:min-w-[1156px]'
+    : 'min-w-[620px] md:min-w-[1000px]';
+  const scheduleAxis = useMemo(
+    () => buildScheduleAxis(sections, defaultCampusId),
+    [sections, defaultCampusId],
+  );
   const groupLabelByClass = useMemo(() => new Map((member?.items ?? []).map((item) => [`${item.courseId}:${item.classId}`, item.sharingGroupLabel])), [member]);
-  const stats = getStats(sections);
+  const stats = getStats(sections, defaultCampusId);
   
   const calendarRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportTotal, setExportTotal] = useState(0);
 
@@ -232,7 +272,8 @@ export function GroupScheduleCalendarPreview({
           onChange={setActiveOptionIndex}
         />
 
-        <div className="flex shrink-0 items-center gap-2 lg:border-l lg:border-gray-200 lg:pl-3">
+        <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:border-l lg:border-gray-200 lg:pl-3">
+          <button type="button" className="schedule-image-secondary" onClick={() => setIsImageDialogOpen(true)} disabled={sections.length === 0}><ImagePlus className="h-4 w-4" /><span>Tạo ảnh</span></button>
           <span className="text-xs font-medium text-gray-500">Thành viên</span>
           <AppSelect
             value={String(effectiveMemberIndex)}
@@ -269,6 +310,7 @@ export function GroupScheduleCalendarPreview({
           </DropdownMenu>
         </div>
       </div>
+      {isImageDialogOpen && <ScheduleImageDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen} lessons={fromClassSections(sections)} title={`Lịch của ${member.nickname}`} subtitle={`Phương án ${option.option}`} filename={`lich-nhom-${slugify(member.nickname || 'thanh-vien')}-pa${option.option}`} />}
 
       <div ref={calendarRef} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="flex flex-col gap-2 border-b border-gray-200 bg-slate-50 px-3 py-3 md:flex-row md:items-center md:justify-between md:px-4">
@@ -283,27 +325,31 @@ export function GroupScheduleCalendarPreview({
               <p className="truncate text-xs text-gray-500">
                 {sections.length > 0 ? `${sections.length} lớp · ${stats.totalPeriods} tiết · ${stats.scheduledDays} ngày học` : 'Thành viên này chưa có lớp được xếp'}
               </p>
+              {scheduleAxis.mode === 'time' && (
+                <p className="mt-1 text-[11px] text-slate-500">
+                  {getScheduleAxisHint(scheduleAxis)} {getScheduleAxisTimeBreakSummary(scheduleAxis)}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-gray-500">
-            <span className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
+            <span className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1" title={getScheduleAxisTimeBreakSummary(scheduleAxis) ?? undefined}>
               <Clock className="h-3 w-3 text-[#004A98]" />
-              Sáng 1-5
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
-              <Clock className="h-3 w-3 text-orange-500" />
-              Chiều 6-10
+              {scheduleAxis.mode === 'time'
+                ? 'Theo giờ thực'
+                : `${getScheduleAxisContext(scheduleAxis)} · Tiết 1–${scheduleAxis.maxPeriod}`}
             </span>
           </div>
         </div>
 
         <div className="overflow-auto">
-          <div className="min-w-[620px] md:min-w-[1000px]">
-            <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns: '64px repeat(6, 1fr)' }}>
-              <div className="sticky left-0 z-30 flex h-11 items-center justify-center border-r border-white/20 bg-[#004A98] md:h-12">
-                <span className="text-[10px] font-semibold text-white md:text-xs">Tiết</span>
+          <div className={calendarMinWidth}>
+            <div className="sticky top-0 z-20 grid bg-[#004A98]" style={{ gridTemplateColumns }}>
+              <div className="sticky left-0 z-30 flex h-11 flex-col items-center justify-center border-r border-white/20 bg-[#004A98] md:h-12">
+                <span className="text-[10px] font-semibold text-white md:text-xs">{getScheduleAxisHeader(scheduleAxis)}</span>
+                <span className="text-[8px] font-medium text-white/70">{getScheduleAxisContext(scheduleAxis)}</span>
               </div>
-              {weekDays.map((day) => (
+              {visibleDays.map((day) => (
                 <div key={day.day} className="flex h-11 flex-col items-center justify-center border-l border-white/15 bg-[#004A98] px-1 text-white md:h-12">
                   <span className="hidden text-[10px] font-normal leading-none text-white/70 md:block">{day.nameVi}</span>
                   <span className="text-[11px] font-semibold leading-tight md:text-[13px]">{day.short}</span>
@@ -319,32 +365,30 @@ export function GroupScheduleCalendarPreview({
             <div style={{ position: 'relative', isolation: 'isolate' }}>
               {/* Không tạo stacking context để cột Tiết sticky nằm trên thẻ môn khi vuốt ngang. */}
               <div style={{ position: 'relative' }}>
-                {timePeriods.map((period) => {
-                  const isFirstAfternoon = period.period === 6;
-                  return (
-                    <div key={period.period}>
-                      {isFirstAfternoon && (
-                        <div className="grid items-stretch border-y border-orange-200 bg-orange-50" style={{ gridTemplateColumns: '64px 1fr', height: '34px' }}>
-                          <div className="sticky left-0 flex items-center justify-center border-r border-orange-200 bg-orange-50" style={{ zIndex: 4 }}>
-                            <span className="text-[9px] font-semibold uppercase tracking-wide text-orange-700 md:text-[11px]">Trưa</span>
-                          </div>
-                          <div className="flex items-center justify-center bg-orange-50 px-3">
-                            <span className="text-[10px] font-semibold text-orange-700 md:text-xs">Nghỉ trưa 11:50 - 12:40</span>
-                          </div>
-                        </div>
-                      )}
+                {scheduleAxis.rows.map((row) => {
+                  const isBreak = row.kind === 'break';
+                  const label = row.kind === 'period'
+                    ? row.period
+                    : row.kind === 'time' && row.minute % 60 === 0
+                      ? `${String(Math.floor(row.minute / 60)).padStart(2, '0')}:00`
+                      : '';
 
-                      <div className={`grid ${period.period <= 5 ? 'bg-sky-50/20' : ''}`} style={{ gridTemplateColumns: '64px repeat(6, 1fr)', height: '56px' }}>
-                        <div className="sticky left-0 flex flex-col items-center justify-center border-b border-r border-gray-200 bg-gray-50 px-1 text-center" style={{ zIndex: 4 }}>
-                          <div className="text-[11px] font-semibold text-gray-700 md:text-[13px]">{period.period}</div>
-                          <span className="text-[8px] leading-tight text-gray-500 md:text-[10px]">{period.time.split(' - ')[0]}</span>
-                          <span className="text-[8px] leading-none text-gray-400 md:text-[10px]">-</span>
-                          <span className="text-[8px] leading-tight text-gray-500 md:text-[10px]">{period.time.split(' - ')[1]}</span>
-                        </div>
-                        {weekDays.map((day) => (
-                          <div key={`${day.day}-${period.period}`} className="border-b border-l border-gray-200 bg-white transition-colors hover:bg-slate-50/80" />
-                        ))}
+                  return (
+                    <div
+                      key={row.kind === 'period' ? `period-${row.period}` : row.kind === 'break' ? `break-${row.afterPeriod}` : `time-${row.minute}`}
+                      className="grid"
+                      style={{ gridTemplateColumns, height: row.height }}
+                    >
+                      <div className={`sticky left-0 z-[4] flex items-center justify-center border-b border-r text-[9px] font-medium md:text-[10px] ${isBreak ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
+                        {row.kind === 'period' ? <><span className="sr-only">Tiết </span>{label}</> : isBreak ? 'Trưa' : label}
                       </div>
+                      {isBreak ? (
+                        <div className="flex items-center justify-center border-b border-l border-amber-200 bg-amber-50 px-3 text-[10px] font-medium text-amber-700 md:text-xs" style={{ gridColumn: `span ${dayColumnCount}` }}>
+                          {getScheduleAxisBreakLabel(row)}
+                        </div>
+                      ) : visibleDays.map((day) => (
+                        <div key={`${day.day}-${label}`} className="border-b border-l border-gray-200 bg-white transition-colors hover:bg-slate-50/80" />
+                      ))}
                     </div>
                   );
                 })}
@@ -352,24 +396,21 @@ export function GroupScheduleCalendarPreview({
 
               <div className="pointer-events-none absolute inset-0 z-[2]">
                 {sections.map((section) => {
-                  const conflicts = getConflicts(section, sections);
+                  const conflicts = getConflicts(section, sections, defaultCampusId);
                   const hasConflict = conflicts.length > 0;
                   const conflictLabel = getScheduleConflictLabel(section, conflicts);
-                  const rowHeight = 56;
-                  const lunchBreakOffset = section.startPeriod >= 6 ? 34 : 0;
-                  const top = (section.startPeriod - 1) * rowHeight + lunchBreakOffset;
-                  const heightPeriods = section.endPeriod - section.startPeriod + 1;
-                  const spansLunch = section.startPeriod < 6 && section.endPeriod >= 6;
-                  const height = heightPeriods * rowHeight + (spansLunch ? 34 : 0);
-                  const dayIndex = section.day - 2;
+                  const timeRange = getClassSectionTimeRange(section, defaultCampusId);
+                  const { top, height } = getScheduleAxisPosition(section, scheduleAxis, defaultCampusId);
+                  const dayIndex = visibleDays.findIndex((day) => day.day === section.day);
+                  if (dayIndex < 0) return null;
                   const baseColor = hasConflict ? '#EF4444' : section.color;
                   const backgroundColor = hasConflict ? '#FFF1F2' : getSolidTint(section.color);
                   const textColor = hasConflict ? '#991B1B' : '#111827';
                   const subTextColor = hasConflict ? '#B91C1C' : '#6B7280';
                   const pillBg = hasConflict ? '#FEE2E2' : getSolidTint(section.color, 0.82);
                   const pillText = hasConflict ? '#991B1B' : '#374151';
-                  const startTime = timePeriods.find((period) => period.period === section.startPeriod)?.time.split(' - ')[0] ?? '';
-                  const endTime = timePeriods.find((period) => period.period === section.endPeriod)?.time.split(' - ')[1] ?? '';
+                  const startTime = timeRange.startTime;
+                  const endTime = timeRange.endTime;
                   const isCompact = height < 80;
                   const isMedium = height >= 80 && height < 150;
                   const isTall = height >= 150;
@@ -379,6 +420,7 @@ export function GroupScheduleCalendarPreview({
                       key={section.id}
                       section={section}
                       conflictingSections={conflicts}
+                      defaultCampusId={defaultCampusId}
                     >
                       <div
                       role="button"
@@ -402,8 +444,8 @@ export function GroupScheduleCalendarPreview({
                       style={{
                         position: 'absolute',
                         top: top + 2,
-                        left: `calc(64px + ${dayIndex} * ((100% - 64px) / 6) + 3px)`,
-                        width: 'calc((100% - 64px) / 6 - 6px)',
+                        left: `calc(64px + ${dayIndex} * ((100% - 64px) / ${dayColumnCount}) + 3px)`,
+                        width: `calc((100% - 64px) / ${dayColumnCount} - 6px)`,
                         height: height - 4,
                         backgroundColor,
                         borderRadius: '8px',
@@ -453,7 +495,7 @@ export function GroupScheduleCalendarPreview({
                         {section.courseCode}
                         {isCompact && (
                           <span style={{ fontFamily: 'inherit', fontWeight: 500, color: subTextColor, fontSize: 8, marginLeft: 4 }}>
-                            · Lớp {section.sectionNumber}
+                            · Lớp {section.sectionNumber} · {getCompactCampusLabel(section.campusId)}
                           </span>
                         )}
                       </p>
@@ -520,6 +562,17 @@ export function GroupScheduleCalendarPreview({
                                 {section.room}
                               </span>
                             )}
+                            <span
+                              title={section.campusId === 'cho-quan' ? 'Cơ sở 1 - Chợ Quán' : 'Cơ sở 2 - Đông Hòa'}
+                              style={{
+                                flexShrink: 0,
+                                fontSize: 8,
+                                fontWeight: 700,
+                                color: subTextColor,
+                              }}
+                            >
+                              {getCompactCampusLabel(section.campusId)}
+                            </span>
                           </div>
 
                           {startTime && (isTall || isMedium) && (

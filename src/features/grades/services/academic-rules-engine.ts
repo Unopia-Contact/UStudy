@@ -19,6 +19,31 @@ function normalizeSemesterKey(value: unknown): string {
     return yearMatch && semesterMatch ? `${yearMatch[1]}-${yearMatch[2]}/${semesterMatch[1]}` : normalized.replace(/\s+/g, ' ');
 }
 
+function getSemesterOrder(value: unknown): number | null {
+    const normalized = normalizeSemesterKey(value);
+    const match = normalized.match(/^(\d{2})-(\d{2})\/([123])$/);
+    if (!match) return null;
+
+    return Number(match[1]) * 3 + Number(match[3]) - 1;
+}
+
+function selectLatestGradeRecord(records: any[]): any {
+    return records.reduce((latest, candidate) => {
+        if (!latest) return candidate;
+
+        const latestOrder = getSemesterOrder(latest.semester);
+        const candidateOrder = getSemesterOrder(candidate.semester);
+
+        if (latestOrder !== null && candidateOrder !== null && candidateOrder !== latestOrder) {
+            return candidateOrder > latestOrder ? candidate : latest;
+        }
+
+        // Portal rows are chronological in normal imports. The later source row
+        // is the safest fallback when the semester is missing or tied.
+        return candidate;
+    }, null);
+}
+
 
 /** Trạng thái chi tiết 4-state (dùng cho Training Program, UI hiển thị) */
 export type CourseStatus4 = 'passed' | 'failed' | 'studying' | 'none';
@@ -92,7 +117,7 @@ export const AcademicRulesEngine = {
      */
     isCategoryExcludedFromAccumulation: (categoryName: string): boolean => {
         return ACADEMIC_RULES.ACCUMULATION_EXCLUDED_COURSE_PREFIXES.some(prefix =>
-            categoryName.startsWith(prefix.name)
+            typeof prefix.name === 'string' && categoryName.startsWith(prefix.name)
         );
     },
 
@@ -157,15 +182,14 @@ export const AcademicRulesEngine = {
     resolveEffectiveGrades: (rawGrades: any[]): any[] => {
         const gradesByCourse = new Map<string, any[]>();
         rawGrades.forEach((g: any) => {
-            const code = String(g.id).trim();
+            const code = String(g.id).trim().toUpperCase();
             if (!gradesByCourse.has(code)) gradesByCourse.set(code, []);
             gradesByCourse.get(code)!.push(g);
         });
 
         const effectiveGrades: any[] = [];
         gradesByCourse.forEach((records) => {
-            const ctRecord = records.find((r: any) => String(r.type).trim() === 'CT');
-            effectiveGrades.push(ctRecord || records[records.length - 1]);
+            effectiveGrades.push(selectLatestGradeRecord(records));
         });
 
         return effectiveGrades;
@@ -191,12 +215,11 @@ export const AcademicRulesEngine = {
 
         if (!grades || grades.length === 0) return 'none';
 
-        const gradeRecords = grades.filter((g: any) => String(g.id).trim() === courseId);
+        const normalizedCourseId = courseId.trim().toUpperCase();
+        const gradeRecords = grades.filter((g: any) => String(g.id).trim().toUpperCase() === normalizedCourseId);
         if (gradeRecords.length === 0) return 'none';
 
-        // CT (improvement) record takes priority
-        const ctRecord = gradeRecords.find((g: any) => String(g.id).trim() === courseId && String(g.type).trim() === 'CT');
-        const recordToCheck = ctRecord || gradeRecords[gradeRecords.length - 1];
+        const recordToCheck = selectLatestGradeRecord(gradeRecords);
 
         const score = AcademicRulesEngine.parseRawScore(recordToCheck.score);
 
@@ -255,6 +278,33 @@ export const AcademicRulesEngine = {
         return { pointsForGPA, creditsForGPA, earnedCredits };
     },
 
+    /**
+     * Tính tham số cho GPA học kỳ.
+     *
+     * Khác GPA tích lũy, GPA học kỳ tính tất cả học phần đã có điểm,
+     * bao gồm cả học phần chưa đạt. Các học phần điều kiện/được loại khỏi GPA
+     * vẫn không tham gia tử số và mẫu số.
+     */
+    calculateSemesterGPAParams: (
+        code: string,
+        credits: number,
+        score: number,
+    ): { pointsForGPA: number, creditsForGPA: number } => {
+        if (
+            AcademicRulesEngine.isCourseExcludedFromGPA(code)
+            || !Number.isFinite(score)
+            || !Number.isFinite(credits)
+            || credits <= 0
+        ) {
+            return { pointsForGPA: 0, creditsForGPA: 0 };
+        }
+
+        return {
+            pointsForGPA: score * credits,
+            creditsForGPA: credits,
+        };
+    },
+
     // ───────────── GPA Summary (từ useStudentGradeData.ts) ─────────────
 
     /**
@@ -295,7 +345,6 @@ export const AcademicRulesEngine = {
         let foundationCredits = 0;
         let foundationFourPointPoints = 0;
         const normalizedCurrentSemester = normalizeSemesterKey(currentSemesterKey);
-
         effectiveGrades.forEach((g: any) => {
             const code = String(g.id).trim();
             const nameVi = AcademicRulesEngine.extractVietnameseCourseName(g.name);
@@ -368,16 +417,17 @@ export const AcademicRulesEngine = {
             const hasValidScore = typeof score === 'number' && !isNaN(score);
             if (hasValidScore) {
                 const result = AcademicRulesEngine.calculateAccumulationParams(code, credits, score, status);
+                const semesterResult = AcademicRulesEngine.calculateSemesterGPAParams(code, credits, score);
 
-                if (result.creditsForGPA > 0) {
+                if (semesterResult.creditsForGPA > 0) {
                     const sem = g.semester || 'Không rõ';
                     if (!semesterMap.has(sem)) {
                         semesterMap.set(sem, { points: 0, fourPointPoints: 0, credits: 0, earnedCredits: 0 });
                     }
                     const s = semesterMap.get(sem)!;
-                    s.points += result.pointsForGPA;
-                    s.fourPointPoints += score10ToFourPoint(score) * result.creditsForGPA;
-                    s.credits += result.creditsForGPA;
+                    s.points += semesterResult.pointsForGPA;
+                    s.fourPointPoints += score10ToFourPoint(score) * semesterResult.creditsForGPA;
+                    s.credits += semesterResult.creditsForGPA;
                     s.earnedCredits += result.earnedCredits;
                 }
             }

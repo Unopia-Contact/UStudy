@@ -96,7 +96,7 @@ export const categories = {
         ]
       },
       "GENERAL_ENGLISH": {
-        "name": "Ngoại ngữ (Anh văn)",
+        "name": "Ngoại ngữ",
         "credits": 12,
         "mandatory": false,
         "note": "Không tính vào điểm TB và TC tích lũy. SV đạt chuẩn ngoại ngữ đầu ra không cần đăng ký",
@@ -157,7 +157,7 @@ export const categories = {
         ]
       },
       "ELECTIVE": {
-        "credit" : 26,
+        "credits" : 26,
         "note" : "sinh viên tích lũy ít nhất 26 cho phần kiến thức tự chọn",
         "courses": [
           "CSC14007",

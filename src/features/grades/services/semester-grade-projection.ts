@@ -74,6 +74,7 @@ function summarizeSemester(id: string, courses: SimulatorCourseGrade[]): GPAProj
     let officialCredits = 0;
     let projectedCredits = 0;
     let knownPoints = 0;
+    let gpaCredits = 0;
     let officialCourseCount = 0;
     let projectedCourseCount = 0;
     let missingCourseCount = 0;
@@ -85,12 +86,24 @@ function summarizeSemester(id: string, courses: SimulatorCourseGrade[]): GPAProj
             officialCourseCount += 1;
             officialCredits += credits;
             knownCredits += credits;
-            knownPoints += course.currentGrade * credits;
+            const semesterGPAParams = AcademicRulesEngine.calculateSemesterGPAParams(
+                course.code,
+                credits,
+                course.currentGrade,
+            );
+            knownPoints += semesterGPAParams.pointsForGPA;
+            gpaCredits += semesterGPAParams.creditsForGPA;
         } else if (course.projectedGrade !== null) {
             projectedCourseCount += 1;
             projectedCredits += credits;
             knownCredits += credits;
-            knownPoints += course.projectedGrade * credits;
+            const semesterGPAParams = AcademicRulesEngine.calculateSemesterGPAParams(
+                course.code,
+                credits,
+                course.projectedGrade,
+            );
+            knownPoints += semesterGPAParams.pointsForGPA;
+            gpaCredits += semesterGPAParams.creditsForGPA;
         } else {
             missingCourseCount += 1;
         }
@@ -107,7 +120,7 @@ function summarizeSemester(id: string, courses: SimulatorCourseGrade[]): GPAProj
         officialCourseCount,
         projectedCourseCount,
         missingCourseCount,
-        semesterGPA: knownCredits > 0 ? knownPoints / knownCredits : null,
+        semesterGPA: gpaCredits > 0 ? knownPoints / gpaCredits : null,
     };
 }
 

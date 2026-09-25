@@ -138,7 +138,8 @@ export const categories = {
     },
     "MAJOR_ENVIRONMENTAL_ENGINEERING": {
         "name": "Kiến thức chuyên ngành",
-        "specializations": {
+        "total_credits_required": 20,
+        "breakdown": {
             "WATER_SOIL": {
                 "name": "Công nghệ môi trường nước và đất",
                 "total_credits_required": 20,

@@ -5,13 +5,13 @@
 
 ## Verification
 
-- [ ] `npm run typecheck:test`
-- [ ] `npm run test:unit`
-- [ ] `npm run build`
+- [ ] `pnpm run typecheck:test`
+- [ ] `pnpm run test:unit`
+- [ ] `pnpm run build`
 - [ ] Checked affected desktop UI
 - [ ] Checked affected mobile UI
 - [ ] Android workflow passed when native or mobile behavior changed
-- [ ] `npm run typecheck` was checked, or existing unrelated TypeScript debt is noted
+- [ ] `pnpm run typecheck` was checked, or existing unrelated TypeScript debt is noted
 
 ## Data and compatibility
 

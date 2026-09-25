@@ -696,7 +696,7 @@
     // === 3. MAIN RUNNER ===
     try {
         if (!IS_EXTENSION && !window.opener) {
-            alert("Vui lòng mở Portal bằng nút \"Đăng nhập\" để công cụ hoạt động.");
+            alert("Vui lòng mở Portal bằng nút \"Đăng nhập\" thông qua web UStudy để công cụ hoạt động, Không mở trực tiếp portal.");
             return;
         }
         const runtimeOptions = EXTENSION_RUNTIME?.syncOptions;
@@ -1079,7 +1079,7 @@
             alert(`✅ HOÀN TẤT QUÁ TRÌNH!\n\nĐã gửi gói dữ liệu RAW gồm:\n- ${rawData.grades?.length || 0} dòng điểm\n- ${(rawData.exams?.midterm?.length || 0) + (rawData.exams?.final?.length || 0)} lịch thi\n- ${rawData.tuition?.details?.length || 0} dòng học phí\n- ${courses.length} dòng lớp mở\n- ${registrations.length} môn đã đăng ký\n\nKiểm tra bên tab Tool nhé!`);
         } else {
             // giờ cụm này kh hoạt động nma để lại cho HK nha :>
-            alert(`Vui lòng mở Portal bằng nút "Đăng nhập" để công cụ hoạt động.`);
+            alert("Vui lòng mở Portal bằng nút \"Đăng nhập\" thông qua web UStudy để công cụ hoạt động, Không mở trực tiếp portal.");
             const blob = new Blob([JSON.stringify(fullDataPacket, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');

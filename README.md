@@ -118,14 +118,19 @@ Bạn có thể xuất dữ liệu để sao lưu, nhập lại từ JSON hoặc
 
 UStudy được xây dựng theo hướng **local-first**: dữ liệu học tập được lưu trên thiết bị của người dùng thay vì tạo một tài khoản tập trung trên máy chủ của dự án.
 
-- Dữ liệu nhạy cảm được mã hóa trước khi lưu cục bộ.
+- Dữ liệu học tập chính được mã hóa trước khi lưu cục bộ; trên APK Android, bản lịch rút gọn cho widget được lưu riêng, không mã hóa, sau khi người dùng mở khóa và có thời khóa biểu.
 - Mật khẩu mở khóa không được lưu trực tiếp.
 - Dữ liệu sau khi giải mã chỉ được giữ trong bộ nhớ trong phiên sử dụng.
 - Công cụ đồng bộ cho phép xem trước thay đổi trước khi ghi dữ liệu.
 - Lịch sử nhập và bản sao dữ liệu giúp hoàn tác khi cần thiết.
+- Thống kê installation ẩn danh chỉ gửi mã ngẫu nhiên đã băm, domain, phiên bản và ngày hoạt động. Người dùng có thể tạm dừng hoặc xóa ID khỏi thiết bị tại **Bảo mật & Quyền**; lịch sử ngày hoạt động đã ghi nhận được giữ cho báo cáo tổng hợp theo nội dung đồng ý hiển thị trong ứng dụng.
 
 > [!NOTE]
 > Vì dữ liệu nằm trên thiết bị, hãy chủ động tạo bản sao lưu trước khi xóa dữ liệu trình duyệt, đổi máy hoặc gỡ ứng dụng.
+
+### Widget lịch học Android
+
+Trên APK từ phiên bản **0.2.4**, widget có sẵn trong danh sách widget Android, không cần bật ở Cài đặt. Sau khi mở khóa UStudy và có thời khóa biểu ít nhất một lần, giữ một khoảng trống trên màn hình chính Android, chọn **Widget → UStudy** để thêm; lịch đã chuẩn bị sẽ hiện ngay. Widget hiển thị tối đa ba buổi hôm nay; chạm vào để mở ứng dụng. UStudy tự lưu tên môn, giờ và phòng của lịch 30 ngày tới trong vùng riêng của APK, không mã hóa, để widget hoạt động cả khi ứng dụng đang khóa. Bản này không gửi lên server; xóa toàn bộ dữ liệu UStudy sẽ xóa luôn bản widget. Nếu mới cài APK mà chưa mở khóa hoặc chưa có lịch, widget sẽ mời mở UStudy để nạp dữ liệu. Mở UStudy để làm mới lịch khi đã quá 30 ngày.
 
 Tìm hiểu thêm tại [Kiến trúc bảo mật](docs/security_architecture.md), [Quyền riêng tư](https://ustudy.hakhoi.io.vn/privacy) và [Cấu trúc lưu trữ cục bộ](docs/local-storage-schema.md).
 
@@ -170,13 +175,13 @@ Email liên hệ: **unopia.contact@gmail.com**
 ### Yêu cầu
 
 - Node.js 22 trở lên
-- npm
+- pnpm 11 (Corepack được bật tự động trong CI)
 
 ### Khởi động web
 
 ```bash
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+pnpm run dev
 ```
 
 Ứng dụng phát triển chạy tại `https://localhost:3005`.
@@ -184,14 +189,17 @@ npm run dev
 ### Các lệnh thường dùng
 
 ```bash
-npm run build:web       # Build giao diện web
-npm run build:extension # Đóng gói extension
-npm run test:unit       # Chạy unit test
-npm run test:e2e        # Chạy smoke test trên trình duyệt
-npm run check           # Type-check, test và build toàn bộ
+pnpm run build:web       # Build giao diện web
+pnpm run build:extension # Đóng gói extension
+pnpm run test:unit       # Chạy unit test
+pnpm run test:e2e        # Chạy smoke test trên trình duyệt
+pnpm run check           # Build từ bản clone GitHub
+pnpm run check:local     # Type-check, test và build (cần bộ test nội bộ)
 ```
 
 Để build Android, xem hướng dẫn và yêu cầu môi trường trong [docs/android-app.md](docs/android-app.md).
+
+Bộ `tests/` và cấu hình kiểm thử chỉ lưu trên máy nhân viên, không có trong repository. Các lệnh test ở trên cần bộ test nội bộ; bản clone mới từ GitHub chỉ build được, không chạy được test.
 
 </details>
 

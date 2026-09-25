@@ -10,6 +10,14 @@
 import { encodeScheduleToMask } from '../Utils';
 import { normalizeCourseCode } from '../course-identity';
 import { Bitset } from './Bitset';
+import {
+    DEFAULT_CAMPUS_ID,
+    detectCampusFromPeriodRanges,
+    reconcileRegistrationCampus,
+    resolveCampus,
+    type CampusId,
+    type SessionCampus,
+} from '../../domain/campus';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -18,6 +26,7 @@ export interface RegisteredComponent {
     classGroup: string;
     schedule: string;
     room?: string;
+    campus?: SessionCampus;
 }
 
 export interface RegisteredCourse {
@@ -125,11 +134,22 @@ function parseScheduleAndRoom(raw: string): { schedule: string; room?: string } 
     // vì dấu '-' trong T2(1-3) là khoảng tiết chứ không phải dấu ngăn phòng.
     const roomMatch = raw.match(/\)\s*-\s*([^;,]+)/);
     const candidateRoom = roomMatch?.[1]?.trim();
-    const room = candidateRoom && !/^T(?:\d|CN)\s*\(/i.test(candidateRoom)
-        ? candidateRoom
+    const roomAfterLabel = candidateRoom?.includes(':')
+        ? candidateRoom.slice(candidateRoom.lastIndexOf(':') + 1).trim()
+        : candidateRoom;
+    const room = roomAfterLabel && !/^T(?:\d|CN)\s*\(/i.test(roomAfterLabel)
+        ? roomAfterLabel
         : undefined;
 
     return { schedule, room };
+}
+
+function getPeriodRanges(schedule: string): Array<{ startPeriod: number; endPeriod: number }> {
+    return [...schedule.matchAll(/T(?:\d|CN)\s*\((\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\)/gi)]
+        .map((match) => ({
+            startPeriod: Number.parseFloat(match[1]),
+            endPeriod: Number.parseFloat(match[2]),
+        }));
 }
 
 // ── Main Resolver ──────────────────────────────────────────────────────────────
@@ -142,6 +162,10 @@ export interface ResolveOptions {
      * Dùng khi biết chắc dataset là snapshot của kỳ hiện tại.
      */
     acceptMissingSemester?: boolean;
+    /** Danh sách lớp mở đã xử lý, dùng để xác định campus cho KQĐKHP. */
+    openCourses?: any[];
+    /** CÆ¡ sá»Ÿ dÃ¹ng khi KQÄKHP khÃ´ng Ä‘á»‘i chiáº¿u Ä‘Æ°á»£c vá»›i lá»›p má»Ÿ. */
+    defaultCampusId?: CampusId;
 }
 
 /**
@@ -159,7 +183,12 @@ export function resolveRegistrations(
         return [];
     }
 
-    const { currentSemester = null, acceptMissingSemester = true } = options;
+    const {
+        currentSemester = null,
+        acceptMissingSemester = true,
+        openCourses = [],
+        defaultCampusId = DEFAULT_CAMPUS_ID,
+    } = options;
 
     // 1. Lọc theo semester
     const filtered = rawRegistrations.filter(reg => {
@@ -200,11 +229,22 @@ export function resolveRegistrations(
             });
         }
 
+        const reconciledCampus = openCourses.length > 0
+            ? reconcileRegistrationCampus(reg, openCourses)
+            : null;
+        const scheduleCampus = detectCampusFromPeriodRanges(getPeriodRanges(schedule));
+        const campusDetection = reconciledCampus?.status === 'matched'
+            ? reconciledCampus
+            : scheduleCampus.status === 'matched'
+                ? scheduleCampus
+                : reconciledCampus;
+
         grouped.get(code)!.components.push({
             courseType,
             classGroup: reg.classGroup || '',
             schedule,
             room,
+            ...(campusDetection ? { campus: { detection: campusDetection } } : {}),
         });
     }
 
@@ -218,7 +258,8 @@ export function resolveRegistrations(
             const scheduleParts = comp.schedule.split(/[;,]/).map(s => s.trim()).filter(Boolean);
             if (scheduleParts.length === 0) continue;
 
-            const encoded = encodeScheduleToMask(scheduleParts, courseCode);
+            const campusId = resolveCampus(comp.campus, defaultCampusId).campusId;
+            const encoded = encodeScheduleToMask(scheduleParts, courseCode, campusId);
             const compMask = new Bitset();
             compMask.loadFromData(encoded.parts);
             const merged = combinedMask.or(compMask);

@@ -5,7 +5,7 @@
  * Không phụ thuộc React - có thể test/import độc lập.
  */
 
-import { timePeriods } from '../constants/timetable';
+import { resolvePeriodBoundary, type CampusId } from '../domain/campus';
 import { type ScheduleSession, type WeeklySchedule, type ScheduleOverrides, type Holiday } from '../types/Schedule';
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -35,15 +35,40 @@ export type ScheduleColor = 'blue' | 'green' | 'yellow' | 'purple';
  * - T2(1-5) - F301: Room (optional)
  * - T3 (3.5-5.5) - Phòng TH: Room name with space (optional)
  */
-const SCHEDULE_REGEX = /T(\d|CN)\s*\(([\d.]+)-([\d.]+)\)(?:\s*-\s*([^,:]+))?/g;
+const SCHEDULE_REGEX = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)(?:\s*-\s*([^,;:]+)(?::\s*([^,;]+))?)?/gi;
 
 /**
  * Regex đơn giản chỉ match phần Tx(n-m), dùng cho dataProcessor (không cần room).
  */
-const SCHEDULE_REGEX_SIMPLE = /T(\d|CN)\(([\d.]+)-([\d.]+)\)/g;
+const SCHEDULE_REGEX_SIMPLE = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)/gi;
 
 /** Regex cho parse từng phần schedule (non-global, dùng cho match đơn) */
-const SCHEDULE_PART_REGEX = /T(\d|CN)\s*\(([\d.]+)-([\d.]+)\)(?:\s*-\s*([^:]+)(?::\s*(.*))?)?/;
+const SCHEDULE_PART_REGEX = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)(?:\s*-\s*([^:;]+)(?::\s*(.*))?)?/i;
+
+function getRoomFromMatch(match: RegExpMatchArray): string | undefined {
+    return (match[5] || match[4])?.trim() || undefined;
+}
+
+function inheritTrailingRoom<T extends { room?: string }>(entries: T[]): T[] {
+    const trailingRoom = entries.at(-1)?.room;
+    if (entries.length < 2 || !trailingRoom || entries.slice(0, -1).some((entry) => entry.room)) {
+        return entries;
+    }
+
+    return entries.map((entry) => ({ ...entry, room: trailingRoom }));
+}
+
+function getSharedTrailingRoom(scheduleParts: string[]): string | undefined {
+    const rooms = scheduleParts.map((part) => {
+        const match = part.match(SCHEDULE_PART_REGEX);
+        return match ? getRoomFromMatch(match) : undefined;
+    });
+    const trailingRoom = rooms.at(-1);
+
+    return rooms.length > 1 && trailingRoom && rooms.slice(0, -1).every((room) => !room)
+        ? trailingRoom
+        : undefined;
+}
 
 // ─── Core Functions ─────────────────────────────────────────────────
 
@@ -63,11 +88,11 @@ export const ScheduleLogic = {
 
         let match;
         while ((match = SCHEDULE_REGEX.exec(scheduleStr)) !== null) {
-            const dayStr = match[1];
+            const dayStr = match[1].toUpperCase();
             const dayIndex = dayStr === 'CN' ? 6 : parseInt(dayStr) - 2;
             const startPeriod = parseFloat(match[2]);
             const endPeriod = parseFloat(match[3]);
-            const room = match[4]?.trim() || undefined;
+            const room = getRoomFromMatch(match);
 
             results.push({
                 dayStr: `T${dayStr}`,
@@ -79,7 +104,7 @@ export const ScheduleLogic = {
             });
         }
 
-        return results;
+        return inheritTrailingRoom(results);
     },
 
     /**
@@ -137,18 +162,20 @@ export const ScheduleLogic = {
     /**
      * Tính duration thực tế từ startPeriod và endPeriod.
      * Trong ký hiệu VN: T2(1-5) = tiết 1 đến 5 bao gồm cả tiết 5 → duration = 5.
-     * Tiết lẻ T2(3.5-5.5) → duration = 2 (thực tế 2 tiết học).
+     * Tiết lẻ là ranh giới nửa tiết: 1-2.5 và 3.5-5 đều dài 2.5 tiết.
      */
     adjustPeriodsForPractical: (
         _courseType: string,
         startPeriod: number,
         endPeriod: number
     ): { startPeriod: number; endPeriod: number; duration: number } => {
-        // endPeriod nguyên = inclusive (T2(1-5) có 5 tiết)
-        // endPeriod lẻ = exclusive-end (T2(3.5-5.5) có 2 tiết)
-        const duration = Number.isInteger(endPeriod)
-            ? endPeriod - startPeriod + 1
-            : endPeriod - startPeriod;
+        const startBoundary = Number.isInteger(startPeriod)
+            ? startPeriod - 1
+            : Math.floor(startPeriod) - 0.5;
+        const endBoundary = Number.isInteger(endPeriod)
+            ? endPeriod
+            : Math.floor(endPeriod) + 0.5;
+        const duration = endBoundary - startBoundary;
         return { startPeriod, endPeriod, duration };
     },
 
@@ -156,18 +183,11 @@ export const ScheduleLogic = {
      * Chuyển đổi tiết học (period) thành chuỗi giờ (ví dụ "07:30").
      * Hỗ trợ các tiết lẻ 3.5 và 8.5 cho lớp TH/BT.
      */
-    periodToTimeString: (period: number, isStart: boolean): string => {
-        // Các tiết đặc biệt cho TH/BT
-        if (isStart) {
-            if (period === 3.5) return '09:45';
-            if (period === 8.5) return '14:55';
-            const obj = timePeriods.find(p => p.period === Math.floor(period));
-            return obj ? obj.time.split(' - ')[0].trim() : '00:00';
-        } else {
-            if (period === 2.5) return '09:35';
-            if (period === 7.5) return '14:45';
-            const obj = timePeriods.find(p => p.period === Math.ceil(period));
-            return obj ? obj.time.split(' - ')[1].trim() : '00:00';
+    periodToTimeString: (period: number, isStart: boolean, campusId: CampusId = 'dong-hoa'): string => {
+        try {
+            return resolvePeriodBoundary(campusId, period, isStart ? 'start' : 'end');
+        } catch {
+            return '00:00';
         }
     },
 
@@ -314,7 +334,8 @@ export const ScheduleLogic = {
             const exerciseHours = parseInt(meta?.exercise_hours as any) || 0;
 
             const scheduleStr = course.schedule || '';
-            const scheduleParts = scheduleStr.split(',').map((s: string) => s.trim()).filter(Boolean);
+            const scheduleParts = scheduleStr.split(/[;,]/).map((s: string) => s.trim()).filter(Boolean);
+            const sharedTrailingRoom = getSharedTrailingRoom(scheduleParts);
 
             if (scheduleParts.length > 0 && course.courseType === 'LT') {
                 totalCourses++;
@@ -333,7 +354,7 @@ export const ScheduleLogic = {
 
                 let rawStart = parseFloat(match[2]);
                 let rawEnd = parseFloat(match[3]);
-                let room = match[5] || '';
+                let room = getRoomFromMatch(match) || sharedTrailingRoom || '';
 
                 // --- Apply Global Overrides ---
                 const sessionId = `${course.id}_${index}_${partIdx}`;

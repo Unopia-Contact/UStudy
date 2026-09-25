@@ -29,7 +29,7 @@ export const ACADEMIC_RULES = {
     
     EXCLUDED_COURSE_PREFIXES: [
         { id: 'BAA0002', name: 'Giáo dục thể chất' },
-        { id: 'ADD0003', name: 'Ngoại ngữ (Anh văn)' },
+        { id: 'ADD0003', name: 'Ngoại ngữ' },
         { id: 'BAA0003', name: 'Giáo dục quốc phòng - An ninh' },
         { id: 'CSC00003', name: 'Tin học cơ sở' }
     ],
@@ -40,8 +40,9 @@ export const ACADEMIC_RULES = {
      */
     ACCUMULATION_EXCLUDED_COURSE_PREFIXES: [
         { id: 'BAA0002', name: 'Giáo dục thể chất' },
-        { id: 'ADD0003', name: 'Ngoại ngữ (Anh văn)' },
-        { id: 'BAA0003', name: 'Giáo dục quốc phòng - An ninh' }
+        { id: 'ADD0003', name: 'Ngoại ngữ' },
+        { id: 'BAA0003', name: 'Giáo dục quốc phòng - An ninh' },
+        { id: 'CSC00003' }
     ],
 
     /** Số chữ số sau dấu phẩy của GPA */
@@ -52,9 +53,6 @@ export const ACADEMIC_RULES = {
 
     /** Điểm tối đa của GPA */
     MAX_GPA: 10.0,
-
-    /** Tổng số tín chỉ yêu cầu tốt nghiệp */
-    TOTAL_CREDITS: 138,
 
     /** Điểm hệ 10 tối thiểu để qua môn */
     PASS_GRADE_DECIMAL: 5.0,

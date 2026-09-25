@@ -7,6 +7,7 @@ import {
   portalSyncConfig,
   type PortalSyncPacket,
 } from '../portal-sync/protocol';
+import { getRandomPortalLoginUrl } from '../portal-sync/portal-url';
 
 interface NativePortalSyncResult {
   packetJson: string;
@@ -68,7 +69,7 @@ export async function openNativePortalSync(academicYear: string, semesterNumber:
   };
 
   const result = await NativePortalSync.openPortal({
-    url: portalSyncConfig.portalLoginUrl,
+    url: getRandomPortalLoginUrl(),
     runnerSource: bookmarkletSource,
     runtimeJson: JSON.stringify(runtime),
   });

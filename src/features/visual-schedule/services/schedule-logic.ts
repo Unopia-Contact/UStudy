@@ -5,7 +5,20 @@
  * Không phụ thuộc React - có thể test/import độc lập.
  */
 
-import { timePeriods } from '../../../constants';
+import {
+    reconcileRegistrationCampus,
+    detectCampusFromPeriodRanges,
+    resolveCampus,
+    resolvePeriodBoundary,
+    tryResolvePeriodRange,
+    type CampusId,
+} from '../../../domain/campus';
+import type { AcademicRuleContext } from '../../../domain/academic-rules';
+import {
+    normalizeScheduleComponentType,
+    resolveCourseWorkload,
+    type UserWorkloadOverride,
+} from '../../../domain/schedule-workload';
 import { type ScheduleSession, type WeeklySchedule, type ScheduleOverrides, type Holiday } from '../types';
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -27,6 +40,11 @@ export interface ParsedScheduleEntry {
 
 export type ScheduleColor = 'blue' | 'green' | 'yellow' | 'purple';
 
+export interface ScheduleWorkloadOptions {
+    academicContext?: AcademicRuleContext;
+    userOverrides?: Record<string, UserWorkloadOverride>;
+}
+
 // ─── Regex ────────────────────────────────────────────────────────────
 
 /**
@@ -35,15 +53,40 @@ export type ScheduleColor = 'blue' | 'green' | 'yellow' | 'purple';
  * - T2(1-5) - F301: Room (optional)
  * - T3 (3.5-5.5) - Phòng TH: Room name with space (optional)
  */
-const SCHEDULE_REGEX = /T(\d|CN)\s*\(([\d.]+)-([\d.]+)\)(?:\s*-\s*([^,;:]+))?/g;
+const SCHEDULE_REGEX = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)(?:\s*-\s*([^,;:]+)(?::\s*([^,;]+))?)?/gi;
 
 /**
  * Regex đơn giản chỉ match phần Tx(n-m), dùng cho dataProcessor (không cần room).
  */
-const SCHEDULE_REGEX_SIMPLE = /T(\d|CN)\(([\d.]+)-([\d.]+)\)/g;
+const SCHEDULE_REGEX_SIMPLE = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)/gi;
 
 /** Regex cho parse từng phần schedule (non-global, dùng cho match đơn) */
-const SCHEDULE_PART_REGEX = /T(\d|CN)\s*\(([\d.]+)-([\d.]+)\)(?:\s*-\s*([^:;]+)(?::\s*(.*))?)?/;
+const SCHEDULE_PART_REGEX = /T(\d|CN)\s*\(([\d.]+)\s*-\s*([\d.]+)\)(?:\s*-\s*([^:;]+)(?::\s*(.*))?)?/i;
+
+function getRoomFromMatch(match: RegExpMatchArray): string | undefined {
+    return (match[5] || match[4])?.trim() || undefined;
+}
+
+function inheritTrailingRoom<T extends { room?: string }>(entries: T[]): T[] {
+    const trailingRoom = entries.at(-1)?.room;
+    if (entries.length < 2 || !trailingRoom || entries.slice(0, -1).some((entry) => entry.room)) {
+        return entries;
+    }
+
+    return entries.map((entry) => ({ ...entry, room: trailingRoom }));
+}
+
+function getSharedTrailingRoom(scheduleParts: string[]): string | undefined {
+    const rooms = scheduleParts.map((part) => {
+        const match = part.match(SCHEDULE_PART_REGEX);
+        return match ? getRoomFromMatch(match) : undefined;
+    });
+    const trailingRoom = rooms.at(-1);
+
+    return rooms.length > 1 && trailingRoom && rooms.slice(0, -1).every((room) => !room)
+        ? trailingRoom
+        : undefined;
+}
 
 // ─── Core Functions ─────────────────────────────────────────────────
 
@@ -63,11 +106,11 @@ export const ScheduleLogic = {
 
         let match;
         while ((match = SCHEDULE_REGEX.exec(scheduleStr)) !== null) {
-            const dayStr = match[1];
+            const dayStr = match[1].toUpperCase();
             const dayIndex = dayStr === 'CN' ? 6 : parseInt(dayStr) - 2;
             const startPeriod = parseFloat(match[2]);
             const endPeriod = parseFloat(match[3]);
-            const room = match[4]?.trim() || undefined;
+            const room = getRoomFromMatch(match);
 
             results.push({
                 dayStr: `T${dayStr}`,
@@ -79,7 +122,7 @@ export const ScheduleLogic = {
             });
         }
 
-        return results;
+        return inheritTrailingRoom(results);
     },
 
     /**
@@ -137,18 +180,20 @@ export const ScheduleLogic = {
     /**
      * Tính duration thực tế từ startPeriod và endPeriod.
      * Trong ký hiệu VN: T2(1-5) = tiết 1 đến 5 bao gồm cả tiết 5 → duration = 5.
-     * Tiết lẻ T2(3.5-5.5) → duration = 2 (thực tế 2 tiết học).
+     * Tiết lẻ là ranh giới nửa tiết: 1-2.5 và 3.5-5 đều dài 2.5 tiết.
      */
     adjustPeriodsForPractical: (
         _courseType: string,
         startPeriod: number,
         endPeriod: number
     ): { startPeriod: number; endPeriod: number; duration: number } => {
-        // endPeriod nguyên = inclusive (T2(1-5) có 5 tiết)
-        // endPeriod lẻ = exclusive-end (T2(3.5-5.5) có 2 tiết)
-        const duration = Number.isInteger(endPeriod)
-            ? endPeriod - startPeriod + 1
-            : endPeriod - startPeriod;
+        const startBoundary = Number.isInteger(startPeriod)
+            ? startPeriod - 1
+            : Math.floor(startPeriod) - 0.5;
+        const endBoundary = Number.isInteger(endPeriod)
+            ? endPeriod
+            : Math.floor(endPeriod) + 0.5;
+        const duration = endBoundary - startBoundary;
         return { startPeriod, endPeriod, duration };
     },
 
@@ -156,18 +201,11 @@ export const ScheduleLogic = {
      * Chuyển đổi tiết học (period) thành chuỗi giờ (ví dụ "07:30").
      * Hỗ trợ các tiết lẻ 3.5 và 8.5 cho lớp TH/BT.
      */
-    periodToTimeString: (period: number, isStart: boolean): string => {
-        // Các tiết đặc biệt cho TH/BT
-        if (isStart) {
-            if (period === 3.5) return '09:45';
-            if (period === 8.5) return '14:55';
-            const obj = timePeriods.find(p => p.period === Math.floor(period));
-            return obj ? obj.time.split(' - ')[0].trim() : '00:00';
-        } else {
-            if (period === 2.5) return '09:35';
-            if (period === 7.5) return '14:45';
-            const obj = timePeriods.find(p => p.period === Math.ceil(period));
-            return obj ? obj.time.split(' - ')[1].trim() : '00:00';
+    periodToTimeString: (period: number, isStart: boolean, campusId: CampusId = 'dong-hoa'): string => {
+        try {
+            return resolvePeriodBoundary(campusId, period, isStart ? 'start' : 'end');
+        } catch {
+            return '00:00';
         }
     },
 
@@ -280,7 +318,10 @@ export const ScheduleLogic = {
         allCoursesMeta: any[],
         metadata: any,
         overrides?: ScheduleOverrides,
-        systemHolidays: Holiday[] = []
+        systemHolidays: Holiday[] = [],
+        openCourses: any[] = [],
+        defaultCampusId: CampusId = 'dong-hoa',
+        workloadOptions: ScheduleWorkloadOptions = {},
     ): WeeklySchedule => {
         const semester = metadata?.params?.registration?.sem || '1';
         const year = metadata?.params?.registration?.year || '24-25';
@@ -288,6 +329,51 @@ export const ScheduleLogic = {
         // Merge holidays: System holidays + User overrides
         const combinedHolidays = [...systemHolidays, ...(overrides?.holidays || [])];
         const activeOverrides = overrides ? { ...overrides, holidays: combinedHolidays } : { sessionOverrides: {}, weekOverrides: {}, holidays: combinedHolidays };
+
+        const normalizeCourseId = (value: unknown) => String(value ?? '').trim().toUpperCase();
+        const metadataByCourseId = new Map(
+            allCoursesMeta.map((meta: any) => [normalizeCourseId(meta?.course_id), meta]),
+        );
+        const registrationsByCourseId = new Map<string, any[]>();
+        coursesRegistered.forEach((course: any) => {
+            const courseId = normalizeCourseId(course?.id);
+            if (!courseId) return;
+            const registrations = registrationsByCourseId.get(courseId) ?? [];
+            registrations.push(course);
+            registrationsByCourseId.set(courseId, registrations);
+        });
+        const resolvedWorkloads = new Map(
+            [...registrationsByCourseId.entries()].map(([courseId, registrations]) => [
+                courseId,
+                resolveCourseWorkload({
+                    courseId,
+                    registrations,
+                    courseMeta: metadataByCourseId.get(courseId),
+                    academicContext: workloadOptions.academicContext,
+                    userOverride: workloadOptions.userOverrides?.[courseId],
+                }),
+            ]),
+        );
+        const periodsPerWeekByComponent = new Map<string, number>();
+        coursesRegistered.forEach((course: any) => {
+            const courseId = normalizeCourseId(course?.id);
+            const componentType = normalizeScheduleComponentType(course?.courseType) ?? 'LT';
+            const scheduleParts = String(course?.schedule ?? '').split(/[;,]/).map((part) => part.trim()).filter(Boolean);
+            const duration = scheduleParts.reduce((sum, part) => {
+                const match = part.match(SCHEDULE_PART_REGEX);
+                if (!match) return sum;
+                const sessionId = `${course.id}|${course.classGroup || ''}|${componentType}|${part}`;
+                const override = activeOverrides.sessionOverrides?.[sessionId];
+                const startPeriod = override?.startPeriod ?? Number.parseFloat(match[2]);
+                const endPeriod = override?.endPeriod ?? Number.parseFloat(match[3]);
+                return sum + ScheduleLogic.adjustPeriodsForPractical(componentType, startPeriod, endPeriod).duration;
+            }, 0);
+            const componentKey = `${courseId}|${componentType}`;
+            periodsPerWeekByComponent.set(
+                componentKey,
+                (periodsPerWeekByComponent.get(componentKey) ?? 0) + duration,
+            );
+        });
 
         const countedCourseCodes = new Set<string>();
         let totalCourses = 0;
@@ -309,26 +395,24 @@ export const ScheduleLogic = {
         });
 
         coursesRegistered.forEach((course: any) => {
-            const meta = allCoursesMeta.find((m: any) => m.course_id === course.id);
+            const normalizedCourseId = normalizeCourseId(course.id);
+            const meta = metadataByCourseId.get(normalizedCourseId);
             const credits = parseInt(meta?.credits as any) || 0;
-            const theoryHours = parseInt(meta?.theory_hours as any) || 0;
-            const labHours = parseInt(meta?.lab_hours as any) || 0;
-            const exerciseHours = parseInt(meta?.exercise_hours as any) || 0;
 
             const scheduleStr: string = course.schedule || '';
             const scheduleParts: string[] = scheduleStr.split(/[;,]/).map((s) => s.trim()).filter(Boolean);
+            const sharedTrailingRoom = getSharedTrailingRoom(scheduleParts);
 
-            if (scheduleParts.length > 0 && !countedCourseCodes.has(course.id)) {
-                countedCourseCodes.add(course.id);
+            if (scheduleParts.length > 0 && !countedCourseCodes.has(normalizedCourseId)) {
+                countedCourseCodes.add(normalizedCourseId);
                 totalCourses += 1;
                 totalCredits += credits;
             }
 
             const color = ScheduleLogic.getColorForCourse(course.id);
-            const cType = (course.courseType || 'LT') as 'LT' | 'TH' | 'BT';
-            let requiredHours = theoryHours;
-            if (cType === 'TH') requiredHours = labHours;
-            else if (cType === 'BT') requiredHours = exerciseHours;
+            const cType = normalizeScheduleComponentType(course.courseType) ?? 'LT';
+            const reconciledCampus = reconcileRegistrationCampus(course, openCourses);
+            const requiredHours = resolvedWorkloads.get(normalizedCourseId)?.components[cType]?.requiredPeriods ?? 0;
 
             const parsedSessions = scheduleParts.flatMap((part: string, partIdx: number) => {
                 const match = part.match(SCHEDULE_PART_REGEX);
@@ -339,7 +423,7 @@ export const ScheduleLogic = {
 
                 let rawStart = parseFloat(match[2]);
                 let rawEnd = parseFloat(match[3]);
-                let room = (match[5] || match[4] || '').trim();
+                let room = getRoomFromMatch(match) || sharedTrailingRoom || '';
                 const baseDayOfWeek = dayOfWeek;
                 const baseRoom = room;
                 const basePeriods = ScheduleLogic.adjustPeriodsForPractical(cType, rawStart, rawEnd);
@@ -355,6 +439,19 @@ export const ScheduleLogic = {
                 }
 
                 const adjusted = ScheduleLogic.adjustPeriodsForPractical(cType, rawStart, rawEnd);
+                const scheduleCampus = detectCampusFromPeriodRanges([{
+                    startPeriod: adjusted.startPeriod,
+                    endPeriod: adjusted.endPeriod,
+                }]);
+                const campusDetection = reconciledCampus.status === 'matched'
+                    ? reconciledCampus
+                    : scheduleCampus.status === 'matched'
+                        ? scheduleCampus
+                        : reconciledCampus;
+                const resolvedCampus = resolveCampus({
+                    detection: campusDetection,
+                    manualCampusId: override?.campusId,
+                }, defaultCampusId);
                 return [{
                     partIdx,
                     sessionId,
@@ -363,25 +460,32 @@ export const ScheduleLogic = {
                     adjusted,
                     color: override?.color ?? color,
                     note: override?.note,
+                    resolvedCampus,
                     baseValues: {
                         room: baseRoom,
                         dayOfWeek: baseDayOfWeek,
                         startPeriod: basePeriods.startPeriod,
                         endPeriod: basePeriods.endPeriod,
                         color,
+                        campusId: resolvedCampus.campusId,
                     },
                 }];
             });
 
-            const periodsPerWeek = parsedSessions.reduce((sum, session) => sum + session.adjusted.duration, 0);
+            const periodsPerWeek = periodsPerWeekByComponent.get(`${normalizedCourseId}|${cType}`)
+                ?? parsedSessions.reduce((sum, session) => sum + session.adjusted.duration, 0);
             const totalWeeks = requiredHours > 0 && periodsPerWeek > 0
                 ? Math.ceil(requiredHours / periodsPerWeek)
                 : 0;
 
-            parsedSessions.forEach(({ partIdx, sessionId, dayOfWeek, room, adjusted, color: sessionColor, note, baseValues }) => {
-                const startTimeStr = ScheduleLogic.periodToTimeString(adjusted.startPeriod, true);
-                const endTimeStr = ScheduleLogic.periodToTimeString(adjusted.endPeriod, false);
-                const sessionParams = Math.floor(adjusted.startPeriod) <= 5 ? 'morning' as const : 'afternoon' as const;
+            parsedSessions.forEach(({ partIdx, sessionId, dayOfWeek, room, adjusted, color: sessionColor, note, resolvedCampus, baseValues }) => {
+                const periodRange = tryResolvePeriodRange(resolvedCampus.campusId, adjusted.startPeriod, adjusted.endPeriod);
+                const startTime = periodRange?.startTime
+                    ?? ScheduleLogic.periodToTimeString(adjusted.startPeriod, true, resolvedCampus.campusId);
+                const endTime = periodRange?.endTime
+                    ?? ScheduleLogic.periodToTimeString(adjusted.endPeriod, false, resolvedCampus.campusId);
+                const daySession = periodRange?.session
+                    ?? (Math.floor(adjusted.startPeriod) <= 5 ? 'morning' as const : 'afternoon' as const);
 
                 totalPeriodsPerWeek += adjusted.duration;
                 totalHoursPerWeek += adjusted.duration;
@@ -407,11 +511,14 @@ export const ScheduleLogic = {
                     dayOfWeek,
                     startPeriod: adjusted.startPeriod,
                     endPeriod: adjusted.endPeriod,
-                    startTime: startTimeStr,
-                    endTime: endTimeStr,
+                    startTime,
+                    endTime,
                     color: sessionColor,
                     note,
-                    session: sessionParams,
+                    session: daySession,
+                    campusId: resolvedCampus.campusId,
+                    campusSource: resolvedCampus.source,
+                    isCampusFallback: resolvedCampus.isFallback,
                     duration: adjusted.duration,
                     totalWeeks,
                     startDate: dateInfo.startDateStr,

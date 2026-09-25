@@ -48,11 +48,11 @@ export const GPACalculator = {
         let currentTotalPoints = 0;
         let currentCredits = 0;
 
-        const projectedIds = new Set(projectedCourses.map(c => c.code));
+        const projectedIds = new Set(projectedCourses.map(c => c.code.trim().toUpperCase()));
 
         for (const c of gradesHistory) {
             if (c.status === 'ongoing') continue;
-            if (projectedIds.has(c.code)) continue;
+            if (projectedIds.has(c.code.trim().toUpperCase())) continue;
 
             const result = AcademicRulesEngine.calculateAccumulationParams(
                 c.code, c.credits, c.grade, c.status
@@ -61,12 +61,19 @@ export const GPACalculator = {
             currentCredits += result.creditsForGPA;
         }
 
-        const projectedPoints = projectedCourses.reduce(
-            (sum, c) => sum + ((c.projectedGrade ?? 0) * c.credits), 0
-        );
-        const projectedCredits = projectedCourses.reduce(
-            (sum, c) => sum + c.credits, 0
-        );
+        let projectedPoints = 0;
+        let projectedCredits = 0;
+        for (const course of projectedCourses) {
+            const status = AcademicRulesEngine.evaluateCourseStatus(course.projectedGrade);
+            const accumulation = AcademicRulesEngine.calculateAccumulationParams(
+                course.code.trim().toUpperCase(),
+                course.credits,
+                course.projectedGrade,
+                status,
+            );
+            projectedPoints += accumulation.pointsForGPA;
+            projectedCredits += accumulation.creditsForGPA;
+        }
 
         const totalPoints = currentTotalPoints + projectedPoints;
         const totalCredits = currentCredits + projectedCredits;
@@ -81,10 +88,10 @@ export const GPACalculator = {
     ): number => {
         let currentTotalPoints = 0;
         let currentCredits = 0;
-        const projectedIds = new Set(projectedCourses.map((course) => course.code));
+        const projectedIds = new Set(projectedCourses.map((course) => course.code.trim().toUpperCase()));
 
         for (const course of gradesHistory) {
-            if (course.status === 'ongoing' || projectedIds.has(course.code)) continue;
+            if (course.status === 'ongoing' || projectedIds.has(course.code.trim().toUpperCase())) continue;
 
             const accumulation = AcademicRulesEngine.calculateAccumulationParams(
                 course.code,
@@ -96,11 +103,19 @@ export const GPACalculator = {
             currentCredits += accumulation.creditsForGPA;
         }
 
-        const projectedPoints = projectedCourses.reduce(
-            (sum, course) => sum + score10ToFourPoint(course.projectedGrade) * course.credits,
-            0,
-        );
-        const projectedCredits = projectedCourses.reduce((sum, course) => sum + course.credits, 0);
+        let projectedPoints = 0;
+        let projectedCredits = 0;
+        for (const course of projectedCourses) {
+            const status = AcademicRulesEngine.evaluateCourseStatus(course.projectedGrade);
+            const accumulation = AcademicRulesEngine.calculateAccumulationParams(
+                course.code.trim().toUpperCase(),
+                course.credits,
+                course.projectedGrade,
+                status,
+            );
+            projectedPoints += score10ToFourPoint(course.projectedGrade) * accumulation.creditsForGPA;
+            projectedCredits += accumulation.creditsForGPA;
+        }
         const totalCredits = currentCredits + projectedCredits;
 
         return totalCredits > 0 ? (currentTotalPoints + projectedPoints) / totalCredits : 0;

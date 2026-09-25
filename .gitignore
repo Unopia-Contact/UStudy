@@ -10,13 +10,30 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.wrangler/
 dist
 dist-extension
 dist-ssr
 coverage
 playwright-report
 test-results
+*.tsbuildinfo
 *.local
+migrations
+artifacts
+docs
+
+scripts/sql
+scripts/analytics-local-query.mjs
+scripts/analytics-query-worker.mjs
+scripts/analytics-snapshot.mjs
+# Local configuration and signing material (keep documented examples).
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.jks
+*.keystore
 
 # Editor directories and files
 .vscode/*
@@ -28,11 +45,8 @@ test-results
 *.njsproj
 *.sln
 *.sw?
-.env
 diagram.md
 architecture.md
-
-.env
 
 data.json
 temp/*
@@ -50,4 +64,15 @@ capacitor-android-plugins/*
 SKILL.md
 
 .agents/
-*.yaml
+
+# Generated web output.
+/build/
+
+# Tests are maintained and run locally by staff, not stored in this repository.
+/tests/
+/android/app/src/test/
+/android/app/src/androidTest/
+/vitest.config.ts
+/playwright.config.ts
+/tsconfig.test.json
+/.github/workflows/e2e.yml

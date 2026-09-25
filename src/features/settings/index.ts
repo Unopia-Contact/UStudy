@@ -6,6 +6,7 @@ export * from './components/OpticalDataTransfer';
 export * from './components/reportError';
 export * from './components/DataSourceCenter';
 export * from './components/PortalSyncTools';
+export * from './components/ScheduleWorkloadSettings';
 
 // Types
 export * from './types';

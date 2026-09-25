@@ -1,24 +1,41 @@
-/**
- * Time periods (Tiết 1-10) - HCMUS Standard
- */
-export const timePeriods = [
-    { period: 1, time: '07:30 - 08:20', start: '07:30', end: '08:20', label: 'Sáng' },
-    { period: 2, time: '08:20 - 09:10', start: '08:20', end: '09:10', label: 'Sáng' },
-    { period: 3, time: '09:10 - 10:00', start: '09:10', end: '10:00', label: 'Sáng' },
-    { period: 4, time: '10:10 - 11:00', start: '10:10', end: '11:00', label: 'Sáng' },
-    { period: 5, time: '11:00 - 11:50', start: '11:00', end: '11:50', label: 'Sáng' },
-    { period: 6, time: '12:40 - 13:30', start: '12:40', end: '13:30', label: 'Chiều' },
-    { period: 7, time: '13:30 - 14:20', start: '13:30', end: '14:20', label: 'Chiều' },
-    { period: 8, time: '14:20 - 15:10', start: '14:20', end: '15:10', label: 'Chiều' },
-    { period: 9, time: '15:20 - 16:10', start: '15:20', end: '16:10', label: 'Chiều' },
-    { period: 10, time: '16:10 - 17:00', start: '16:10', end: '17:00', label: 'Chiều' },
+import { DONG_HOA_PERIODS } from '../assets/data/campuses';
+
+/** @deprecated Dùng getCampusPeriods(campusId) cho code mới. */
+export const timePeriods = DONG_HOA_PERIODS.map((item) => ({
+    ...item,
+    time: `${item.start} - ${item.end}`,
+    label: item.session === 'morning' ? 'Sáng' : item.session === 'afternoon' ? 'Chiều' : 'Tối',
+}));
+
+export type TimetableDayValue = 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+export interface TimetableDay {
+    day: TimetableDayValue;
+    nameVi: string;
+    label: string;
+    short: string;
+}
+
+export const weekDays: readonly TimetableDay[] = [
+    { day: 2, nameVi: 'Thứ Hai', label: 'Thứ 2', short: 'T2' },
+    { day: 3, nameVi: 'Thứ Ba', label: 'Thứ 3', short: 'T3' },
+    { day: 4, nameVi: 'Thứ Tư', label: 'Thứ 4', short: 'T4' },
+    { day: 5, nameVi: 'Thứ Năm', label: 'Thứ 5', short: 'T5' },
+    { day: 6, nameVi: 'Thứ Sáu', label: 'Thứ 6', short: 'T6' },
+    { day: 7, nameVi: 'Thứ Bảy', label: 'Thứ 7', short: 'T7' },
+    { day: 8, nameVi: 'Chủ nhật', label: 'Chủ nhật', short: 'CN' },
 ];
 
-export const weekDays = [
-    { day: 2, nameVi: 'Thứ Hai', short: 'T2' },
-    { day: 3, nameVi: 'Thứ Ba', short: 'T3' },
-    { day: 4, nameVi: 'Thứ Tư', short: 'T4' },
-    { day: 5, nameVi: 'Thứ Năm', short: 'T5' },
-    { day: 6, nameVi: 'Thứ Sáu', short: 'T6' },
-    { day: 7, nameVi: 'Thứ Bảy', short: 'T7' },
-];
+const weekDaysWithoutSunday = weekDays.filter((day) => day.day !== 8);
+
+/** T2–T7 luôn hiển thị; Chủ nhật chỉ xuất hiện khi lịch thực tế có ngày 8. */
+export function getVisibleWeekDays(dayValues: Iterable<number>): readonly TimetableDay[] {
+    for (const day of dayValues) {
+        if (day === 8) return weekDays;
+    }
+    return weekDaysWithoutSunday;
+}
+
+export function getScheduleGridTemplate(axisWidth: number, dayCount: number): string {
+    return `${axisWidth}px repeat(${dayCount}, minmax(0, 1fr))`;
+}

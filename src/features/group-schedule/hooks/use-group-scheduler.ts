@@ -15,6 +15,7 @@ import {
 } from '../services/group-scheduler';
 import type { GroupConfigurationIssue, GroupFitnessConfig, GroupMemberToken, GroupScheduleOption, GroupScheduleRunResult, GroupScheduleTradeoff, GroupShareConfig, GroupSharePayload } from '../types';
 import courseDbJson from '../../../logic/scheduler/Course_db.json';
+import { useCampus } from '../../../context/CampusContext';
 
 export interface CourseChoice {
   id: string;
@@ -118,6 +119,7 @@ export function useGroupScheduler(): GroupSolverState & {
   clearResult: () => void;
   getOptionRegistrations: (option: GroupScheduleOption, memberIndex?: number) => any[];
 } {
+  const { defaultCampusId } = useCampus();
   const initialPayload = useMemo(getInitialPayload, []);
   const [members, setMembers] = useState<GroupMemberToken[]>(() => {
     if (initialPayload.members.length > 0) return initialPayload.members;
@@ -207,10 +209,10 @@ export function useGroupScheduler(): GroupSolverState & {
   }, [members, shareConfig, updateBrowserUrl]);
 
   const validateConfiguration = useCallback((config: Partial<GroupFitnessConfig> = {}) => {
-    const issues = validateGroupScheduleConfiguration(dbData, members, config);
+    const issues = validateGroupScheduleConfiguration(dbData, members, config, defaultCampusId);
     setValidationIssues(issues);
     return issues;
-  }, [dbData, members]);
+  }, [dbData, defaultCampusId, members]);
 
   const solve = useCallback((config: Partial<GroupFitnessConfig> = {}) => {
     setSolving(true);
@@ -228,7 +230,7 @@ export function useGroupScheduler(): GroupSolverState & {
           return;
         }
 
-        const issues = validateGroupScheduleConfiguration(dbData, members, config);
+        const issues = validateGroupScheduleConfiguration(dbData, members, config, defaultCampusId);
         setValidationIssues(issues);
         const blockingIssue = issues.find((issue) => issue.severity === 'error');
         if (blockingIssue) {
@@ -236,7 +238,7 @@ export function useGroupScheduler(): GroupSolverState & {
           return;
         }
 
-        const nextResult = runGroupScheduleSolver(dbData, members, config);
+        const nextResult = runGroupScheduleSolver(dbData, members, config, undefined, defaultCampusId);
         if (nextResult.solutions.length === 0) {
           const hintedCourse = nextResult.density[0]?.courseId;
           setSolveError(`Không thể xếp lịch chung cho tất cả môn đã chọn.${hintedCourse ? ` Thử bỏ bớt môn ${hintedCourse} hoặc kiểm tra lại lớp của môn này.` : ' Thử giảm số môn chung hoặc kiểm tra lại dữ liệu lớp học.'}`);
@@ -255,7 +257,7 @@ export function useGroupScheduler(): GroupSolverState & {
         setSolving(false);
       }
     }, 50);
-  }, [dbData, members]);
+  }, [dbData, defaultCampusId, members]);
 
   const clearResult = useCallback(() => {
     setResult(null);
@@ -265,7 +267,7 @@ export function useGroupScheduler(): GroupSolverState & {
   const analyzeTradeoff = useCallback((option: GroupScheduleOption, tradeoff: GroupScheduleTradeoff, config: Partial<GroupFitnessConfig> = {}) => {
     return new Promise<GroupScheduleTradeoff>((resolve) => {
       window.setTimeout(() => {
-        const analyzed = analyzeGroupScheduleTradeoff(dbData, members, config, tradeoff);
+        const analyzed = analyzeGroupScheduleTradeoff(dbData, members, config, tradeoff, defaultCampusId);
         setResult((current) => {
           if (!current) return current;
           const solutions = current.solutions.map((candidate) => {
@@ -282,7 +284,7 @@ export function useGroupScheduler(): GroupSolverState & {
         resolve(analyzed);
       }, 0);
     });
-  }, [dbData, members]);
+  }, [dbData, defaultCampusId, members]);
 
   const getOptionRegistrations = useCallback((option: GroupScheduleOption, memberIndex = 0) => {
     const memberSchedule = option.schedules.find((schedule) => schedule.memberIndex === memberIndex);

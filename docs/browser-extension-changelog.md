@@ -2,6 +2,16 @@
 
 Tài liệu này ghi lại các thay đổi ảnh hưởng đến người dùng và luồng kết nối giữa Extension, HCMUS Portal và UStudy.
 
+## 0.2.9
+
+- Khi cần mở trang đăng nhập mới, chọn ngẫu nhiên một domain từ `new-portal1.hcmus.edu.vn` đến `new-portal18.hcmus.edu.vn` thay cho domain không đánh số đã ngừng chuyển hướng.
+- Áp dụng cùng cấu hình domain cho web UStudy, ứng dụng Android và Extension.
+
+## 0.2.8
+
+- Cho phép Extension kết nối với cả `https://ustudy.hakhoi.io.vn` và `https://ustudy.unopia.io.vn`.
+- Giữ `window.opener` khi mở Portal từ UStudy để Bookmarklet có thể gửi dữ liệu trở lại đúng tab nguồn.
+
 ## 0.2.5
 
 - Giảm thời gian chờ trước khi tự động quét từ 2200 ms xuống 500 ms.

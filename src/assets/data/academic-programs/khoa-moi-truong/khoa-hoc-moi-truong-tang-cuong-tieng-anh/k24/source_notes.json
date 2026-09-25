@@ -1,0 +1,7 @@
+{
+  "admission_code": "7440301_DKD",
+  "curriculum_year": 2024,
+  "confidence": "high_with_source_note",
+  "source": "Official HCMUS Environment CLC/TCTA framework K2020 (file updated/published 05-03-2024) + official HK1 2024-2025 timetable for K2024.",
+  "note": "The current admissions page states curriculum frameworks for 2021-2024 but only exposes the 2021 link. The full official public framework used here is the CLC/TCTA curriculum (same program code family/language model), and the K2024 timetable confirms the same core course IDs such as ENV00010, ENV10071, MTH00001, PHY00001, BIO00001, CSC00003. No unsupported new specialization structure was invented."
+}

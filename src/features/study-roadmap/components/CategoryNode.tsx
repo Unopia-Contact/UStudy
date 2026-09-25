@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { CheckCircle2, ChevronDown, ChevronRight } from 'lucide-react';
+import { AcademicRulesEngine } from '../../grades';
 import { CourseRowTrainingProgram } from './CourseRowTrainingProgram';
+import {
+    getCategoryOptionPath,
+    type CategoryCreditProgressMap,
+} from '../../study-plan/credit-progress';
 
 export interface CourseData {
     course_id: string;
@@ -17,6 +22,8 @@ export interface CourseData {
 
 interface CategoryNodeProps {
     category: any;
+    categoryKey: string;
+    creditProgressByPath: CategoryCreditProgressMap;
     depth?: number;
     isCategoryExcludedFromAccumulation: (courseName: string) => boolean;
     onShowFlowchart: (courseId: string) => void;
@@ -25,6 +32,7 @@ interface CategoryNodeProps {
 interface RenderResult {
     node: React.ReactNode;
     earnedCredits: number;
+    contributingCredits: number;
 }
 
 // [GÓC KHUẤT ĐÃ ĐƯỢC FIX]: Tách Component hiển thị ra ngoài để bảo vệ State isExpanded
@@ -120,11 +128,12 @@ const CategoryUIComponent = React.memo(({
     );
 });
 
-export const CategoryNode = React.memo(({ category, depth = 0, isCategoryExcludedFromAccumulation, onShowFlowchart }: CategoryNodeProps) => {
+export const CategoryNode = React.memo(({ category, categoryKey, creditProgressByPath, depth = 0, isCategoryExcludedFromAccumulation, onShowFlowchart }: CategoryNodeProps) => {
 
-    const renderCategory = (cat: any, currentDepth: number): RenderResult => {
+    const renderCategory = (cat: any, currentDepth: number, currentPath: string): RenderResult => {
         let hasMatchingCourses = false;
         let categoryEarnedCredits = 0;
+        let categoryContributingCredits = 0;
         let coursesToRender: CourseData[] = [];
 
         if (cat.coursesData) {
@@ -132,22 +141,21 @@ export const CategoryNode = React.memo(({ category, depth = 0, isCategoryExclude
             if (coursesToRender.length > 0) hasMatchingCourses = true;
 
             const coursesForCredits = cat.allCoursesData || cat.coursesData;
-            categoryEarnedCredits += coursesForCredits
-                .filter((c: CourseData) => c.status === 'passed')
+            const passedCourses = coursesForCredits.filter((c: CourseData) => c.status === 'passed');
+            categoryEarnedCredits += passedCourses.reduce((sum: number, c: CourseData) => sum + c.credits, 0);
+            categoryContributingCredits += passedCourses
+                .filter((c: CourseData) => !AcademicRulesEngine.isCourseExcludedFromAccumulation(c.course_id))
                 .reduce((sum: number, c: CourseData) => sum + c.credits, 0);
         }
 
         let nestedCategories: React.ReactNode[] = [];
         if (cat.breakdown) {
             nestedCategories = Object.entries(cat.breakdown).map(([subKey, subCat]: [string, any]) => {
-                const { node, earnedCredits } = renderCategory(subCat, currentDepth + 1);
+                const { node, contributingCredits } = renderCategory(subCat, currentDepth + 1, `${currentPath}.${subKey}`);
                 if (node) hasMatchingCourses = true;
 
-                categoryEarnedCredits += earnedCredits;
-                // Vẫn tính trong nhóm con, nhưng không cộng lên cấp cha nếu nhóm này không tính tích lũy.
-                if (subCat.name && isCategoryExcludedFromAccumulation(subCat.name)) {
-                    categoryEarnedCredits -= earnedCredits;
-                }
+                categoryEarnedCredits += contributingCredits;
+                categoryContributingCredits += contributingCredits;
                 return <div key={subKey}>{node}</div>;
             });
         }
@@ -159,12 +167,20 @@ export const CategoryNode = React.memo(({ category, depth = 0, isCategoryExclude
                 if (optCourses.length > 0) hasMatchingCourses = true;
                 const coursesForCredits = opt.allCoursesData || optCourses;
 
-                const optionEarnedCredits = coursesForCredits
-                    .filter((c: CourseData) => c.status === 'passed')
-                    .reduce((sum: number, c: CourseData) => sum + c.credits, 0);
+                const calculatedOption = creditProgressByPath[getCategoryOptionPath(currentPath, idx)];
+                const optionEarnedCredits = calculatedOption?.display.earnedCredits
+                    ?? coursesForCredits
+                        .filter((c: CourseData) => c.status === 'passed')
+                        .reduce((sum: number, c: CourseData) => sum + c.credits, 0);
+                const optionContributingCredits = calculatedOption?.contribution.earnedCredits
+                    ?? coursesForCredits
+                        .filter((c: CourseData) => c.status === 'passed')
+                        .filter((c: CourseData) => !AcademicRulesEngine.isCourseExcludedFromAccumulation(c.course_id))
+                        .reduce((sum: number, c: CourseData) => sum + c.credits, 0);
 
                 if (optionEarnedCredits > categoryEarnedCredits) {
                     categoryEarnedCredits = optionEarnedCredits;
+                    categoryContributingCredits = optionContributingCredits;
                 }
 
                 if (optCourses.length === 0) return null;
@@ -192,7 +208,16 @@ export const CategoryNode = React.memo(({ category, depth = 0, isCategoryExclude
             });
         }
 
-        if (!hasMatchingCourses) return { node: null, earnedCredits: categoryEarnedCredits };
+        const calculatedProgress = creditProgressByPath[currentPath];
+        if (calculatedProgress) {
+            categoryEarnedCredits = calculatedProgress.display.earnedCredits;
+            categoryContributingCredits = calculatedProgress.contribution.earnedCredits;
+        }
+
+        const categoryIsExcluded = Boolean(cat.name && isCategoryExcludedFromAccumulation(cat.name));
+        const contributingCredits = categoryIsExcluded ? 0 : categoryContributingCredits;
+
+        if (!hasMatchingCourses) return { node: null, earnedCredits: categoryEarnedCredits, contributingCredits };
 
         const requiredCredits = cat.total_credits_required || cat.credits || cat.credits_required || 0;
         const isCompleted = requiredCredits > 0 && categoryEarnedCredits >= requiredCredits;
@@ -212,11 +237,12 @@ export const CategoryNode = React.memo(({ category, depth = 0, isCategoryExclude
                     onShowFlowchart={onShowFlowchart}
                 />
             ),
-            earnedCredits: categoryEarnedCredits
+            earnedCredits: categoryEarnedCredits,
+            contributingCredits,
         };
     };
 
-    return <>{renderCategory(category, depth).node}</>;
+    return <>{renderCategory(category, depth, categoryKey).node}</>;
 });
 
 CategoryNode.displayName = 'CategoryNode';
