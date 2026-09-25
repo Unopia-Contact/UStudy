@@ -50,6 +50,6 @@
 
     <TextView android:id="@+id/widget_message" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:paddingTop="5dp"
-        android:text="Bật widget trong Cài đặt UStudy"
+        android:text="Mở UStudy để nạp lịch học"
         android:textColor="#FF526174" android:textSize="11sp" />
 </LinearLayout>

@@ -45,7 +45,7 @@ public class TodayScheduleWidgetProvider extends AppWidgetProvider {
         dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         String today = dateFormat.format(new Date());
         String snapshot = ScheduleWidgetPlugin.preferences(context).getString(ScheduleWidgetPlugin.KEY_SNAPSHOT, null);
-        boolean enabled = ScheduleWidgetPlugin.preferences(context).getBoolean(ScheduleWidgetPlugin.KEY_ENABLED, false);
+        String status = ScheduleWidgetPlugin.preferences(context).getString(ScheduleWidgetPlugin.KEY_STATUS, null);
         for (int id : ids) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_today_schedule);
             Intent openApp = new Intent(context, MainActivity.class);
@@ -54,11 +54,11 @@ public class TodayScheduleWidgetProvider extends AppWidgetProvider {
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             views.setOnClickPendingIntent(R.id.widget_root, pending);
             for (int row : ROWS) views.setViewVisibility(row, View.GONE);
-            String message = enabled
-                    ? (snapshot == null ? "Chưa có thời khóa biểu trong UStudy" : "Mở UStudy để cập nhật lịch")
-                    : "Bật widget trong Cài đặt UStudy";
+            String message = snapshot == null
+                    ? ("no-schedule".equals(status) ? "Chưa có thời khóa biểu trong UStudy" : "Mở UStudy để nạp lịch học")
+                    : "Mở UStudy để cập nhật lịch";
             int count = 0;
-            if (enabled && snapshot != null) {
+            if (snapshot != null) {
                 try {
                     JSONObject data = new JSONObject(snapshot);
                     if (today.compareTo(data.getString("validUntil")) <= 0) {

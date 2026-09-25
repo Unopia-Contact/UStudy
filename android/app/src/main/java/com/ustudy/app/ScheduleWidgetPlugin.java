@@ -13,24 +13,17 @@ import java.nio.charset.StandardCharsets;
 @CapacitorPlugin(name = "ScheduleWidget")
 public class ScheduleWidgetPlugin extends Plugin {
     static final String PREFS = "ustudy_schedule_widget";
-    static final String KEY_ENABLED = "enabled";
     static final String KEY_SNAPSHOT = "snapshot";
+    static final String KEY_STATUS = "status";
 
     static SharedPreferences preferences(Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
     @PluginMethod
-    public void setEnabled(PluginCall call) {
-        Boolean enabled = call.getBoolean("enabled");
-        if (enabled == null) {
-            call.reject("Thiếu trạng thái widget.");
-            return;
-        }
-        SharedPreferences.Editor editor = preferences(getContext()).edit().putBoolean(KEY_ENABLED, enabled);
-        if (!enabled) editor.remove(KEY_SNAPSHOT);
-        if (!editor.commit()) {
-            call.reject("Không thể lưu cài đặt widget.");
+    public void clearSnapshot(PluginCall call) {
+        if (!preferences(getContext()).edit().remove(KEY_SNAPSHOT).remove(KEY_STATUS).remove("enabled").commit()) {
+            call.reject("Không thể xóa dữ liệu widget.");
             return;
         }
         TodayScheduleWidgetProvider.refreshAll(getContext());
@@ -39,13 +32,12 @@ public class ScheduleWidgetPlugin extends Plugin {
 
     @PluginMethod
     public void setSnapshot(PluginCall call) {
-        if (!preferences(getContext()).getBoolean(KEY_ENABLED, false)) {
-            call.reject("Widget chưa được bật.");
-            return;
-        }
         String snapshot = call.getString("snapshot");
         if (snapshot == null) {
-            preferences(getContext()).edit().remove(KEY_SNAPSHOT).apply();
+            if (!preferences(getContext()).edit().remove(KEY_SNAPSHOT).putString(KEY_STATUS, "no-schedule").commit()) {
+                call.reject("Không thể lưu trạng thái widget.");
+                return;
+            }
             TodayScheduleWidgetProvider.refreshAll(getContext());
             call.resolve();
             return;
@@ -74,7 +66,7 @@ public class ScheduleWidgetPlugin extends Plugin {
                     return;
                 }
             }
-            if (!preferences(getContext()).edit().putString(KEY_SNAPSHOT, snapshot).commit()) {
+            if (!preferences(getContext()).edit().putString(KEY_SNAPSHOT, snapshot).remove(KEY_STATUS).remove("enabled").commit()) {
                 call.reject("Không thể lưu lịch cho widget.");
                 return;
             }

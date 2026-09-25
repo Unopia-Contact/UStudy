@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { CACHE_POPULATED_EVENT, useCrypto } from '../context/CryptoContext';
 import { useSchedule } from '../features/visual-schedule/hooks/use-schedule';
 import { buildWidgetScheduleSnapshot } from '../features/visual-schedule/services/schedule-export';
-import { isScheduleWidgetAvailable, syncScheduleWidget, WIDGET_PREFERENCE_EVENT } from './schedule-widget';
+import { isScheduleWidgetAvailable, syncScheduleWidget } from './schedule-widget';
 
 /** Chỉ đồng bộ sau khi bộ nhớ mã hóa đã được mở; không đọc PIN hay dữ liệu sinh viên. */
 export function AndroidWidgetSync() {
@@ -24,13 +24,11 @@ export function AndroidWidgetSync() {
     window.addEventListener('message', onMessage);
     window.addEventListener('ustudy:storage-changed', refresh);
     window.addEventListener('storage', refresh);
-    window.addEventListener(WIDGET_PREFERENCE_EVENT, refresh);
     document.addEventListener('visibilitychange', onVisible);
     return () => {
       window.removeEventListener('message', onMessage);
       window.removeEventListener('ustudy:storage-changed', refresh);
       window.removeEventListener('storage', refresh);
-      window.removeEventListener(WIDGET_PREFERENCE_EVENT, refresh);
       document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);

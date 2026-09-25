@@ -6,7 +6,6 @@ import { ChangePinModal } from '../../components/security';
 import { useCrypto } from '../../context/CryptoContext';
 import { PageHeader } from '../../components/layout/page-header';
 import { PageShell } from '../../components/layout/page-shell';
-import { AndroidWidgetSettings } from '../../mobile/AndroidWidgetSettings';
 
 export function SettingsPage({ onPageChange }: { onPageChange: (page: string) => void }) {
     const { name } = useStudentDb();
@@ -40,8 +39,6 @@ export function SettingsPage({ onPageChange }: { onPageChange: (page: string) =>
                     </div>
 
                     <SettingUserProfile onPageChange={onPageChange} />
-
-                    <AndroidWidgetSettings />
 
                     {/* <ScheduleWorkloadSettings /> */}
 
