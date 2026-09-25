@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronRight, Lock, Search, X, Circle, CheckCircle2, AlertTriangle, Check, Sparkles, Shuffle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lock, Search, X, Circle, CheckCircle2, AlertTriangle, Shuffle } from 'lucide-react';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
 import type { Course } from '../../../types';
@@ -46,13 +46,11 @@ export function CourseSidebar({
   registeredCourses,
   allowedClassesMap,
   selections,
-  conflicts,
   focusedCourseCode,
   onSelectClass,
   onRemoveSelection,
   onToggleAllowedClass,
   unfilledCount,
-  totalCredits,
   onHybridSolve,
   solvingHybrid,
 }: CourseSidebarProps) {
@@ -146,9 +144,6 @@ export function CourseSidebar({
   const getSelectionForCourse = (courseCode: string) =>
     selections.find(s => s.courseCode === courseCode);
 
-  const getCourseConflicts = (courseCode: string) =>
-    conflicts.filter(c => c.involvedCourses.includes(courseCode));
-
   const lockedCount = selections.filter(s => s.locked).length;
 
   return (
@@ -216,7 +211,6 @@ export function CourseSidebar({
               const courseCode = course.code;
               const isExpanded = expandedCourses.has(courseCode);
               const selection = getSelectionForCourse(courseCode);
-              const courseConflicts = getCourseConflicts(courseCode);
               const classes = courseClasses[courseCode] ?? [];
               const allowedClassIds = allowedClassesMap[courseCode] ?? classes.map((item) => item.id);
               const isFocused = focusedCourseCode === courseCode;

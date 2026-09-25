@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { BarChart3, Loader2, PowerOff } from 'lucide-react';
 import { Switch } from '../../../components/ui/form/switch';
 import { AppDialog } from '../../../components/ui/overlays/app-dialog';
-import { useAppNotification } from '../../../context/NotificationContext';
 import {
   getPendingAnalyticsDeactivationId,
   isAnonymousAnalyticsEnabled,
@@ -14,7 +13,6 @@ import {
 } from '../../analytics/installation-analytics';
 
 export function AnonymousAnalyticsSettings() {
-  const { addNotification } = useAppNotification();
   const [enabled, setEnabled] = useState(() => isAnonymousAnalyticsEnabled());
   const [pendingDeactivation, setPendingDeactivation] = useState(
     () => Boolean(getPendingAnalyticsDeactivationId()),

@@ -2,17 +2,16 @@ import { useState, useEffect, useMemo, cloneElement, useCallback, useRef, isVali
 import { STORAGE_KEYS } from '../../../config';
 import { SavedSchedulesModal } from '../../group-schedule';
 import { readFromStorage, saveToStorage } from '../../../helpers/localStorage/save';
-import { Calendar, AlertTriangle, Cpu, ChevronLeft, ChevronRight, Settings, Sun, Moon, Zap, X, Save, List, Trash2, Clock, Check, BookOpen, Hash, BarChart2, Layers, Users, ImagePlus } from 'lucide-react';
+import { Calendar, Settings, Sun, Moon, Zap, X, Save, ImagePlus } from 'lucide-react';
 import { type ClassSection, type SavedSchedule } from '../../../types';
 import type { RegisteredCourse } from '../../../logic/scheduler/RegistrationResolver';
 import { type SolverPreferences, type ScheduleOption } from '../hooks/use-schedule-solver';
-import { weekDays, timePeriods } from '../../../constants';
 import type { Course } from '../../../types';
 import { Note } from './note.tsx'
 import { cycleDayOffSession, formatDayOffSession, getDayOffSession } from '../../../utils/dayOffPreferences';
 import type { Tab } from './../types.ts';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../../components/course';
-import { ScheduleModeToggle, ScheduleOptionSelector, type ScheduleMode } from '../../schedule';
+import { ScheduleModeToggle, type ScheduleMode } from '../../schedule';
 import { ScheduleBuilder } from './ScheduleBuilder';
 import { BuilderToolbar } from './BuilderToolbar';
 import { ScheduleImageDialog } from '../../schedule-image/ScheduleImageDialog';
@@ -23,18 +22,6 @@ import {
     omitRegisteredCourseEntries,
     reconcileSelectedCourseIds,
 } from '../../../logic/course-identity';
-
-function getSolidTint(hexColor: string, tint = 0.9) {
-    const normalized = hexColor.replace('#', '');
-    if (!/^[0-9A-Fa-f]{6}$/.test(normalized)) return '#F8FAFC';
-
-    const red = parseInt(normalized.slice(0, 2), 16);
-    const green = parseInt(normalized.slice(2, 4), 16);
-    const blue = parseInt(normalized.slice(4, 6), 16);
-    const mix = (channel: number) => Math.round(channel + (255 - channel) * tint);
-
-    return `rgb(${mix(red)}, ${mix(green)}, ${mix(blue)})`;
-}
 
 interface CalendarViewProps {
     selectedCourses: Set<string>;
@@ -52,60 +39,9 @@ interface CalendarViewProps {
     getConflicts: (section: ClassSection) => ClassSection[];
     allowedClassesMap: Record<string, string[]>;
     setSelectedCourses: (courses: Set<string>) => void;
-    setAllowedClassesMap: (map: Record<string, string[]>) => void;
+    setAllowedClassesMap: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
     setOptions: (options: ScheduleOption[]) => void;
     groupScheduleContent?: ReactNode;
-}
-
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-function StatCard({
-    icon: Icon,
-    label,
-    value,
-    sub,
-    accent,
-}: {
-    icon: React.ElementType;
-    label: string;
-    value: string | number;
-    sub?: string;
-    accent?: string; // tailwind bg class
-}) {
-    return (
-        <div className="ustudy-card flex min-w-0 flex-1 items-center gap-3 px-4 py-3">
-            <div className={`ustudy-icon-badge h-9 w-9 md:h-9 md:w-9 ${accent ?? 'bg-blue-50'}`}>
-                <Icon className={`h-4 w-4 ${accent ? 'text-white' : 'text-[#004A98]'}`} />
-            </div>
-            <div className="min-w-0">
-                <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide truncate">{label}</p>
-                <p className="text-lg font-bold text-gray-900 leading-none mt-0.5">{value}</p>
-                {sub && <p className="text-[10px] text-gray-400 mt-0.5 truncate">{sub}</p>}
-            </div>
-        </div>
-    );
-}
-
-// ─── Per-day load bar ─────────────────────────────────────────────────────────
-function DayLoadBar({ day, count, max }: { day: string; count: number; max: number }) {
-    const pct = max > 0 ? (count / max) * 100 : 0;
-    const color =
-        pct === 100
-            ? 'bg-red-400'
-            : pct >= 60
-                ? 'bg-amber-400'
-                : 'bg-emerald-400';
-    return (
-        <div className="flex flex-col items-center gap-1">
-            <span className="text-[10px] font-bold text-gray-700">{count}</span>
-            <div className="h-10 w-5 bg-gray-100 rounded-full overflow-hidden flex flex-col justify-end">
-                <div
-                    className={`w-full rounded-full transition-all ${color}`}
-                    style={{ height: `${pct}%` }}
-                />
-            </div>
-            <span className="text-[9px] text-gray-400">{day}</span>
-        </div>
-    );
 }
 
 export function CalendarView({
@@ -121,7 +57,6 @@ export function CalendarView({
     solving,
     solverError,
     setActiveOption,
-    getConflicts,
     allowedClassesMap,
     setSelectedCourses,
     setAllowedClassesMap,
@@ -155,11 +90,8 @@ export function CalendarView({
     });
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [showListModal, setShowListModal] = useState(false);
-    const [showStatsPanel, setShowStatsPanel] = useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [newScheduleName, setNewScheduleName] = useState('');
-    const [loadedGroupSchedule, setLoadedGroupSchedule] = useState<SavedSchedule['groupSchedule'] | null>(null);
-    const [activeLoadedGroupMemberIndex, setActiveLoadedGroupMemberIndex] = useState<number | null>(null);
     const [openClassDetails, setOpenClassDetails] = useState<OpenClassDetailTarget | null>(null);
     const [builderDraftSections, setBuilderDraftSections] = useState<ClassSection[]>([]);
     const [hasBuilderSelections, setHasBuilderSelections] = useState(false);
@@ -170,45 +102,6 @@ export function CalendarView({
     );
 
     // ── Computed stats ─────────────────────────────────────────────────────────
-    const stats = useMemo(() => {
-        if (currentSections.length === 0) return null;
-
-        const totalPeriods = currentSections.reduce(
-            (sum, s) => sum + Math.round(s.endPeriod - s.startPeriod + 1),
-            0
-        );
-
-        // Tiết mỗi ngày (day 2–8)
-        const periodsPerDay: Record<number, number> = {};
-        for (const s of currentSections) {
-            periodsPerDay[s.day] = (periodsPerDay[s.day] ?? 0) + Math.round(s.endPeriod - s.startPeriod + 1);
-        }
-
-        const dayValues = Object.values(periodsPerDay);
-        const maxPerDay = Math.max(...dayValues, 0);
-        const scheduledDays = Object.keys(periodsPerDay).length;
-
-        // Total credits: sum unique courses' credits
-        const scheduledCourseIds = new Set(currentSections.map(s => s.courseCode));
-        const totalCredits = allCurrentCourses
-            .filter(c => scheduledCourseIds.has(c.id) || selectedCourses.has(c.id))
-            .reduce((sum, c) => sum + (c.credits ?? 0), 0);
-
-        // Conflict count
-        const conflictCount = currentSections.filter(s => getConflicts(s).length > 0).length;
-
-        return {
-            totalPeriods,
-            periodsPerDay,
-            maxPerDay,
-            scheduledDays,
-            totalCredits,
-            conflictCount,
-            freeDays: 7 - scheduledDays, // Mon–Sat = 6 days
-        };
-    }, [currentSections, allCurrentCourses, selectedCourses, getConflicts]);
-
-    // ── Save / load handlers ───────────────────────────────────────────────────
     const handleSaveSchedule = () => {
         if (!newScheduleName.trim()) return;
         // Use builder draft sections if available, otherwise fall back to solver sections
@@ -245,25 +138,12 @@ export function CalendarView({
             ? savedSessions
             : excludeRegisteredSections(savedSessions, registeredCourseCodeSet);
 
-        setLoadedGroupSchedule(saved.groupSchedule ?? null);
-        setActiveLoadedGroupMemberIndex(selectedMember?.memberIndex ?? null);
         setSelectedCourses(selectedCourseIds);
         setAllowedClassesMap(allowedClassEntries);
         const restoredOption: ScheduleOption = { option: saved.groupSchedule?.option ?? 1, fitness: 1000, classSections: restoredSessions };
         setOptions([restoredOption]);
         setActiveOption(0);
         setShowListModal(false);
-    };
-
-    const handleSelectLoadedGroupMember = (memberIndex: number) => {
-        const member = loadedGroupSchedule?.members.find((item) => item.memberIndex === memberIndex);
-        if (!member || !loadedGroupSchedule) return;
-
-        setActiveLoadedGroupMemberIndex(member.memberIndex);
-        setSelectedCourses(new Set(member.selectedCourses));
-        setAllowedClassesMap(member.allowedClassesMap);
-        setOptions([{ option: loadedGroupSchedule.option, fitness: 1000, classSections: member.sessions }]);
-        setActiveOption(0);
     };
 
     const handleDeleteSchedule = (id: string) => {
@@ -351,7 +231,7 @@ export function CalendarView({
     if (scheduleMode === 'group') {
         return (
             <div className="space-y-4">
-                {groupScheduleContent && isValidElement(groupScheduleContent) && cloneElement(groupScheduleContent as ReactElement, {
+                {groupScheduleContent && isValidElement(groupScheduleContent) && cloneElement(groupScheduleContent as ReactElement<{ modeSwitch?: ReactNode }>, {
                     modeSwitch: renderModeSwitch(),
                 })}
             </div>

@@ -117,6 +117,7 @@ export function useGroupScheduler(): GroupSolverState & {
   setShareConfig: (config: GroupShareConfig) => void;
   analyzeTradeoff: (option: GroupScheduleOption, tradeoff: GroupScheduleTradeoff, config?: Partial<GroupFitnessConfig>) => Promise<GroupScheduleTradeoff>;
   clearResult: () => void;
+  setResult: React.Dispatch<React.SetStateAction<GroupScheduleRunResult | null>>;
   getOptionRegistrations: (option: GroupScheduleOption, memberIndex?: number) => any[];
 } {
   const { defaultCampusId } = useCampus();

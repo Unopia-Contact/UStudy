@@ -29,15 +29,15 @@ export function useSchedule(): WeeklySchedule & {
     updateOverrides: (newOverrides: ScheduleOverrides) => void 
 } {
     const { data: { courses: allCoursesMeta } } = useDepartmentData();
-    const studentDb = readFromStorage<any>(STORAGE_KEYS.STUDENT_DB);
-    const metadata = readFromStorage<any>(STORAGE_KEYS.IMPORT_META);
+    const studentDb = readFromStorage<any>(STORAGE_KEYS.STUDENT_DB, null);
+    const metadata = readFromStorage<any>(STORAGE_KEYS.IMPORT_META, null);
     const courses_registered = studentDb?.registrations || [];
 
     const [systemHolidays, setSystemHolidays] = useState<Holiday[]>([]);
 
     // Dùng useState để tránh reload trang khi cập nhật overrides
     const [overrides, setOverrides] = useState<ScheduleOverrides>(() => {
-        const stored = readFromStorage<ScheduleOverrides>(STORAGE_KEYS.SCHEDULE_OVERRIDES);
+        const stored = readFromStorage<ScheduleOverrides | null>(STORAGE_KEYS.SCHEDULE_OVERRIDES, null);
         return stored || { sessionOverrides: {}, weekOverrides: {}, holidays: [] };
     });
 

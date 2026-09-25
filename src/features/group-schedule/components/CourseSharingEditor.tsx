@@ -63,6 +63,11 @@ export function CourseSharingEditor({ courseId, subscribers, members, value, onC
   const groupOptions = useMemo(() => [{ id: 'solo', name: 'Học riêng' }, ...groups.map((_, groupIndex) => ({ id: `group-${groupIndex}`, name: `Nhóm ${groupIndex + 1}` }))], [groups]);
 
   const updateGroups = (nextGroups: number[][]) => onChange({ ...rule, groups: nextGroups });
+  const setGroupingMode = (custom: boolean) => onChange({
+    ...rule,
+    groups: custom ? [subscribers] : undefined,
+    groupClassPreferences: {},
+  });
   const setMode = (mode: CourseSharingMode) => onChange({
     ...rule,
     mode,

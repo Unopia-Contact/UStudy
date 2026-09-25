@@ -4,23 +4,6 @@ import { courseLinks } from '../../../assets/data/courseLinks';
 import { DocumentContributionModal } from '../../../components/course';
 
 // định nghĩa props cho CourseRowTrainingProgram
-interface CourseRowTrainingProgramProps {
-  course: {
-    course_id: string;
-    course_name_vi: string;
-    credits: number;
-    theory_hours: number;
-    lab_hours: number;
-    exercise_hours: number;
-    course_type: string;
-    category: string;
-    description: string;
-  };
-  status?: 'passed' | 'studying' | 'failed' | 'none';
-  rootStatus?: 'passed' | 'none';
-  onShowFlowchart?: (courseId: string) => void;
-}
-
 /**
  * 
  * @param course môn học

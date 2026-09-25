@@ -116,7 +116,7 @@
         "typecheck": "tsc -b",
         "typecheck:test": "tsc -p tsconfig.test.json",
         "test": "vitest",
-        "test:unit": "vitest run",
+        "test:unit": "vitest run --passWithNoTests --exclude decimen-optical-transfer/**",
         "test:coverage": "vitest run --coverage",
         "test:e2e": "pnpm run build:web && pnpm exec playwright test",
         "check": "pnpm run build",

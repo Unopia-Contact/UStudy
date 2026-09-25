@@ -26,6 +26,7 @@ export interface SolverPreferences {
     session?: string;     // '1'=Sáng, '2'=Chiều, '0'=Không quan trọng
     strategy?: string;    // 'compress'=Dồn ngày, 'spread'=Trải đều
     noGaps?: boolean;
+    preferredClassesMap?: Record<string, string>;
 }
 
 const PALETTE = UI_COLORS.SCHEDULE_PALETTE;

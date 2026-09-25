@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from 'react';
-import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap, MoreHorizontal, ChevronDown, ChevronUp, List, Info } from 'lucide-react';
+import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap, List } from 'lucide-react';
 
 import { GroupMemberCard } from './components/GroupMemberCard';
 import { buildSavedGroupSchedule, GroupScheduleCalendarPreview } from './components/GroupScheduleCalendarPreview';
@@ -14,10 +14,9 @@ import { AppDialog } from '../../components/ui/overlays/app-dialog';
 import { AppSelect } from '../../components/ui/form';
 import { Input } from '../../components/ui/form/input';
 import { Textarea } from '../../components/ui/form/textarea';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../../components/ui/overlays/dropdown-menu';
 import { PageHeader } from '../../components/layout/page-header';
-import { buildDensityMap, decodeGroupURL } from './services/group-scheduler';
-import type { ClassPreferenceLevel, ClassPreferenceSelection, CourseSharingMap, GroupMemberToken, GroupScheduleOption } from './types';
+import { buildDensityMap } from './services/group-scheduler';
+import type { ClassPreferenceLevel, ClassPreferenceSelection, CourseSharingMap, GroupMemberToken } from './types';
 import { parseCourseInput, useGroupScheduler } from './hooks/use-group-scheduler';
 import { readFromStorage, saveToStorage } from '../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../config';
@@ -74,17 +73,6 @@ function makeDraft(): GroupMemberToken {
     };
 }
 
-function extractHash(value: string): string {
-    const trimmed = value.trim();
-    if (!trimmed) return '';
-    try {
-        return new URL(trimmed).hash;
-    } catch {
-        const hashIndex = trimmed.indexOf('#');
-        return hashIndex >= 0 ? trimmed.slice(hashIndex) : trimmed;
-    }
-}
-
 function getCourseCode(course: Course): string {
     return (course.code || course.id).toUpperCase();
 }
@@ -138,11 +126,8 @@ function loadClassOptionsByCourse(): Record<string, GroupClassOption[]> {
 }
 
 export function GroupSchedulePage({
-    onPageChange,
     selectedCourseIds,
     allCourses = [],
-    allowedClassesMap = {},
-    setAllowedClassesMap,
     onRemoveSelectedCourse,
     embedded = false,
     modeSwitch,
@@ -150,8 +135,6 @@ export function GroupSchedulePage({
     const { defaultCampusId } = useCampus();
     const {
         members,
-        shareUrl,
-        urlWarning,
         decodeError,
         solving,
         result,
@@ -168,7 +151,6 @@ export function GroupSchedulePage({
         analyzeTradeoff,
         clearResult,
         setResult,
-        getOptionRegistrations,
     } = useGroupScheduler();
 
     const savedUIState = useMemo(() => {
@@ -190,7 +172,6 @@ export function GroupSchedulePage({
     const [resultViewMode, setResultViewMode] = useState<GroupScheduleResultViewMode>(savedUIState.resultViewMode);
     const [draft, setDraft] = useState<GroupMemberToken>(makeDraft);
     const [manualCourseInput, setManualCourseInput] = useState('');
-    const [mergeInput, setMergeInput] = useState('');
     const [localNotice, setLocalNotice] = useState<string | null>(null);
 
     const [showListModal, setShowListModal] = useState(false);
@@ -229,7 +210,7 @@ export function GroupSchedulePage({
         });
     }, [courseSharing, groupPreferredClasses, groupPrefs, setShareConfig]);
     const [expandedClassCourseId, setExpandedClassCourseId] = useState<string | null>(null);
-    const [isAdvancedOpen, setIsAdvancedOpen] = useState(savedUIState.isAdvancedOpen);
+    const [isAdvancedOpen] = useState(savedUIState.isAdvancedOpen);
     const [showMembersPanel, setShowMembersPanel] = useState(savedUIState.showMembersPanel);
     const [filterModalCourse, setFilterModalCourse] = useState<Course | null>(null);
     const [editingMemberIndex, setEditingMemberIndex] = useState<number | null>(null);
@@ -291,18 +272,6 @@ export function GroupSchedulePage({
     const groupCourses = useMemo(() => buildDensityMap(members), [members]);
     const classOptionsByCourse = useMemo(() => loadClassOptionsByCourse(), []);
     const selectedOption = result?.solutions[activeResultIndex] ?? result?.solutions[0];
-    const sharedCourseCount = useMemo(() => groupCourses.filter((course) => course.isShared).length, [groupCourses]);
-    const groupClassPreferenceSummary = useMemo(() => {
-        return Object.values(groupPreferredClasses).reduce(
-            (summary, selection) => ({
-                excluded: summary.excluded + (selection.excluded?.length ?? 0),
-                preferred: summary.preferred + (selection.preferred?.length ?? 0),
-                required: summary.required + (selection.required?.length ?? 0),
-            }),
-            { excluded: 0, preferred: 0, required: 0 },
-        );
-    }, [groupPreferredClasses]);
-
     const buildDraftClassPreferences = (): Record<string, ClassPreferenceSelection> => {
         const next = Object.fromEntries(
             Object.entries(personalClassPreferences).map(([courseId, selection]) => [
@@ -392,26 +361,6 @@ export function GroupSchedulePage({
 
         if (addMember(nextDraft)) {
             resetMemberDraft();
-        }
-    };
-
-    const mergeMembersFromLink = () => {
-        try {
-            const decoded = decodeGroupURL(extractHash(mergeInput));
-            const existingIds = new Set(members.map((member) => member.id).filter((id): id is string => Boolean(id)));
-            const merged = [...members];
-            decoded.forEach((member) => {
-                const incoming = member.id ? member : { ...member, id: createMemberId() };
-                if (!existingIds.has(incoming.id)) {
-                    existingIds.add(incoming.id);
-                    merged.push(incoming);
-                }
-            });
-            replaceMembers(merged);
-            setMergeInput('');
-            setLocalNotice(`Đã gộp ${merged.length - members.length} thành viên từ link.`);
-        } catch (error) {
-            setLocalNotice(error instanceof Error ? error.message : 'Không đọc được link nhóm.');
         }
     };
 
@@ -540,18 +489,6 @@ export function GroupSchedulePage({
         solve(config);
     };
 
-
-    const handleUseSchedule = (option: GroupScheduleOption, memberIndex: number) => {
-        const registrations = getOptionRegistrations(option, memberIndex);
-        saveToStorage(STORAGE_KEYS.ACTIVE_GROUP_SCHEDULE, {
-            source: 'group-scheduler',
-            updatedAt: new Date().toISOString(),
-            registrations,
-            option: option.option,
-            memberIndex,
-        });
-        onPageChange?.('schedule');
-    };
 
     const saveSelectedGroupSchedule = () => {
         const fallbackMemberIndex = selectedOption?.schedules[0]?.memberIndex ?? activePreviewMemberIndex;
@@ -1482,7 +1419,7 @@ export function GroupSchedulePage({
                                 type="text"
                                 value={groupScheduleName}
                                 onChange={(event) => setGroupScheduleName(event.target.value)}
-                                placeholder={`VD: Nhóm - PA ${selectedOption.option}`}
+                                placeholder={`VD: Nhóm - PA ${selectedOption?.option ?? 1}`}
                                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
                                 onKeyDown={(event) => event.key === 'Enter' && saveSelectedGroupSchedule()}
                             />

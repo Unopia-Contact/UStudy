@@ -1,9 +1,6 @@
 import { useMemo } from "react";
 import {
-  BookOpen,
   CalendarDays,
-  Clock3,
-  GraduationCap,
   MapPin,
   Settings2,
 } from "lucide-react";
@@ -58,7 +55,6 @@ function formatShortDate(date: Date): string {
 }
 
 export function DashboardCalendarWidget({
-  sources,
   days,
   events,
   onOpenSettings,
@@ -67,8 +63,6 @@ export function DashboardCalendarWidget({
   const today = new Date();
   const todayKey = toDateKey(today);
 
-  const hasClasses = sources.includes("classes");
-  const hasExams = sources.includes("exams");
 
   const groupedEvents = useMemo(() => {
     return events.reduce<
@@ -226,21 +220,9 @@ export function DashboardCalendarWidget({
                 <div className="space-y-2">
                   {group.events.map((event) => {
                     const isClass = event.source === "classes";
-                    const SourceIcon = isClass
-                      ? BookOpen
-                      : GraduationCap;
-
                     const accent = isClass
                       ? "bg-[#004A98]"
                       : "bg-violet-500";
-
-                    const iconStyle = isClass
-                      ? "bg-blue-50 text-[#004A98]"
-                      : "bg-violet-50 text-violet-600";
-
-                    const timeStyle = isClass
-                      ? "bg-blue-50 text-[#004A98]"
-                      : "bg-violet-50 text-violet-700";
 
                     return (
                       <article
