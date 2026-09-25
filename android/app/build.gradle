@@ -7,6 +7,12 @@ def releaseSigningValues = [
     System.getenv('USTUDY_RELEASE_KEY_PASSWORD'),
 ]
 def hasReleaseSigning = releaseSigningValues.every { value -> value != null && !value.trim().isEmpty() }
+def releaseBuildNumber = System.getenv('USTUDY_RELEASE_BUILD_NUMBER')
+def releaseBuildAttempt = System.getenv('USTUDY_RELEASE_BUILD_ATTEMPT') ?: '1'
+if (releaseBuildNumber && releaseBuildAttempt.toInteger() > 99) {
+    throw new GradleException('Too many attempts for this Android release run.')
+}
+def baseVersionName = '0.2.5'
 
 android {
     namespace = "com.ustudy.app"
@@ -15,8 +21,8 @@ android {
         applicationId "com.ustudy.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "0.2.4"
+        versionCode releaseBuildNumber ? 100000 + releaseBuildNumber.toInteger() * 100 + releaseBuildAttempt.toInteger() : 7
+        versionName releaseBuildNumber ? "${baseVersionName}.${releaseBuildNumber}.${releaseBuildAttempt}" : baseVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
