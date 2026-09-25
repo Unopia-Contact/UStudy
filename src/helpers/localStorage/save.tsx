@@ -366,12 +366,14 @@ async function readLegacySecureValue(payload: string, legacyKey: CryptoKey): Pro
 // ─── Public: Plain Storage ────────────────────────────────────────────────────
 
 /** Lưu dữ liệu KHÔNG nhạy cảm (settings, page, ...) - không mã hóa */
-export function savePlain<T>(key: string, value: T): void {
+export function savePlain<T>(key: string, value: T): boolean {
     try {
         localStorage.setItem(key, JSON.stringify(value));
         window.dispatchEvent(new Event('ustudy:storage-changed'));
+        return true;
     } catch (err) {
         console.error(`[savePlain] Lỗi khi lưu "${key}":`, err);
+        return false;
     }
 }
 

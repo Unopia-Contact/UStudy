@@ -9,6 +9,7 @@ import { PageHeader } from '../../components/layout/page-header';
 import { PageShell } from '../../components/layout/page-shell';
 import { FinancialLogic } from '../../logic/FinancialLogic';
 import { useDepartmentData } from '../../context/DepartmentContext';
+import { useAppNotification } from '../../context/NotificationContext';
 import { buildTuitionSemesterKey, formatTuitionDeadline, getTuitionDeadline } from '../../config/tuitionDeadlines';
 import { CreditDistributionWidget } from './components/CreditDistributionWidget';
 import { DashboardCalendarWidget } from './components/DashboardCalendarWidget';
@@ -24,7 +25,8 @@ import {
   type DashboardWidgetId,
 } from './services/dashboard-layout';
 import {
-  prepareCalendarNotificationPermission,
+  requestCalendarNotificationPermission,
+  supportsCalendarNotifications,
   syncCalendarNotifications,
 } from '../../mobile/calendar-notifications';
 import { useCampus } from '../../context/CampusContext';
@@ -43,6 +45,7 @@ export function DashboardWidgets() {
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCalendarSettingsOpen, setIsCalendarSettingsOpen] = useState(false);
   const [layout, setLayout] = useState<DashboardLayoutPreferences>(readDashboardLayout);
+  const { addNotification } = useAppNotification();
   const { academicYear, semesterNumber } = useDepartmentData();
   const schedule = useSchedule();
   const { exams } = useStudentDb();
@@ -101,11 +104,38 @@ export function DashboardWidgets() {
   }), [calendarEvents, layout.calendarNotificationsEnabled, layout.calendarReminderMinutes]);
 
   useEffect(() => {
-    void syncCalendarNotifications(
-      calendarEvents,
-      layout.calendarNotificationsEnabled,
-      layout.calendarReminderMinutes,
-    ).catch((error) => console.error('[calendar-notifications] Không thể đồng bộ thông báo:', error));
+    let cancelled = false;
+    void (async () => {
+      if (layout.calendarNotificationsEnabled && supportsCalendarNotifications()) {
+        const permission = await requestCalendarNotificationPermission();
+        if (cancelled) return;
+        if (!permission.granted) {
+          addNotification({
+            title: 'Chưa thể bật nhắc lịch',
+            message: permission.message || 'Hãy bật quyền thông báo cho UStudy trong cài đặt điện thoại.',
+            type: 'warning',
+          });
+          return;
+        }
+      }
+
+      if (cancelled) return;
+      await syncCalendarNotifications(
+        calendarEvents,
+        layout.calendarNotificationsEnabled,
+        layout.calendarReminderMinutes,
+      );
+    })().catch((error) => {
+      console.error('[calendar-notifications] Không thể đồng bộ thông báo:', error);
+      if (!cancelled && layout.calendarNotificationsEnabled && supportsCalendarNotifications()) {
+        addNotification({
+          title: 'Chưa thể lập lịch thông báo',
+          message: 'Hãy kiểm tra quyền thông báo của UStudy rồi mở lại trang Tổng quan.',
+          type: 'warning',
+        });
+      }
+    });
+    return () => { cancelled = true; };
   }, [calendarNotificationSyncKey]);
 
   const updateLayout = (nextLayout: DashboardLayoutPreferences) => {
@@ -229,7 +259,7 @@ export function DashboardWidgets() {
           notificationsEnabled: calendarNotificationsEnabled,
           reminderMinutes: calendarReminderMinutes,
         }) => {
-          updateLayout({
+          const nextLayout = normalizeDashboardLayout({
             ...layout,
             calendarSources,
             calendarDays,
@@ -237,10 +267,14 @@ export function DashboardWidgets() {
             calendarReminderMinutes,
           });
 
-          if (calendarNotificationsEnabled) {
-            prepareCalendarNotificationPermission();
+          if (!saveDashboardLayout(nextLayout)) {
+            return {
+              saved: false,
+              message: 'Không thể ghi thiết lập vào bộ nhớ ứng dụng. Hãy giải phóng dung lượng rồi thử lại.',
+            };
           }
 
+          setLayout(nextLayout);
           return { saved: true };
         }}
       />
