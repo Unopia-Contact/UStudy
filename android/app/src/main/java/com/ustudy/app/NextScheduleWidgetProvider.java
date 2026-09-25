@@ -7,8 +7,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.view.View;
 import android.widget.RemoteViews;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -67,19 +69,32 @@ public class NextScheduleWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.next_widget_root, pending);
 
             if (next != null) {
+                Calendar date = Calendar.getInstance(CAMPUS_TIME_ZONE);
+                date.setTime(next.start);
+                int weekday = date.get(Calendar.DAY_OF_WEEK);
+                views.setTextViewText(R.id.next_widget_weekday,
+                        weekday == Calendar.SUNDAY ? "CN" : "Th " + weekday);
+                views.setTextViewText(R.id.next_widget_date, String.valueOf(date.get(Calendar.DAY_OF_MONTH)));
+                views.setTextViewText(R.id.next_widget_month, "thg " + (date.get(Calendar.MONTH) + 1));
                 views.setTextViewText(R.id.next_widget_title, next.title);
-                views.setTextViewText(R.id.next_widget_details, next.startTime + "–" + next.endTime
-                        + " · " + (next.room.isEmpty() ? "Chưa có phòng" : next.room));
+                views.setTextViewText(R.id.next_widget_time, next.startTime + "–" + next.endTime);
+                views.setTextViewText(R.id.next_widget_room, next.room.isEmpty() ? "Chưa có phòng" : next.room);
+                views.setViewVisibility(R.id.next_widget_room_row, View.VISIBLE);
                 views.setTextViewText(R.id.next_widget_status, timeLabel(next, now, today));
             } else {
+                views.setTextViewText(R.id.next_widget_weekday, "");
+                views.setTextViewText(R.id.next_widget_date, "–");
+                views.setTextViewText(R.id.next_widget_month, "");
                 String title = snapshot == null
-                        ? ("no-schedule".equals(status) ? "Chưa có thời khóa biểu" : "Chưa có lịch học")
-                        : current ? "Không có buổi học sắp tới" : "Lịch học đã cũ";
-                String details = snapshot == null && "no-schedule".equals(status)
-                        ? "Mở UStudy để đồng bộ" : current ? "Trong 30 ngày tới" : "Mở UStudy để cập nhật";
+                        ? ("no-schedule".equals(status) ? "Chưa có TKB" : "Chưa có lịch")
+                        : current ? "Không có lịch" : "Lịch đã cũ";
+                String message = snapshot == null && "no-schedule".equals(status)
+                        ? "Đồng bộ lịch học" : current ? "Trong 30 ngày tới" : "Mở UStudy cập nhật";
                 views.setTextViewText(R.id.next_widget_title, title);
-                views.setTextViewText(R.id.next_widget_details, details);
-                views.setTextViewText(R.id.next_widget_status, "");
+                views.setTextViewText(R.id.next_widget_time, "");
+                views.setTextViewText(R.id.next_widget_room, "");
+                views.setViewVisibility(R.id.next_widget_room_row, View.GONE);
+                views.setTextViewText(R.id.next_widget_status, message);
             }
             manager.updateAppWidget(id, views);
         }
