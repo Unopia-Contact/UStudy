@@ -116,6 +116,15 @@
 .ustudy-campus-search-option-active .ustudy-campus-search-icon { background: #004a98; color: #fff; }
 .ustudy-campus-search-message { padding: 16px; color: #64748b; font-size: 14px; text-align: center; }
 
+/* The dialog owns scrolling; map minimum heights must not overflow its body. */
+.ustudy-room-location-map > div {
+  min-height: 0;
+  height: 100%;
+}
+@media (max-width: 767px) {
+  .ustudy-room-location-map > div { height: clamp(240px, 40dvh, 360px); }
+}
+
 .ustudy-floor-map-room-selected:is(rect, path, polygon, ellipse, circle),
 .ustudy-floor-map-room-selected > rect,
 .ustudy-floor-map-room-selected > path,
@@ -149,6 +158,7 @@
 
 @media (max-width: 767px) {
   .ustudy-map-control { width: 44px; height: 44px; }
+  .ustudy-campus-search-input { font-size: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

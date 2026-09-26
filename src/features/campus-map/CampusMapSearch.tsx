@@ -37,8 +37,9 @@ function resultType(type: CampusPlaceSearchResult['type']) {
   return 'Phòng';
 }
 
-export function CampusMapSearch({ campusId, onSelect }: {
+export function CampusMapSearch({ campusId, onSelect, maxResults = 10 }: {
   campusId: CampusId;
+  maxResults?: number;
   onSelect: (result: CampusPlaceSearchResult) => void;
 }) {
   const [query, setQuery] = useState('');
@@ -46,6 +47,7 @@ export function CampusMapSearch({ campusId, onSelect }: {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
   const trimmedQuery = query.trim();
   const pending = Boolean(trimmedQuery) && trimmedQuery !== debouncedQuery;
@@ -70,14 +72,15 @@ export function CampusMapSearch({ campusId, onSelect }: {
       ...portalCandidates(debouncedQuery, campusId),
       ...searchCampusPlaces(inventoryQuery, data, campusId),
     ];
-    return [...new Map(combined.map((result) => [result.key, result])).values()].slice(0, 10);
-  }, [campusId, debouncedQuery]);
+    return [...new Map(combined.map((result) => [result.key, result])).values()].slice(0, maxResults);
+  }, [campusId, debouncedQuery, maxResults]);
 
   useEffect(() => { setActiveIndex(0); }, [campusId, debouncedQuery]);
 
   function choose(result: CampusPlaceSearchResult) {
     setQuery(result.label);
     setOpen(false);
+    inputRef.current?.blur();
     onSelect(result);
   }
 
@@ -99,9 +102,10 @@ export function CampusMapSearch({ campusId, onSelect }: {
   return <div ref={rootRef} className="ustudy-campus-search">
     <div className="ustudy-campus-search-field">
       <Search className="ustudy-campus-search-leading" aria-hidden="true" />
-      <label htmlFor="campus-map-search" className="sr-only">Tìm phòng, tầng, tòa hoặc mã Portal</label>
+      <label htmlFor={`${listId}-input`} className="sr-only">Tìm phòng, tầng, tòa hoặc mã Portal</label>
       <input
-        id="campus-map-search"
+        ref={inputRef}
+        id={`${listId}-input`}
         role="combobox"
         aria-autocomplete="list"
         aria-expanded={open && Boolean(trimmedQuery)}
@@ -111,7 +115,7 @@ export function CampusMapSearch({ campusId, onSelect }: {
         onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
         onFocus={() => { if (trimmedQuery) setOpen(true); }}
         onKeyDown={onKeyDown}
-        placeholder="Tìm D207, tòa D, tầng hầm hoặc mã Portal…"
+        placeholder="Tìm phòng, tòa hoặc mã Portal…"
         className="ustudy-campus-search-input"
       />
       {pending ? <LoaderCircle className="ustudy-campus-search-trailing animate-spin" aria-label="Đang tìm" /> : query && <button
