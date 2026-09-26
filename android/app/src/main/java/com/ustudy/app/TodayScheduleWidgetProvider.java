@@ -30,7 +30,7 @@ public class TodayScheduleWidgetProvider extends AppWidgetProvider {
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int id, Bundle options) {
         super.onAppWidgetOptionsChanged(context, manager, id, options);
-        render(context, manager, new int[] { id });
+        render(context, manager, new int[] { id }, options);
     }
 
     @Override
@@ -42,6 +42,11 @@ public class TodayScheduleWidgetProvider extends AppWidgetProvider {
     }
 
     private static void render(Context context, AppWidgetManager manager, int[] ids) {
+        render(context, manager, ids, null);
+    }
+
+    private static void render(Context context, AppWidgetManager manager, int[] ids, Bundle changedOptions) {
+        if (ids == null || ids.length == 0) return;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         String today = dateFormat.format(new Date());
@@ -61,15 +66,15 @@ public class TodayScheduleWidgetProvider extends AppWidgetProvider {
             final String emptyMessage = snapshot == null
                     ? ("no-schedule".equals(status) ? "Chưa có thời khóa biểu. Mở UStudy để đồng bộ." : "Mở UStudy để nạp lịch học.")
                     : current ? "Không có lịch trong 30 ngày tới." : "Lịch đã cũ. Mở UStudy để cập nhật.";
-            RemoteViews views = WidgetSizeLayouts.create(manager.getAppWidgetOptions(id),
-                    250f, 190f, (width, height) -> createViews(context, id, height, emptyMessage));
+            RemoteViews views = WidgetSizeLayouts.create(changedOptions != null ? changedOptions : manager.getAppWidgetOptions(id),
+                    250f, 190f, (width, height) -> createViews(context, id, width, height, emptyMessage));
             manager.updateAppWidget(id, views);
         }
         manager.notifyAppWidgetViewDataChanged(ids, R.id.widget_schedule_list);
     }
 
-    private static RemoteViews createViews(Context context, int id, float height, String message) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), WidgetGeometry.compactSchedule(height)
+    private static RemoteViews createViews(Context context, int id, float width, float height, String message) {
+            RemoteViews views = new RemoteViews(context.getPackageName(), WidgetGeometry.compactSchedule(width, height)
                     ? R.layout.widget_today_schedule_compact : R.layout.widget_today_schedule);
             Intent openApp = new Intent(Intent.ACTION_VIEW, Uri.parse("com.ustudy.app://schedule"),
                     context, MainActivity.class);

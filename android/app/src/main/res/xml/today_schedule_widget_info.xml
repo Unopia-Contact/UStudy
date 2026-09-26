@@ -9,5 +9,5 @@
     android:initialLayout="@layout/widget_today_schedule"
     android:previewLayout="@layout/widget_today_schedule_preview"
     android:updatePeriodMillis="1800000"
-    android:resizeMode="vertical"
+    android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />

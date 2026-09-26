@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Build;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -38,7 +37,7 @@ public class NextScheduleWidgetProvider extends AppWidgetProvider {
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int id, Bundle options) {
         super.onAppWidgetOptionsChanged(context, manager, id, options);
-        render(context, manager, new int[] { id });
+        render(context, manager, new int[] { id }, options);
     }
 
     @Override
@@ -50,6 +49,10 @@ public class NextScheduleWidgetProvider extends AppWidgetProvider {
     }
 
     private static void render(Context context, AppWidgetManager manager, int[] ids) {
+        render(context, manager, ids, null);
+    }
+
+    private static void render(Context context, AppWidgetManager manager, int[] ids, Bundle changedOptions) {
         if (ids == null || ids.length == 0) return;
 
         Date now = new Date();
@@ -105,22 +108,15 @@ public class NextScheduleWidgetProvider extends AppWidgetProvider {
                 views.setViewVisibility(R.id.next_widget_room_row, View.GONE);
                 views.setTextViewText(R.id.next_widget_status, message);
             }
-            manager.updateAppWidget(id, WidgetSizeLayouts.create(manager.getAppWidgetOptions(id),
-                    130f, 115f, (width, height) -> squareViews(context, views, width, height)));
+            manager.updateAppWidget(id, WidgetSizeLayouts.create(changedOptions != null ? changedOptions : manager.getAppWidgetOptions(id),
+                    130f, 115f, (width, height) -> adaptiveViews(views, width, height)));
         }
     }
 
-    private static RemoteViews squareViews(Context context, RemoteViews source, float width, float height) {
+    private static RemoteViews adaptiveViews(RemoteViews source, float width, float height) {
         RemoteViews views = source.clone();
-        float side = WidgetGeometry.squareSide(width, height);
-        int pixels = Math.max(1, (int) Math.floor(side * context.getResources().getDisplayMetrics().density));
-        views.setInt(R.id.next_widget_size, "setWidth", pixels);
-        views.setInt(R.id.next_widget_size, "setHeight", pixels);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            views.setViewLayoutWidth(R.id.next_widget_root, pixels, TypedValue.COMPLEX_UNIT_PX);
-            views.setViewLayoutHeight(R.id.next_widget_root, pixels, TypedValue.COMPLEX_UNIT_PX);
-        }
-        boolean expanded = side >= 180f;
+        // Geometry selects density only. The launcher measures match_parent bounds.
+        boolean expanded = WidgetGeometry.expandedNext(width, height);
         views.setInt(R.id.next_widget_title, "setMaxLines", expanded ? 2 : 1);
         views.setTextViewTextSize(R.id.next_widget_title, TypedValue.COMPLEX_UNIT_SP, expanded ? 12f : 10f);
         views.setTextViewTextSize(R.id.next_widget_time, TypedValue.COMPLEX_UNIT_SP, expanded ? 13f : 10f);
