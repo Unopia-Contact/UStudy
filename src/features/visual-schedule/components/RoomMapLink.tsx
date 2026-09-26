@@ -7,12 +7,13 @@ import type { ScheduleSession } from '../types';
 
 export function RoomMapLink({ session, variant = 'text', onOpenLocation }: {
   session: ScheduleSession;
-  variant?: 'icon' | 'text' | 'campus' | 'room';
+  variant?: 'icon' | 'text' | 'campus' | 'room' | 'room-label';
   onOpenLocation?: (location: ScheduleMapLocation) => void;
 }) {
   const [open, setOpen] = useState(false);
   const location = resolveScheduleMapLocation(session);
   if (location.status === 'unavailable') {
+    if (variant === 'room-label') return <span className="break-words">{session.room || '-'}</span>;
     return variant === 'room' ? <span className="text-right font-semibold text-gray-900">{session.room || '-'}</span> : null;
   }
   const availableLocation: ScheduleMapLocation = location;
@@ -29,7 +30,13 @@ export function RoomMapLink({ session, variant = 'text', onOpenLocation }: {
   }
 
   return <>
-    {variant === 'icon' ? <button
+    {variant === 'room-label' ? <button
+      type="button"
+      onClick={showMap}
+      className="min-h-7 max-w-full break-words rounded-sm text-left font-medium text-[#004A98] underline decoration-[#004A98]/30 underline-offset-2 hover:decoration-current focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#004A98]/30"
+      aria-label={label}
+      title={label}
+    >{session.room || '-'}</button> : variant === 'icon' ? <button
       type="button"
       onClick={showMap}
       className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#004A98] transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#004A98]/30"

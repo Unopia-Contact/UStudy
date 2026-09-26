@@ -61,6 +61,7 @@ export function RoomLocationDialog({ open, onOpenChange, location }: {
     description={<span className="break-words">{location.campus.shortName} → {location.building.name} → {location.floor.label}</span>}
     icon={MapPinned}
     size="xl"
+    preserveMobileNavigation
     className="max-md:!left-0 max-md:!top-auto max-md:bottom-[calc(64px+env(safe-area-inset-bottom))] max-md:!h-[min(82dvh,calc(100dvh-80px-env(safe-area-inset-bottom)))] max-md:!max-h-[min(82dvh,calc(100dvh-80px-env(safe-area-inset-bottom)))] max-md:!w-full max-md:!max-w-none max-md:!translate-x-0 max-md:!translate-y-0 max-md:rounded-b-none"
     contentClassName="!m-0 min-w-0 !space-y-0 !overflow-x-hidden !overflow-y-auto !p-0 md:!overflow-hidden"
     footer={<>

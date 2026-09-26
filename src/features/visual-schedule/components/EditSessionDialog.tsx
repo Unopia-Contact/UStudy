@@ -594,7 +594,10 @@ function CourseCard({
                             <div className={`font-mono text-[8px] md:text-[10px] font-medium mb-0.5 leading-tight truncate ${hasConflict ? 'text-red-700' : 'text-gray-900'}`}>
                                 {sess.courseCode}
                             </div>
-                            <div className={`flex min-w-0 items-center gap-0.5 text-[8px] leading-tight md:text-[10px] ${hasConflict ? 'text-red-600' : 'text-gray-600'}`}>
+                            <div className="text-[8px] leading-tight md:hidden">
+                                <RoomMapLink session={sess} variant="room-label" onOpenLocation={openRoomLocation} />
+                            </div>
+                            <div className={`hidden min-w-0 items-center gap-0.5 leading-tight md:flex md:text-[10px] ${hasConflict ? 'text-red-600' : 'text-gray-600'}`}>
                                 <span className="min-w-0 truncate">{sess.type} | {sess.room} | {getCompactCampusLabel(sess.campusId)}</span>
                                 <RoomMapLink session={sess} variant="icon" onOpenLocation={openRoomLocation} />
                             </div>
