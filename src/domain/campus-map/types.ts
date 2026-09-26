@@ -26,7 +26,7 @@ export interface Room {
   code: string;
   label: string;
   name?: string;
-  kind: 'classroom' | 'computer-lab' | 'laboratory' | 'office' | 'auditorium' | 'sports-zone' | 'service' | 'other';
+  kind: 'classroom' | 'computer-lab' | 'laboratory' | 'office' | 'auditorium' | 'sports-zone' | 'medical' | 'service' | 'other';
   aliases?: string[];
   status: PlaceStatus;
   verification?: VerificationMetadata;

@@ -20,7 +20,7 @@ describe('Campus Map / Portal integration', () => {
   it('only indexes buildings and floors declared in campuses.ts', () => {
     expect(data.buildingIdsByCampusId['dong-hoa']).toEqual(CAMPUS_MAP_CAMPUSES[0].buildings.map((building) => `dong-hoa/${building.id}`));
     expect(data.buildingsById['dong-hoa/f']).toBeDefined();
-    expect(data.buildingsById['dong-hoa/g']).toBeUndefined();
+    expect(data.buildingsById['dong-hoa/g']).toBeDefined();
     expect(data.floorIdsByBuildingId['dong-hoa/ndh']).toHaveLength(CAMPUS_MAP_CAMPUSES[0].buildings.find((building) => building.id === 'ndh')!.floors.length);
   });
 

@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Nhà A · Tầng 3">
+<title>Nhà A · Tầng 3</title>
+<style>.room{fill:#70c9e5;fill-opacity:.78;stroke:#9f5360;stroke-width:2.4}.service{fill:#dbe8e8;stroke:#9f5360;stroke-width:2.4}.wall{fill:none;stroke:#9f5360;stroke-width:2.7}.detail{fill:none;stroke:#35546a;stroke-width:1.7}.code{font:600 11px Arial,sans-serif;fill:#164966;text-anchor:middle}.label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.stairs-label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.marker{fill:#9f5360}</style>
+<g id="room-a311"><title>A311 · PTN Vật lý đại cương 1 (CLB Thiên văn)</title>
+<rect class="room" x="20.0" y="30" width="98.5" height="110"/>
+<text class="code" x="69.3" y="78">A311</text>
+<text class="label" x="69.3" y="96">PTN Vật lý</text>
+<text class="label" x="69.3" y="109">đại cương 1</text>
+</g>
+<path class="detail" d="M 61.3 141 v 9 l 8.0 -8 M 77.3 141 v 9 l -8.0 -8"/>
+<g id="room-a310"><title>A310 · PTN Vật lý đại cương 1</title>
+<rect class="room" x="118.5" y="30" width="96.9" height="110"/>
+<text class="code" x="166.9" y="78">A310</text>
+<text class="label" x="166.9" y="96">PTN Vật lý</text>
+<text class="label" x="166.9" y="109">đại cương 1</text>
+</g>
+<path class="detail" d="M 158.9 141 v 9 l 8.0 -8 M 174.9 141 v 9 l -8.0 -8"/>
+<g id="room-a309"><title>A309 · TT Nghiên cứu hợp chất hoạt tính Sinh học</title>
+<rect class="room" x="215.4" y="30" width="95.2" height="110"/>
+<text class="code" x="263.0" y="78">A309</text>
+<text class="label" x="263.0" y="96">TT Nghiên cứu</text>
+<text class="label" x="263.0" y="109">hợp chất</text>
+</g>
+<path class="detail" d="M 255.0 141 v 9 l 8.0 -8 M 271.0 141 v 9 l -8.0 -8"/>
+<g id="room-a308"><title>A308 · Bộ môn Sinh lý thực vật</title>
+<rect class="room" x="310.6" y="30" width="96.9" height="110"/>
+<text class="code" x="359.1" y="78">A308</text>
+<text class="label" x="359.1" y="96">Bộ môn Sinh lý</text>
+<text class="label" x="359.1" y="109">thực vật</text>
+</g>
+<path class="detail" d="M 351.1 141 v 9 l 8.0 -8 M 367.1 141 v 9 l -8.0 -8"/>
+<g id="room-a307"><title>A307 · Phòng sản xuất thử nghiệm Protein tái tổ hợp</title>
+<rect class="room" x="407.5" y="30" width="47.6" height="110"/>
+<text class="code" x="431.3" y="78">A307</text>
+<text class="label" x="431.3" y="96">Phòng sản xuất</text>
+</g>
+<path class="detail" d="M 423.3 141 v 9 l 8.0 -8 M 439.3 141 v 9 l -8.0 -8"/>
+<g id="room-a306"><title>A306 · PTN Công nghệ Sinh học Môi trường</title>
+<rect class="room" x="455.1" y="30" width="95.2" height="110"/>
+<text class="code" x="502.7" y="78">A306</text>
+<text class="label" x="502.7" y="96">PTN CNSH</text>
+<text class="label" x="502.7" y="109">Môi trường</text>
+</g>
+<path class="detail" d="M 494.7 141 v 9 l 8.0 -8 M 510.7 141 v 9 l -8.0 -8"/>
+<g id="room-a305"><title>A305 · TT Nghiên cứu hợp chất hoạt tính Sinh học</title>
+<rect class="room" x="550.3" y="30" width="96.9" height="110"/>
+<text class="code" x="598.8" y="78">A305</text>
+<text class="label" x="598.8" y="96">TT Nghiên cứu</text>
+<text class="label" x="598.8" y="109">Sinh học</text>
+</g>
+<path class="detail" d="M 590.8 141 v 9 l 8.0 -8 M 606.8 141 v 9 l -8.0 -8"/>
+<g id="room-a304"><title>A304 · PTN Công nghệ Sinh học thực vật P1</title>
+<rect class="room" x="694.8" y="30" width="144.5" height="110"/>
+<text class="code" x="767.1" y="78">A304</text>
+<text class="label" x="767.1" y="96">PTN CNSH</text>
+<text class="label" x="767.1" y="109">thực vật P1</text>
+</g>
+<path class="detail" d="M 759.1 141 v 9 l 8.0 -8 M 775.1 141 v 9 l -8.0 -8"/>
+<g id="room-a303"><title>A303 · PTN Chuyển hóa Sinh học</title>
+<rect class="room" x="839.3" y="30" width="146.1" height="110"/>
+<text class="code" x="912.4" y="78">A303</text>
+<text class="label" x="912.4" y="96">PTN Chuyển hóa</text>
+<text class="label" x="912.4" y="109">Sinh học</text>
+</g>
+<path class="detail" d="M 904.4 141 v 9 l 8.0 -8 M 920.4 141 v 9 l -8.0 -8"/>
+<g id="room-a302"><title>A302 · PTN Gen và Vi sinh</title>
+<rect class="room" x="985.4" y="30" width="96.1" height="110"/>
+<text class="code" x="1033.5" y="78">A302</text>
+<text class="label" x="1033.5" y="96">PTN Gen</text>
+<text class="label" x="1033.5" y="109">và Vi sinh</text>
+</g>
+<path class="detail" d="M 1025.5 141 v 9 l 8.0 -8 M 1041.5 141 v 9 l -8.0 -8"/>
+<g id="room-a301"><title>A301 · PTN Sinh môi</title>
+<rect class="room" x="1129.9" y="30" width="50.1" height="110"/>
+<text class="code" x="1155.0" y="78">A301</text>
+<text class="label" x="1155.0" y="96">PTN Sinh môi</text>
+</g>
+<path class="detail" d="M 1147.0 141 v 9 l 8.0 -8 M 1163.0 141 v 9 l -8.0 -8"/>
+<g id="service-wc-647"><title>WC</title><rect class="service" x="647.2" y="30" width="47.6" height="110"/><text class="code" x="671.0" y="88">WC</text></g>
+<g id="service-chưa-rõ-1081"><title>Chưa rõ</title><rect class="service" x="1081.5" y="30" width="48.4" height="110"/><text class="code" x="1105.7" y="88">Chưa rõ</text></g>
+<path id="corridor" class="wall" d="M 20 140 v 43 H 1180 V 140"/>
+<g id="stairs-1"><title>Thang bộ</title><path class="wall" d="M 67.6 183 v 46 H 141.5 V 183"/>
+<path class="detail" d="M 74.6 189 v 29"/>
+<path class="detail" d="M 81.6 189 v 29"/>
+<path class="detail" d="M 88.6 189 v 29"/>
+<path class="detail" d="M 95.6 189 v 29"/>
+<path class="detail" d="M 102.6 189 v 29"/>
+<path class="detail" d="M 109.6 189 v 29"/>
+<path class="detail" d="M 116.6 189 v 29"/>
+<path class="detail" d="M 123.6 189 v 29"/>
+<path class="detail" d="M 130.6 189 v 29"/>
+<text class="stairs-label" x="104.6" y="244">Thang bộ</text></g>
+<g id="stairs-2"><title>Thang bộ</title><path class="wall" d="M 595.5 183 v 46 H 648.8 V 183"/>
+<path class="detail" d="M 602.5 189 v 29"/>
+<path class="detail" d="M 609.5 189 v 29"/>
+<path class="detail" d="M 616.5 189 v 29"/>
+<path class="detail" d="M 623.5 189 v 29"/>
+<path class="detail" d="M 630.5 189 v 29"/>
+<path class="detail" d="M 637.5 189 v 29"/>
+<text class="stairs-label" x="622.2" y="244">Thang bộ</text></g>
+<g id="stairs-3"><title>Thang bộ</title><path class="wall" d="M 1079.0 183 v 46 H 1131.6 V 183"/>
+<path class="detail" d="M 1086.0 189 v 29"/>
+<path class="detail" d="M 1093.0 189 v 29"/>
+<path class="detail" d="M 1100.0 189 v 29"/>
+<path class="detail" d="M 1107.0 189 v 29"/>
+<path class="detail" d="M 1114.0 189 v 29"/>
+<path class="detail" d="M 1121.0 189 v 29"/>
+<text class="stairs-label" x="1105.3" y="244">Thang bộ</text></g>
+<rect class="marker" x="40" y="179" width="5" height="8"/>
+<rect class="marker" x="105" y="179" width="5" height="8"/>
+<rect class="marker" x="170" y="179" width="5" height="8"/>
+<rect class="marker" x="235" y="179" width="5" height="8"/>
+<rect class="marker" x="300" y="179" width="5" height="8"/>
+<rect class="marker" x="365" y="179" width="5" height="8"/>
+<rect class="marker" x="430" y="179" width="5" height="8"/>
+<rect class="marker" x="495" y="179" width="5" height="8"/>
+<rect class="marker" x="560" y="179" width="5" height="8"/>
+<rect class="marker" x="625" y="179" width="5" height="8"/>
+<rect class="marker" x="690" y="179" width="5" height="8"/>
+<rect class="marker" x="755" y="179" width="5" height="8"/>
+<rect class="marker" x="820" y="179" width="5" height="8"/>
+<rect class="marker" x="885" y="179" width="5" height="8"/>
+<rect class="marker" x="950" y="179" width="5" height="8"/>
+<rect class="marker" x="1015" y="179" width="5" height="8"/>
+<rect class="marker" x="1080" y="179" width="5" height="8"/>
+<rect class="marker" x="1145" y="179" width="5" height="8"/>
+</svg>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Nhà A · Tầng hầm">
+<title>Nhà A · Tầng hầm</title>
+<style>.room{fill:#70c9e5;fill-opacity:.78;stroke:#9f5360;stroke-width:2.4}.service{fill:#dbe8e8;stroke:#9f5360;stroke-width:2.4}.wall{fill:none;stroke:#9f5360;stroke-width:2.7}.detail{fill:none;stroke:#35546a;stroke-width:1.7}.code{font:600 11px Arial,sans-serif;fill:#164966;text-anchor:middle}.label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.stairs-label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.marker{fill:#9f5360}</style>
+<g id="room-a004"><title>A004 · PTN Cơ sở Khoa học vật liệu</title>
+<rect class="room" x="22.8" y="30" width="165.9" height="110"/>
+<text class="code" x="105.8" y="78">A004</text>
+<text class="label" x="105.8" y="96">PTN Cơ sở</text>
+<text class="label" x="105.8" y="109">KH vật liệu</text>
+</g>
+<path class="detail" d="M 97.8 141 v 9 l 8.0 -8 M 113.8 141 v 9 l -8.0 -8"/>
+<g id="room-a003"><title>A003 · Trung tâm nghiên cứu Công nghệ cao trong Nông nghiệp</title>
+<rect class="room" x="188.7" y="30" width="413.4" height="110"/>
+<text class="code" x="395.4" y="78">A003</text>
+<text class="label" x="395.4" y="96">TT nghiên cứu</text>
+<text class="label" x="395.4" y="109">CNC Nông nghiệp</text>
+</g>
+<path class="detail" d="M 387.4 141 v 9 l 8.0 -8 M 403.4 141 v 9 l -8.0 -8"/>
+<g id="room-a002"><title>A002 · PTN Đánh giá kiểu hình thực vật</title>
+<rect class="room" x="602.1" y="30" width="163.1" height="110"/>
+<text class="code" x="683.7" y="78">A002</text>
+<text class="label" x="683.7" y="96">PTN Đánh giá</text>
+<text class="label" x="683.7" y="109">kiểu hình TV</text>
+</g>
+<path class="detail" d="M 675.7 141 v 9 l 8.0 -8 M 691.7 141 v 9 l -8.0 -8"/>
+<g id="room-a001"><title>A001 · PTN Công nghệ sinh học thực vật</title>
+<rect class="room" x="765.2" y="30" width="248.9" height="110"/>
+<text class="code" x="889.6" y="78">A001</text>
+<text class="label" x="889.6" y="96">PTN Công nghệ</text>
+<text class="label" x="889.6" y="109">sinh học TV</text>
+</g>
+<path class="detail" d="M 881.6 141 v 9 l 8.0 -8 M 897.6 141 v 9 l -8.0 -8"/>
+<path class="wall" d="M 1014.1 30 v 110 M 1092.8 30 v 110"/>
+<path id="corridor" class="wall" d="M 20 140 v 43 H 1180 V 140"/>
+<g id="stairs-1"><title>Thang bộ</title><path class="wall" d="M 101.6 183 v 46 H 228.1 V 183"/>
+<path class="detail" d="M 108.6 189 v 29"/>
+<path class="detail" d="M 115.6 189 v 29"/>
+<path class="detail" d="M 122.6 189 v 29"/>
+<path class="detail" d="M 129.6 189 v 29"/>
+<path class="detail" d="M 136.6 189 v 29"/>
+<path class="detail" d="M 143.6 189 v 29"/>
+<path class="detail" d="M 150.6 189 v 29"/>
+<path class="detail" d="M 157.6 189 v 29"/>
+<path class="detail" d="M 164.6 189 v 29"/>
+<path class="detail" d="M 171.6 189 v 29"/>
+<path class="detail" d="M 178.6 189 v 29"/>
+<path class="detail" d="M 185.6 189 v 29"/>
+<path class="detail" d="M 192.6 189 v 29"/>
+<path class="detail" d="M 199.6 189 v 29"/>
+<path class="detail" d="M 206.6 189 v 29"/>
+<path class="detail" d="M 213.6 189 v 29"/>
+<path class="detail" d="M 220.6 189 v 29"/>
+<text class="stairs-label" x="164.8" y="244">Thang bộ</text></g>
+<g id="stairs-2"><title>Thang bộ</title><path class="wall" d="M 1011.3 183 v 46 H 1092.8 V 183"/>
+<path class="detail" d="M 1018.3 189 v 29"/>
+<path class="detail" d="M 1025.3 189 v 29"/>
+<path class="detail" d="M 1032.3 189 v 29"/>
+<path class="detail" d="M 1039.3 189 v 29"/>
+<path class="detail" d="M 1046.3 189 v 29"/>
+<path class="detail" d="M 1053.3 189 v 29"/>
+<path class="detail" d="M 1060.3 189 v 29"/>
+<path class="detail" d="M 1067.3 189 v 29"/>
+<path class="detail" d="M 1074.3 189 v 29"/>
+<path class="detail" d="M 1081.3 189 v 29"/>
+<text class="stairs-label" x="1052.0" y="244">Thang bộ</text></g>
+<rect class="marker" x="40" y="179" width="5" height="8"/>
+<rect class="marker" x="105" y="179" width="5" height="8"/>
+<rect class="marker" x="170" y="179" width="5" height="8"/>
+<rect class="marker" x="235" y="179" width="5" height="8"/>
+<rect class="marker" x="300" y="179" width="5" height="8"/>
+<rect class="marker" x="365" y="179" width="5" height="8"/>
+<rect class="marker" x="430" y="179" width="5" height="8"/>
+<rect class="marker" x="495" y="179" width="5" height="8"/>
+<rect class="marker" x="560" y="179" width="5" height="8"/>
+<rect class="marker" x="625" y="179" width="5" height="8"/>
+<rect class="marker" x="690" y="179" width="5" height="8"/>
+<rect class="marker" x="755" y="179" width="5" height="8"/>
+<rect class="marker" x="820" y="179" width="5" height="8"/>
+<rect class="marker" x="885" y="179" width="5" height="8"/>
+<rect class="marker" x="950" y="179" width="5" height="8"/>
+<rect class="marker" x="1015" y="179" width="5" height="8"/>
+<rect class="marker" x="1080" y="179" width="5" height="8"/>
+<rect class="marker" x="1145" y="179" width="5" height="8"/>
+</svg>
