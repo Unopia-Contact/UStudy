@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Nhà G · Tầng 4">
+<title>Nhà G · Tầng 4</title>
+<style>.room{fill:#70c9e5;fill-opacity:.8;stroke:#795b72;stroke-width:2.1}.service{fill:#b8dbe7;stroke:#795b72;stroke-width:2.1}.wall{fill:none;stroke:#465463;stroke-width:2.6}.detail{fill:none;stroke:#35546a;stroke-width:1.6}.code{font:600 11px Arial,sans-serif;fill:#164966;text-anchor:middle}.label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.minor{font:8px Arial,sans-serif;fill:#164966;text-anchor:middle}.marker{fill:#465463}</style>
+<g id="room-g406"><title>G406 · PTN Hóa Vô Cơ 1 &amp; 2</title>
+<rect class="room" x="20.0" y="24.4" width="116.0" height="117.9"/>
+<text class="code" x="78.0" y="78.4">G406</text>
+<text class="label" x="78.0" y="95.4">PTN Hóa Vô Cơ</text>
+<text class="label" x="78.0" y="107.4">1 &amp; 2</text>
+<path class="detail" d="M 71.0 142.3 v 6 l 7 -6 M 85.0 142.3 v 6 l -7 -6"/>
+</g>
+<g id="room-g405"><title>G405 · PTN Hóa Vô Cơ 1 &amp; 2</title>
+<rect class="room" x="136.0" y="24.4" width="169.0" height="117.9"/>
+<text class="code" x="220.5" y="78.4">G405</text>
+<text class="label" x="220.5" y="95.4">PTN Hóa Vô Cơ</text>
+<text class="label" x="220.5" y="107.4">1 &amp; 2</text>
+<path class="detail" d="M 213.5 142.3 v 6 l 7 -6 M 227.5 142.3 v 6 l -7 -6"/>
+</g>
+<g id="room-g404"><title>G404</title>
+<rect class="room" x="422.2" y="24.4" width="170.2" height="117.9"/>
+<text class="code" x="507.3" y="87.4">G404</text>
+<path class="detail" d="M 500.3 142.3 v 6 l 7 -6 M 514.3 142.3 v 6 l -7 -6"/>
+</g>
+<g id="room-g403"><title>G403</title>
+<rect class="room" x="592.4" y="24.4" width="175.3" height="117.9"/>
+<text class="code" x="680.1" y="87.4">G403</text>
+<path class="detail" d="M 673.1 142.3 v 6 l 7 -6 M 687.1 142.3 v 6 l -7 -6"/>
+</g>
+<g id="room-g402"><title>G402 · TT Phát triển thương hiệu và kết nối cộng đồng</title>
+<rect class="room" x="887.5" y="24.4" width="113.5" height="117.9"/>
+<text class="code" x="944.2" y="78.4">G402</text>
+<text class="label" x="944.2" y="95.4">TT Phát triển</text>
+<text class="label" x="944.2" y="107.4">thương hiệu</text>
+<path class="detail" d="M 937.2 142.3 v 6 l 7 -6 M 951.2 142.3 v 6 l -7 -6"/>
+</g>
+<g id="room-g401"><title>G401 · PTN Phát triển thuốc</title>
+<rect class="room" x="1001.0" y="24.4" width="179.0" height="117.9"/>
+<text class="code" x="1090.5" y="78.4">G401</text>
+<text class="label" x="1090.5" y="95.4">PTN Phát triển</text>
+<text class="label" x="1090.5" y="107.4">thuốc</text>
+<path class="detail" d="M 1083.5 142.3 v 6 l 7 -6 M 1097.5 142.3 v 6 l -7 -6"/>
+</g>
+<path id="corridor-1" class="wall" d="M 20.0 142.3 v 23.1 H 306.2"/>
+<path id="corridor-2" class="wall" d="M 359.2 142.3 v 23.1 H 828.2"/>
+<path id="corridor-3" class="wall" d="M 887.5 142.3 v 23.1 H 1180.0"/>
+<rect class="service" x="359.2" y="24.4" width="63.0" height="47.4"/>
+<rect class="service" x="359.2" y="71.8" width="63.0" height="46.3"/>
+<text class="minor" x="390.7" y="51.1">WC</text>
+<text class="minor" x="390.7" y="97.9">WC</text>
+<g id="stairs-core-785"><title>Thang bộ</title><path class="wall" d="M 359.2 118.1 v 29.2 h 63.0"/>
+<path class="detail" d="M 363.2 124.7 h 55.0"/>
+<path class="detail" d="M 363.2 128.7 h 55.0"/>
+<path class="detail" d="M 363.2 132.7 h 55.0"/>
+<path class="detail" d="M 363.2 136.7 h 55.0"/>
+<path class="detail" d="M 363.2 140.7 h 55.0"/>
+</g>
+<rect class="service" x="766.4" y="24.4" width="61.8" height="47.4"/>
+<rect class="service" x="766.4" y="71.8" width="61.8" height="46.3"/>
+<text class="minor" x="797.3" y="51.1">WC</text>
+<text class="minor" x="797.3" y="97.9">WC</text>
+<g id="stairs-core-1108"><title>Thang bộ</title><path class="wall" d="M 766.4 118.1 v 29.2 h 61.8"/>
+<path class="detail" d="M 770.4 124.7 h 53.8"/>
+<path class="detail" d="M 770.4 128.7 h 53.8"/>
+<path class="detail" d="M 770.4 132.7 h 53.8"/>
+<path class="detail" d="M 770.4 136.7 h 53.8"/>
+<path class="detail" d="M 770.4 140.7 h 53.8"/>
+</g>
+<g id="service-teachers"><title>Phòng giáo viên</title><rect class="service" x="303.7" y="165.5" width="58.0" height="47.4"/><text class="minor" x="332.7" y="189.2">P. giáo viên</text></g>
+<g id="service-east"><title>Phòng trực giảng đường</title><rect class="service" x="825.7" y="165.5" width="60.5" height="47.4"/><text class="minor" x="856.0" y="189.2">Phòng trực</text></g>
+<g id="stairs-outer-1"><title>Thang bộ</title><path class="wall" d="M 83.0 165.5 v 56.2 h 46.7 v -56.2"/>
+<path class="detail" d="M 87.0 170.5 h 38.7"/>
+<path class="detail" d="M 87.0 174.5 h 38.7"/>
+<path class="detail" d="M 87.0 178.5 h 38.7"/>
+<path class="detail" d="M 87.0 182.5 h 38.7"/>
+<path class="detail" d="M 87.0 186.5 h 38.7"/>
+<path class="detail" d="M 87.0 190.5 h 38.7"/>
+<path class="detail" d="M 87.0 194.5 h 38.7"/>
+</g>
+<g id="stairs-outer-2"><title>Thang bộ</title><path class="wall" d="M 1067.8 165.5 v 56.2 h 44.1 v -56.2"/>
+<path class="detail" d="M 1071.8 170.5 h 36.1"/>
+<path class="detail" d="M 1071.8 174.5 h 36.1"/>
+<path class="detail" d="M 1071.8 178.5 h 36.1"/>
+<path class="detail" d="M 1071.8 182.5 h 36.1"/>
+<path class="detail" d="M 1071.8 186.5 h 36.1"/>
+<path class="detail" d="M 1071.8 190.5 h 36.1"/>
+<path class="detail" d="M 1071.8 194.5 h 36.1"/>
+</g>
+<rect class="marker" x="50.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="108.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="166.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="224.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="282.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="340.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="398.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="456.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="514.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="572.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="630.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="688.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="746.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="804.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="862.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="920.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="978.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="1036.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="1094.3" y="21.4" width="4" height="7"/>
+<rect class="marker" x="1152.3" y="21.4" width="4" height="7"/>
+</svg>

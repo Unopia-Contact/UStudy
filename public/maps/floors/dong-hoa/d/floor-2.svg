@@ -1,0 +1,703 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1200 250"
+  width="1200"
+  height="250"
+>
+  <style>
+    .room {
+      fill: #70c9e5;
+      fill-opacity: 0.78;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linejoin: miter;
+    }
+
+    .service-area {
+      fill: #70c9e5;
+      fill-opacity: 0.78;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linejoin: miter;
+    }
+
+    .wall {
+      fill: none;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .detail {
+      fill: none;
+      stroke: #35546a;
+      stroke-width: 1.7;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .room-code {
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .room-name {
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .small-text {
+      font-family: Arial, sans-serif;
+      font-size: 8px;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .corridor-marker {
+      fill: #9f5360;
+    }
+  </style>
+
+
+  <!-- ========================================================= -->
+  <!-- D214                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d214">
+    <rect
+      class="room"
+      x="20"
+      y="30"
+      width="95"
+      height="120"
+    />
+
+    <text class="room-code" x="67.5" y="82">D214</text>
+    <text class="room-name" x="67.5" y="100">Phòng học</text>
+    <text class="small-text" x="67.5" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D213                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d213">
+    <rect
+      class="room"
+      x="115"
+      y="30"
+      width="75"
+      height="120"
+    />
+
+    <text class="room-code" x="152.5" y="82">D213</text>
+    <text class="room-name" x="152.5" y="100">Phòng học</text>
+    <text class="small-text" x="152.5" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D212                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d212">
+    <rect
+      class="room"
+      x="190"
+      y="30"
+      width="75"
+      height="120"
+    />
+
+    <text class="room-code" x="227.5" y="82">D212</text>
+    <text class="room-name" x="227.5" y="100">Phòng học</text>
+    <text class="small-text" x="227.5" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D211                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d211">
+    <rect
+      class="room"
+      x="265"
+      y="30"
+      width="75"
+      height="120"
+    />
+
+    <text class="room-code" x="302.5" y="82">D211</text>
+    <text class="room-name" x="302.5" y="100">Phòng học</text>
+    <text class="small-text" x="302.5" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D210                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d210">
+    <rect
+      class="room"
+      x="340"
+      y="30"
+      width="80"
+      height="120"
+    />
+
+    <text class="room-code" x="380" y="82">D210</text>
+    <text class="room-name" x="380" y="100">Phòng học</text>
+    <text class="small-text" x="380" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D209                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d209">
+    <rect
+      class="room"
+      x="420"
+      y="30"
+      width="80"
+      height="120"
+    />
+
+    <text class="room-code" x="460" y="82">D209</text>
+    <text class="room-name" x="460" y="100">Phòng học</text>
+    <text class="small-text" x="460" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D208                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d208">
+    <rect
+      class="room"
+      x="500"
+      y="30"
+      width="90"
+      height="120"
+    />
+
+    <text class="room-code" x="545" y="82">D208</text>
+    <text class="room-name" x="545" y="100">Phòng học</text>
+    <text class="small-text" x="545" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D207                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d207">
+    <rect
+      class="room"
+      x="590"
+      y="30"
+      width="65"
+      height="120"
+    />
+
+    <text class="room-code" x="622.5" y="82">D207</text>
+    <text class="room-name" x="622.5" y="100">Phòng học</text>
+    <text class="small-text" x="622.5" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D206                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d206">
+    <rect
+      class="room"
+      x="655"
+      y="30"
+      width="65"
+      height="120"
+    />
+
+    <text class="room-code" x="687.5" y="82">D206</text>
+    <text class="room-name" x="687.5" y="100">Phòng học</text>
+    <text class="small-text" x="687.5" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D205                                                      -->
+  <!-- ========================================================= -->
+
+  <g id="room-d205">
+    <rect
+      class="room"
+      x="720"
+      y="30"
+      width="60"
+      height="120"
+    />
+
+    <text class="room-code" x="750" y="82">D205</text>
+    <text class="room-name" x="750" y="100">Phòng học</text>
+    <text class="small-text" x="750" y="114">Classroom</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D204 - PHÒNG MÁY TÍNH                                    -->
+  <!-- ========================================================= -->
+
+  <g id="room-d204">
+    <rect
+      class="room"
+      x="780"
+      y="30"
+      width="145"
+      height="120"
+    />
+
+    <text class="room-code" x="852.5" y="76">D204</text>
+    <text class="room-name" x="852.5" y="96">Phòng máy tính</text>
+    <text class="small-text" x="852.5" y="111">Computer Lab</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D203 - PHÒNG MÁY TÍNH                                    -->
+  <!-- ========================================================= -->
+
+  <g id="room-d203">
+    <rect
+      class="room"
+      x="925"
+      y="30"
+      width="135"
+      height="120"
+    />
+
+    <text class="room-code" x="992.5" y="76">D203</text>
+    <text class="room-name" x="992.5" y="96">Phòng máy tính</text>
+    <text class="small-text" x="992.5" y="111">Computer Lab</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D202 - PHÒNG GIÁO VIÊN                                   -->
+  <!-- ========================================================= -->
+
+  <g id="room-d202">
+    <rect
+      class="room"
+      x="1060"
+      y="30"
+      width="60"
+      height="120"
+    />
+
+    <text class="room-code" x="1090" y="75">D202</text>
+    <text class="small-text" x="1090" y="94">P. Giáo viên</text>
+    <text class="small-text" x="1090" y="108">Lecturer Room</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- D201 - PHÒNG GIÁO VIÊN                                   -->
+  <!-- ========================================================= -->
+
+  <g id="room-d201">
+    <rect
+      class="room"
+      x="1120"
+      y="30"
+      width="60"
+      height="120"
+    />
+
+    <text class="room-code" x="1150" y="75">D201</text>
+    <text class="small-text" x="1150" y="94">P. Giáo viên</text>
+    <text class="small-text" x="1150" y="108">Lecturer Room</text>
+  </g>
+
+
+  <!-- ========================================================= -->
+  <!-- HÀNH LANG CHÍNH                                          -->
+  <!-- ========================================================= -->
+
+  <path
+    id="corridor-main"
+    class="wall"
+    d="
+      M 20 180
+      L 1180 180
+    "
+  />
+
+  <path class="wall" d="
+    M 20 150
+    L 20 180
+  "/>
+
+  <path class="wall" d="
+    M 1180 150
+    L 1180 180
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CẦU THANG TÂY                                             -->
+  <!-- ========================================================= -->
+
+  <path
+    id="stairs-west-outline"
+    class="wall"
+    d="
+      M 350 180
+      L 350 225
+      L 435 225
+      L 435 180
+    "
+  />
+
+  <path
+    id="stairs-west"
+    class="detail"
+    d="
+      M 358 185 L 358 216
+      M 364 185 L 364 216
+      M 370 185 L 370 216
+      M 376 185 L 376 216
+      M 382 185 L 382 216
+      M 388 185 L 388 216
+
+      M 397 185 L 397 216
+      M 403 185 L 403 216
+      M 409 185 L 409 216
+      M 415 185 L 415 216
+      M 421 185 L 421 216
+
+      M 358 216
+      L 421 216
+    "
+  />
+
+  <rect
+    class="wall"
+    x="385"
+    y="185"
+    width="14"
+    height="31"
+  />
+
+  <text
+    class="small-text"
+    x="392.5"
+    y="221"
+  >
+    Thang bộ
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- CẦU THANG ĐÔNG                                            -->
+  <!-- ========================================================= -->
+
+  <path
+    id="stairs-east-outline"
+    class="wall"
+    d="
+      M 760 180
+      L 760 225
+      L 835 225
+      L 835 180
+    "
+  />
+
+  <path
+    id="stairs-east"
+    class="detail"
+    d="
+      M 768 185 L 768 216
+      M 774 185 L 774 216
+      M 780 185 L 780 216
+      M 786 185 L 786 216
+
+      M 802 185 L 802 216
+      M 808 185 L 808 216
+      M 814 185 L 814 216
+      M 820 185 L 820 216
+      M 826 185 L 826 216
+
+      M 768 216
+      L 826 216
+    "
+  />
+
+  <rect
+    class="wall"
+    x="788"
+    y="185"
+    width="14"
+    height="31"
+  />
+
+  <text
+    class="small-text"
+    x="797.5"
+    y="221"
+  >
+    Thang bộ
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D214                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 35 149 L 35 159
+    M 35 149 L 43 157
+
+    M 55 149 L 55 159
+    M 55 149 L 47 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D213                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 151 149 L 151 159
+    M 151 149 L 159 157
+
+    M 171 149 L 171 159
+    M 171 149 L 163 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D212                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 211 149 L 211 159
+    M 211 149 L 219 157
+
+    M 231 149 L 231 159
+    M 231 149 L 223 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D211                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 286 149 L 286 159
+    M 286 149 L 294 157
+
+    M 306 149 L 306 159
+    M 306 149 L 298 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D210                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 358 149 L 358 159
+    M 358 149 L 366 157
+
+    M 378 149 L 378 159
+    M 378 149 L 370 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D209                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 430 149 L 430 159
+    M 430 149 L 438 157
+
+    M 450 149 L 450 159
+    M 450 149 L 442 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D208                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 565 149 L 565 159
+    M 565 149 L 573 157
+
+    M 585 149 L 585 159
+    M 585 149 L 577 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D207                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 602 149 L 602 159
+    M 602 149 L 610 157
+
+    M 622 149 L 622 159
+    M 622 149 L 614 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D206                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 666 149 L 666 159
+    M 666 149 L 674 157
+
+    M 686 149 L 686 159
+    M 686 149 L 678 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D205                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 737 149 L 737 159
+    M 737 149 L 745 157
+
+    M 757 149 L 757 159
+    M 757 149 L 749 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D204                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 793 149 L 793 159
+    M 793 149 L 801 157
+
+    M 813 149 L 813 159
+    M 813 149 L 805 157
+  "/>
+
+  <path class="detail" d="
+    M 896 149 L 896 159
+    M 896 149 L 904 157
+
+    M 916 149 L 916 159
+    M 916 149 L 908 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D203                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 944 149 L 944 159
+    M 944 149 L 952 157
+
+    M 964 149 L 964 159
+    M 964 149 L 956 157
+  "/>
+
+  <path class="detail" d="
+    M 1029 149 L 1029 159
+    M 1029 149 L 1037 157
+
+    M 1049 149 L 1049 159
+    M 1049 149 L 1041 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D202                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 1068 149 L 1068 159
+    M 1068 149 L 1076 157
+
+    M 1088 149 L 1088 159
+    M 1088 149 L 1080 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA D201                                                 -->
+  <!-- ========================================================= -->
+
+  <path class="detail" d="
+    M 1138 149 L 1138 159
+    M 1138 149 L 1146 157
+
+    M 1158 149 L 1158 159
+    M 1158 149 L 1150 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- MỐC HÀNH LANG                                            -->
+  <!-- ========================================================= -->
+
+  <rect class="corridor-marker" x="70"   y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="145"  y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="220"  y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="295"  y="175" width="6" height="8"/>
+
+  <rect class="corridor-marker" x="460"  y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="535"  y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="610"  y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="685"  y="175" width="6" height="8"/>
+
+  <rect class="corridor-marker" x="860"  y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="935"  y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="1010" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="1085" y="175" width="6" height="8"/>
+  <rect class="corridor-marker" x="1150" y="175" width="6" height="8"/>
+
+
+  <!-- ========================================================= -->
+  <!-- MỐC TƯỜNG TRÊN                                           -->
+  <!-- ========================================================= -->
+
+  <rect class="corridor-marker" x="65"   y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="140"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="215"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="290"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="365"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="440"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="515"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="590"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="665"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="740"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="815"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="890"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="965"  y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="1040" y="26" width="6" height="8"/>
+  <rect class="corridor-marker" x="1115" y="26" width="6" height="8"/>
+
+</svg>

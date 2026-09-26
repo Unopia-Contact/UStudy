@@ -10,6 +10,8 @@ export interface ScheduleSession {
     type: 'LT' | 'TH' | 'BT'; // Lý thuyết, Thực hành, Bài tập
     instructor: string;
     room: string;
+    /** Mã địa điểm Portal gốc, chỉ suy ra lúc dựng lịch, không ghi RoomId vào dữ liệu user. */
+    portalLocationCode?: string;
     dayOfWeek: 2 | 3 | 4 | 5 | 6 | 7 | 8; // 2=T2, 7=T7, 8=CN
     startPeriod: number;
     endPeriod: number; // Có thể là số thập phân cho TH: 3.5, 5.5, 8.5, 10.5

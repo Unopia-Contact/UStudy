@@ -1,0 +1,571 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1200 250"
+  width="1200"
+  height="250"
+ xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToyNzg0YmE2NS1jMDA1LTRlZDgtYjYwZC04MTAxNjllNzQ0NDcAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaMDaQ6GznCIvHysUNA4yLBEAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpiNGU5ZTE2My1mYTFhLTQ4NTItOWEwOS0xNDRjYzUxMWU1ZmJscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoRqnURRQZsNOMQpuSe4IV2QAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggRGM6ksFmMrKcFdJIeibk0b8s1zdkBwdTwsO7Bm7RULekZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaHx/JVYAn+LUNIvWIEo3AxIAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCBA3885g1k++NbtvrR9OoadZTiCRAXZjXBbfuF8QS4hM2RuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBihZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjI3ODRiYTY1LWMwMDUtNGVkOC1iNjBkLTgxMDE2OWU3NDQ0Ny9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmE1ZmQyYWE5LTM1MWItNGNjMS1iODc5LWQyNzE3NGQwZTQ3Y3JjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCBEYzqSwWYyspwV0kh6JuTRvyzXN2QHB1PCw7sGbtFQt6JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggxz6sPwXIi1B4LnrjMWIuQU7NjlvGShlHyj324ziDiVCiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggdtSPfsd3KcW5I+hXMspGp8lRQz6tqF9g1Xo8szKB3GV0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQERMadfZCQwECCqped4HkS5Okz0dPMaHqZcg1V0+2ecnbKaHI7yhIpwMRd4WEejZ+FOcjqU5XNtv7P3Q+leewgs=</c2pa:manifest></metadata>
+  <style>
+    .room {
+      fill: #70c9e5;
+      fill-opacity: 0.78;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linejoin: miter;
+    }
+
+    .wall {
+      fill: none;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .thin-wall {
+      fill: none;
+      stroke: #9f5360;
+      stroke-width: 2;
+    }
+
+    .detail {
+      fill: none;
+      stroke: #35546a;
+      stroke-width: 1.7;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .room-code {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .room-name {
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .small-text {
+      font-family: Arial, sans-serif;
+      font-size: 9px;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .corridor-marker {
+      fill: #9f5360;
+    }
+  </style>
+
+
+  <!-- ========================================================= -->
+  <!-- KHỐI TRÁI : E101 - E103                              -->
+  <!-- ========================================================= -->
+
+  <!-- E101 -->
+  <polygon
+    id="room-e101"
+    class="room"
+    points="
+      43,45
+      153,45
+      153,177
+      43,177
+    "
+  />
+
+  <!-- E102 -->
+  <polygon
+    id="room-e102"
+    class="room"
+    points="
+      153,45
+      209,45
+      209,177
+      153,177
+    "
+  />
+
+  <!-- E103 -->
+  <polygon
+    id="room-e103"
+    class="room"
+    points="
+      209,45
+      319,45
+      319,177
+      209,177
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CỤM WC + THANG BỘ TRÁI                                -->
+  <!-- ========================================================= -->
+
+  <!-- WC trên -->
+  <polygon
+    id="wc-left-top"
+    class="room"
+    points="
+      372,45
+      429,45
+      429,89
+      372,89
+    "
+  />
+
+  <!-- WC dưới -->
+  <polygon
+    id="wc-left-bottom"
+    class="room"
+    points="
+      372,89
+      429,89
+      429,133
+      372,133
+    "
+  />
+
+  <!-- Thang bộ -->
+  <polygon
+    id="stairs-left"
+    class="room"
+    points="
+      372,133
+      429,133
+      429,177
+      372,177
+    "
+  />
+
+  <!-- đường chéo thang -->
+  <path
+    class="detail"
+    d="
+      M 374 172
+      L 427 136
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- E104                                                     -->
+  <!-- ========================================================= -->
+
+  <polygon
+    id="room-e104"
+    class="room"
+    points="
+      429,45
+      597,45
+      597,177
+      429,177
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- E105                                                     -->
+  <!-- ========================================================= -->
+
+  <polygon
+    id="room-e105"
+    class="room"
+    points="
+      597,45
+      760,45
+      760,177
+      597,177
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- KHO VẬT TƯ + THANG BỘ                                  -->
+  <!-- ========================================================= -->
+
+  <!-- Kho vật tư -->
+  <polygon
+    id="storage"
+    class="room"
+    points="
+      760,45
+      817,45
+      817,135
+      760,135
+    "
+  />
+
+  <!-- Thang bộ -->
+  <polygon
+    id="stairs-center"
+    class="room"
+    points="
+      760,135
+      817,135
+      817,177
+      760,177
+    "
+  />
+
+  <path
+    class="detail"
+    d="
+      M 763 172
+      L 814 138
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- LỐI / KHOẢNG HỞ GIỮA E105 VÀ E106                      -->
+  <!-- ========================================================= -->
+
+  <!-- ký hiệu cửa/lối phía trên -->
+  <path
+    class="detail"
+    d="
+      M 797 19
+      L 817 19
+      L 817 32
+      L 834 22
+      L 852 35
+      L 852 19
+      L 873 19
+    "
+  />
+
+  <!-- mép trái lối giữa -->
+  <path
+    class="detail"
+    d="
+      M 817 19
+      L 817 45
+    "
+  />
+
+  <!-- mép phải lối giữa -->
+  <path
+    class="detail"
+    d="
+      M 870 19
+      L 870 45
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- KHỐI PHẢI : E106 - E107                                -->
+  <!-- ========================================================= -->
+
+  <!-- E106 -->
+  <polygon
+    id="room-e106"
+    class="room"
+    points="
+      870,45
+      1036,45
+      1036,177
+      870,177
+    "
+  />
+
+  <!-- E107 -->
+  <polygon
+    id="room-e107"
+    class="room"
+    points="
+      1036,45
+      1150,45
+      1150,177
+      1036,177
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- HÀNH LANG PHÍA DƯỚI                                    -->
+  <!-- ========================================================= -->
+
+  <!-- dưới E101-E103 -->
+  <path
+    class="wall"
+    d="
+      M 43 199
+      L 319 199
+    "
+  />
+
+  <!-- dưới cụm WC - E105 -->
+  <path
+    class="wall"
+    d="
+      M 372 199
+      L 817 199
+    "
+  />
+
+  <!-- dưới E106 - E107 -->
+  <path
+    class="wall"
+    d="
+      M 870 199
+      L 1150 199
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- KHOẢNG MỞ HÀNH LANG BÊN TRÁI                           -->
+  <!-- ========================================================= -->
+
+  <path
+    class="detail"
+    d="
+      M 319 199
+      L 319 223
+      L 338 223
+      L 357 235
+      L 357 223
+      L 372 223
+      L 372 199
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- KHOẢNG MỞ HÀNH LANG GIỮA E105 - E106                   -->
+  <!-- ========================================================= -->
+
+  <path
+    class="detail"
+    d="
+      M 817 199
+      L 817 223
+      L 835 223
+      L 852 236
+      L 852 223
+      L 870 223
+      L 870 199
+    "
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- CÁC GỜ / MỐC NHỎ TRÊN HÀNH LANG                        -->
+  <!-- ========================================================= -->
+
+  <!-- trái -->
+  <rect class="corridor-marker" x="95"  y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="150" y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="204" y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="258" y="194" width="6" height="8"/>
+
+  <!-- giữa -->
+  <rect class="corridor-marker" x="426" y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="486" y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="547" y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="607" y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="668" y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="729" y="194" width="6" height="8"/>
+
+  <!-- phải -->
+  <rect class="corridor-marker" x="923"  y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="980"  y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="1038" y="194" width="6" height="8"/>
+  <rect class="corridor-marker" x="1093" y="194" width="6" height="8"/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA PHÒNG                                               -->
+  <!-- ========================================================= -->
+
+  <!-- E101 -->
+  <path class="detail" d="
+    M 52 176 L 52 185
+    M 52 176 L 59 183
+    M 65 176 L 65 185
+    M 65 176 L 58 183
+  "/>
+
+  <!-- E101 / E102 -->
+  <path class="detail" d="
+    M 145 176 L 145 185
+    M 145 176 L 152 183
+    M 158 176 L 158 185
+    M 158 176 L 151 183
+  "/>
+
+  <!-- E102 / E103 -->
+  <path class="detail" d="
+    M 199 176 L 199 185
+    M 199 176 L 206 183
+    M 212 176 L 212 185
+    M 212 176 L 205 183
+  "/>
+
+  <!-- E103 -->
+  <path class="detail" d="
+    M 251 176 L 251 185
+    M 251 176 L 258 183
+    M 264 176 L 264 185
+    M 264 176 L 257 183
+  "/>
+
+  <!-- gần cuối E103 -->
+  <path class="detail" d="
+    M 307 176 L 307 185
+    M 307 176 L 314 183
+    M 320 176 L 320 185
+    M 320 176 L 313 183
+  "/>
+
+
+  <!-- E104 trái -->
+  <path class="detail" d="
+    M 432 176 L 432 185
+    M 432 176 L 439 183
+    M 445 176 L 445 185
+    M 445 176 L 438 183
+  "/>
+
+  <!-- E104 phải -->
+  <path class="detail" d="
+    M 583 176 L 583 185
+    M 583 176 L 590 183
+    M 596 176 L 596 185
+    M 596 176 L 589 183
+  "/>
+
+  <!-- E105 trái -->
+  <path class="detail" d="
+    M 602 176 L 602 185
+    M 602 176 L 609 183
+    M 615 176 L 615 185
+    M 615 176 L 608 183
+  "/>
+
+  <!-- E105 giữa -->
+  <path class="detail" d="
+    M 675 176 L 675 185
+    M 675 176 L 682 183
+    M 688 176 L 688 185
+    M 688 176 L 681 183
+  "/>
+
+  <!-- E105 phải -->
+  <path class="detail" d="
+    M 747 176 L 747 185
+    M 747 176 L 754 183
+    M 760 176 L 760 185
+    M 760 176 L 753 183
+  "/>
+
+
+  <!-- E106 trái -->
+  <path class="detail" d="
+    M 879 176 L 879 185
+    M 879 176 L 886 183
+    M 892 176 L 892 185
+    M 892 176 L 885 183
+  "/>
+
+  <!-- E106 phải -->
+  <path class="detail" d="
+    M 1023 176 L 1023 185
+    M 1023 176 L 1030 183
+    M 1036 176 L 1036 185
+    M 1036 176 L 1029 183
+  "/>
+
+  <!-- E107 trái -->
+  <path class="detail" d="
+    M 1042 176 L 1042 185
+    M 1042 176 L 1049 183
+    M 1055 176 L 1055 185
+    M 1055 176 L 1048 183
+  "/>
+
+  <!-- E107 phải -->
+  <path class="detail" d="
+    M 1137 176 L 1137 185
+    M 1137 176 L 1144 183
+    M 1150 176 L 1150 185
+    M 1150 176 L 1143 183
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- NHÃN PHÒNG                                               -->
+  <!-- ========================================================= -->
+
+  <!-- E101 -->
+  <text class="room-code" x="99" y="88">E101</text>
+  <text class="room-name" x="99" y="106">Data Center</text>
+
+  <!-- E102 -->
+  <text class="room-code" x="181" y="71">E102</text>
+  <text class="room-name" x="181" y="88">Trung</text>
+  <text class="room-name" x="181" y="104">tâm</text>
+  <text class="room-name" x="181" y="120">Ngoại</text>
+  <text class="room-name" x="181" y="136">ngữ</text>
+
+  <!-- E103 -->
+  <text class="room-code" x="264" y="88">E103</text>
+  <text class="room-name" x="264" y="106">Phòng Y tế</text>
+
+
+  <!-- WC trái -->
+  <text class="small-text" x="400" y="70">WC</text>
+  <text class="small-text" x="401" y="114">WC</text>
+
+  <!-- thang trái -->
+  <text
+    class="small-text"
+    x="401"
+    y="157"
+    transform="rotate(-34 401 157)"
+  >
+    Thang bộ
+  </text>
+
+
+  <!-- E104 -->
+  <text class="room-code" x="514" y="98">E104</text>
+  <text class="room-name" x="514" y="116">Phòng học</text>
+
+  <!-- E105 -->
+  <text class="room-code" x="680" y="98">E105</text>
+  <text class="room-name" x="680" y="116">Phòng học</text>
+
+
+  <!-- kho vật tư -->
+  <text class="room-name" x="788" y="81">Kho</text>
+  <text class="room-name" x="788" y="98">vật tư</text>
+
+  <!-- thang giữa -->
+  <text
+    class="small-text"
+    x="789"
+    y="159"
+    transform="rotate(-33 789 159)"
+  >
+    Thang bộ
+  </text>
+
+
+  <!-- E106 -->
+  <text class="room-code" x="954" y="98">E106</text>
+  <text class="room-name" x="954" y="116">Phòng học</text>
+
+  <!-- E107 -->
+  <text class="room-code" x="1093" y="98">E107</text>
+  <text class="room-name" x="1093" y="116">Phòng học</text>
+
+</svg>

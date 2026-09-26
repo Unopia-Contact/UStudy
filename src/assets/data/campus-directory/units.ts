@@ -56,7 +56,7 @@ import type { CampusUnit } from './types';
  * - `pending`: chưa tìm thấy trang công khai đủ để xác minh.
  *
  * Lưu ý tích hợp Campus Map: các `buildingId` ngoài `NDH` là mã quy ước cho cơ sở
- * Nguyễn Văn Cừ. Hãy ánh xạ chúng với `campus-data.ts` trước khi bật deep link bản đồ.
+ * Nguyễn Văn Cừ. Hãy ánh xạ chúng với `assets/data/campus-map/campuses.ts` trước khi bật deep link bản đồ.
  */
 
 type AcademicDepartmentSeed = {
@@ -162,7 +162,7 @@ const laboratory = (seed: LaboratorySeed): CampusUnit => ({
  * - `pending`: chưa tìm thấy trang công khai đủ để xác minh.
  *
  * Lưu ý tích hợp Campus Map: các `buildingId` ngoài `NDH` là mã quy ước cho cơ sở
- * Nguyễn Văn Cừ. Hãy ánh xạ chúng với `campus-data.ts` trước khi bật deep link bản đồ.
+ * Nguyễn Văn Cừ. Hãy ánh xạ chúng với `assets/data/campus-map/campuses.ts` trước khi bật deep link bản đồ.
  *
  * Phạm vi dữ liệu gồm đơn vị quản trị, 11 phòng chức năng, khoa/viện, bộ môn,
  * trung tâm, phòng thí nghiệm và tổ chức - đoàn thể có dấu vết công khai. Đây là

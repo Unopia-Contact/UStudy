@@ -1,0 +1,546 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1200 250"
+  width="1200"
+  height="250"
+>
+  <style>
+    .room {
+      fill: #70c9e5;
+      fill-opacity: 0.78;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linejoin: miter;
+    }
+
+    .service-area {
+      fill: #70c9e5;
+      fill-opacity: 0.78;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linejoin: miter;
+    }
+
+    .wall {
+      fill: none;
+      stroke: #9f5360;
+      stroke-width: 3;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .thin-wall {
+      fill: none;
+      stroke: #9f5360;
+      stroke-width: 2;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .detail {
+      fill: none;
+      stroke: #35546a;
+      stroke-width: 1.7;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .room-code {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .room-name {
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .small-text {
+      font-family: Arial, sans-serif;
+      font-size: 9px;
+      fill: #164966;
+      text-anchor: middle;
+    }
+
+    .corridor-marker {
+      fill: #9f5360;
+    }
+  </style>
+
+
+  <!-- ========================================================= -->
+  <!-- KHỐI TRÁI : F306 - F305                                  -->
+  <!-- ========================================================= -->
+
+  <!-- F306 -->
+  <rect
+    id="room-f306"
+    class="room"
+    x="20"
+    y="20"
+    width="105"
+    height="120"
+  />
+
+  <text class="room-code" x="72.5" y="73">F306</text>
+  <text class="room-name" x="72.5" y="91">PHÒNG HỌC</text>
+
+
+  <!-- F305 -->
+  <rect
+    id="room-f305"
+    class="room"
+    x="125"
+    y="20"
+    width="175"
+    height="120"
+  />
+
+  <text class="room-code" x="212.5" y="73">F305</text>
+  <text class="room-name" x="212.5" y="91">PHÒNG HỌC</text>
+
+
+  <!-- ========================================================= -->
+  <!-- LÕI PHÍA TÂY                                              -->
+  <!-- ========================================================= -->
+
+  <!-- khoảng trống bên trái cụm WC -->
+  <rect
+    id="core-west-shaft"
+    class="wall"
+    x="300"
+    y="20"
+    width="55"
+    height="120"
+  />
+
+
+  <!-- WC trên -->
+  <rect
+    id="wc-west-top"
+    class="service-area"
+    x="355"
+    y="20"
+    width="65"
+    height="45"
+  />
+
+  <!-- WC dưới -->
+  <rect
+    id="wc-west-bottom"
+    class="service-area"
+    x="355"
+    y="65"
+    width="65"
+    height="45"
+  />
+
+  <text class="small-text" x="387.5" y="47">WC</text>
+  <text class="small-text" x="387.5" y="92">WC</text>
+
+
+  <!-- cầu thang tây -->
+  <rect
+    id="stairs-west"
+    class="wall"
+    x="355"
+    y="110"
+    width="65"
+    height="30"
+  />
+
+  <path class="detail" d="
+    M 362 136 L 362 117
+    M 367 136 L 367 117
+    M 372 136 L 372 117
+    M 377 136 L 377 117
+    M 382 136 L 382 117
+    M 387 136 L 387 117
+    M 392 136 L 392 117
+    M 397 136 L 397 117
+  "/>
+
+  <path class="detail" d="
+    M 359 114
+    L 402 114
+    L 402 133
+    L 416 133
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- KHỐI GIỮA : F304 - F303                                  -->
+  <!-- ========================================================= -->
+
+  <!-- F304 -->
+  <rect
+    id="room-f304"
+    class="room"
+    x="420"
+    y="20"
+    width="175"
+    height="120"
+  />
+
+  <text class="room-code" x="507.5" y="73">F304</text>
+  <text class="room-name" x="507.5" y="91">PHÒNG HỌC</text>
+
+
+  <!-- F303 -->
+  <rect
+    id="room-f303"
+    class="room"
+    x="595"
+    y="20"
+    width="170"
+    height="120"
+  />
+
+  <text class="room-code" x="680" y="73">F303</text>
+  <text class="room-name" x="680" y="91">PHÒNG HỌC</text>
+
+
+  <!-- ========================================================= -->
+  <!-- LÕI PHÍA ĐÔNG                                             -->
+  <!-- ========================================================= -->
+
+  <!-- WC trên -->
+  <rect
+    id="wc-east-top"
+    class="service-area"
+    x="765"
+    y="20"
+    width="65"
+    height="45"
+  />
+
+  <!-- WC dưới -->
+  <rect
+    id="wc-east-bottom"
+    class="service-area"
+    x="765"
+    y="65"
+    width="65"
+    height="45"
+  />
+
+  <text class="small-text" x="797.5" y="47">WC</text>
+  <text class="small-text" x="797.5" y="92">WC</text>
+
+
+  <!-- cầu thang đông -->
+  <rect
+    id="stairs-east"
+    class="wall"
+    x="765"
+    y="110"
+    width="65"
+    height="30"
+  />
+
+  <path class="detail" d="
+    M 777 136 L 777 117
+    M 782 136 L 782 117
+    M 787 136 L 787 117
+    M 792 136 L 792 117
+    M 797 136 L 797 117
+    M 802 136 L 802 117
+    M 807 136 L 807 117
+    M 812 136 L 812 117
+  "/>
+
+  <path class="detail" d="
+    M 769 133
+    L 769 114
+    L 812 114
+    L 812 136
+  "/>
+
+
+  <!-- khoảng trống bên phải cụm WC -->
+  <rect
+    id="core-east-shaft"
+    class="wall"
+    x="830"
+    y="20"
+    width="55"
+    height="120"
+  />
+
+
+  <!-- ========================================================= -->
+  <!-- KHỐI PHẢI : F302 - F301                                  -->
+  <!-- ========================================================= -->
+
+  <!-- F302 -->
+  <rect
+    id="room-f302"
+    class="room"
+    x="885"
+    y="20"
+    width="170"
+    height="120"
+  />
+
+  <text class="room-code" x="970" y="73">F302</text>
+  <text class="room-name" x="970" y="91">PHÒNG HỌC</text>
+
+
+  <!-- F301 -->
+  <rect
+    id="room-f301"
+    class="room"
+    x="1055"
+    y="20"
+    width="125"
+    height="120"
+  />
+
+  <text class="room-code" x="1117.5" y="73">F301</text>
+  <text class="room-name" x="1117.5" y="91">PHÒNG HỌC</text>
+
+
+  <!-- ========================================================= -->
+  <!-- HÀNH LANG CHÍNH                                          -->
+  <!-- ========================================================= -->
+
+  <path
+    id="corridor-main"
+    class="wall"
+    d="
+      M 20 165
+      L 1180 165
+    "
+  />
+
+  <path class="wall" d="
+    M 20 140
+    L 20 165
+  "/>
+
+  <path class="wall" d="
+    M 1180 140
+    L 1180 165
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- KHO                                                       -->
+  <!-- ========================================================= -->
+
+  <rect
+    id="storage-west"
+    class="service-area"
+    x="300"
+    y="165"
+    width="65"
+    height="55"
+  />
+
+  <text class="small-text" x="332.5" y="197">Kho</text>
+
+  <!-- cửa kho -->
+  <path class="detail" d="
+    M 324 165
+    L 324 157
+
+    M 324 165
+    L 332 157
+
+    M 340 165
+    L 340 157
+
+    M 340 165
+    L 332 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- PHÒNG GIÁO VIÊN                                          -->
+  <!-- ========================================================= -->
+
+  <rect
+    id="teacher-room"
+    class="service-area"
+    x="830"
+    y="165"
+    width="65"
+    height="55"
+  />
+
+  <text class="small-text" x="862.5" y="188">Phòng</text>
+  <text class="small-text" x="862.5" y="202">giáo viên</text>
+
+  <!-- cửa phòng giáo viên -->
+  <path class="detail" d="
+    M 854 165
+    L 854 157
+
+    M 854 165
+    L 862 157
+
+    M 870 165
+    L 870 157
+
+    M 870 165
+    L 862 157
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- CỬA PHÒNG                                                -->
+  <!-- ========================================================= -->
+
+  <!-- F306 -->
+  <path class="detail" d="
+    M 99 139 L 99 148
+    M 99 139 L 106 146
+
+    M 112 139 L 112 148
+    M 112 139 L 105 146
+  "/>
+
+
+  <!-- F305 trái -->
+  <path class="detail" d="
+    M 139 139 L 139 148
+    M 139 139 L 146 146
+
+    M 152 139 L 152 148
+    M 152 139 L 145 146
+  "/>
+
+  <!-- F305 phải -->
+  <path class="detail" d="
+    M 279 139 L 279 148
+    M 279 139 L 286 146
+
+    M 292 139 L 292 148
+    M 292 139 L 285 146
+  "/>
+
+
+  <!-- lõi tây -->
+  <path class="detail" d="
+    M 361 139 L 361 148
+    M 361 139 L 368 146
+
+    M 374 139 L 374 148
+    M 374 139 L 367 146
+  "/>
+
+
+  <!-- F304 trái -->
+  <path class="detail" d="
+    M 433 139 L 433 148
+    M 433 139 L 440 146
+
+    M 446 139 L 446 148
+    M 446 139 L 439 146
+  "/>
+
+  <!-- F304 phải -->
+  <path class="detail" d="
+    M 574 139 L 574 148
+    M 574 139 L 581 146
+
+    M 587 139 L 587 148
+    M 587 139 L 580 146
+  "/>
+
+
+  <!-- F303 trái -->
+  <path class="detail" d="
+    M 603 139 L 603 148
+    M 603 139 L 610 146
+
+    M 616 139 L 616 148
+    M 616 139 L 609 146
+  "/>
+
+  <!-- F303 phải -->
+  <path class="detail" d="
+    M 744 139 L 744 148
+    M 744 139 L 751 146
+
+    M 757 139 L 757 148
+    M 757 139 L 750 146
+  "/>
+
+
+  <!-- lõi đông -->
+  <path class="detail" d="
+    M 814 139 L 814 148
+    M 814 139 L 821 146
+
+    M 827 139 L 827 148
+    M 827 139 L 820 146
+  "/>
+
+
+  <!-- F302 trái -->
+  <path class="detail" d="
+    M 896 139 L 896 148
+    M 896 139 L 903 146
+
+    M 909 139 L 909 148
+    M 909 139 L 902 146
+  "/>
+
+  <!-- F302 phải -->
+  <path class="detail" d="
+    M 1030 139 L 1030 148
+    M 1030 139 L 1037 146
+
+    M 1043 139 L 1043 148
+    M 1043 139 L 1036 146
+  "/>
+
+
+  <!-- F301 trái -->
+  <path class="detail" d="
+    M 1063 139 L 1063 148
+    M 1063 139 L 1070 146
+
+    M 1076 139 L 1076 148
+    M 1076 139 L 1069 146
+  "/>
+
+  <!-- F301 phải -->
+  <path class="detail" d="
+    M 1151 139 L 1151 148
+    M 1151 139 L 1158 146
+
+    M 1164 139 L 1164 148
+    M 1164 139 L 1157 146
+  "/>
+
+
+  <!-- ========================================================= -->
+  <!-- MỐC HÀNH LANG                                            -->
+  <!-- ========================================================= -->
+
+  <rect class="corridor-marker" x="74"  y="160" width="6" height="8"/>
+  <rect class="corridor-marker" x="153" y="160" width="6" height="8"/>
+  <rect class="corridor-marker" x="235" y="160" width="6" height="8"/>
+
+  <rect class="corridor-marker" x="384" y="160" width="6" height="8"/>
+
+  <rect class="corridor-marker" x="464" y="160" width="6" height="8"/>
+  <rect class="corridor-marker" x="545" y="160" width="6" height="8"/>
+  <rect class="corridor-marker" x="625" y="160" width="6" height="8"/>
+  <rect class="corridor-marker" x="705" y="160" width="6" height="8"/>
+
+  <rect class="corridor-marker" x="795" y="160" width="6" height="8"/>
+
+  <rect class="corridor-marker" x="933"  y="160" width="6" height="8"/>
+  <rect class="corridor-marker" x="1011" y="160" width="6" height="8"/>
+  <rect class="corridor-marker" x="1090" y="160" width="6" height="8"/>
+  <rect class="corridor-marker" x="1160" y="160" width="6" height="8"/>
+
+</svg>

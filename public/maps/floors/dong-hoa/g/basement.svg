@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Nhà G · Tầng hầm">
+<title>Nhà G · Tầng hầm</title>
+<style>.room{fill:#70c9e5;fill-opacity:.8;stroke:#795b72;stroke-width:2.1}.service{fill:#b8dbe7;stroke:#795b72;stroke-width:2.1}.wall{fill:none;stroke:#465463;stroke-width:2.6}.detail{fill:none;stroke:#35546a;stroke-width:1.6}.code{font:600 11px Arial,sans-serif;fill:#164966;text-anchor:middle}.label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.minor{font:8px Arial,sans-serif;fill:#164966;text-anchor:middle}.marker{fill:#465463}</style>
+<g id="room-g004"><title>G004 · PTN Hóa lý - Điện hóa</title>
+<rect class="room" x="20.0" y="20.0" width="58.0" height="123.9"/>
+<text class="code" x="49.0" y="77.0">G004</text>
+<text class="label" x="49.0" y="94.0">PTN Hóa lý</text>
+<text class="label" x="49.0" y="106.0">Điện hóa</text>
+<path class="detail" d="M 42.0 143.9 v 6 l 7 -6 M 56.0 143.9 v 6 l -7 -6"/>
+</g>
+<g id="room-g003"><title>G003 · PTN Hóa lý ứng dụng</title>
+<rect class="room" x="78.0" y="20.0" width="59.3" height="123.9"/>
+<text class="code" x="107.6" y="77.0">G003</text>
+<text class="label" x="107.6" y="94.0">PTN Hóa lý</text>
+<text class="label" x="107.6" y="106.0">Ứng dụng</text>
+<path class="detail" d="M 100.6 143.9 v 6 l 7 -6 M 114.6 143.9 v 6 l -7 -6"/>
+</g>
+<g id="room-g002"><title>G002 · PTN Hóa Polymer</title>
+<rect class="room" x="137.3" y="20.0" width="84.5" height="123.9"/>
+<text class="code" x="179.5" y="77.0">G002</text>
+<text class="label" x="179.5" y="94.0">PTN Hóa</text>
+<text class="label" x="179.5" y="106.0">Polymer</text>
+<path class="detail" d="M 172.5 143.9 v 6 l 7 -6 M 186.5 143.9 v 6 l -7 -6"/>
+</g>
+<g id="room-g001"><title>G001 · PTN Hóa Polymer</title>
+<rect class="room" x="221.7" y="20.0" width="84.5" height="123.9"/>
+<text class="code" x="264.0" y="77.0">G001</text>
+<text class="label" x="264.0" y="94.0">PTN Hóa</text>
+<text class="label" x="264.0" y="106.0">Polymer</text>
+<path class="detail" d="M 257.0 143.9 v 6 l 7 -6 M 271.0 143.9 v 6 l -7 -6"/>
+</g>
+<path id="corridor-1" class="wall" d="M 20.0 143.9 v 23.7 H 306.2"/>
+<path id="corridor-2" class="wall" d="M 359.2 143.9 v 23.7 H 422.2"/>
+<rect class="service" x="359.2" y="20.0" width="63.0" height="48.4"/>
+<rect class="service" x="359.2" y="68.4" width="63.0" height="47.3"/>
+<text class="minor" x="390.7" y="47.2">WC</text>
+<text class="minor" x="390.7" y="95.1">WC</text>
+<g id="stairs-core-785"><title>Thang bộ</title><path class="wall" d="M 359.2 115.7 v 33.2 h 63.0"/>
+<path class="detail" d="M 363.2 122.5 h 55.0"/>
+<path class="detail" d="M 363.2 126.5 h 55.0"/>
+<path class="detail" d="M 363.2 130.5 h 55.0"/>
+<path class="detail" d="M 363.2 134.5 h 55.0"/>
+<path class="detail" d="M 363.2 138.5 h 55.0"/>
+</g>
+<g id="stairs-outer-1"><title>Thang bộ</title><path class="wall" d="M 83.0 167.6 v 54.1 h 46.7 v -54.1"/>
+<path class="detail" d="M 87.0 172.6 h 38.7"/>
+<path class="detail" d="M 87.0 176.6 h 38.7"/>
+<path class="detail" d="M 87.0 180.6 h 38.7"/>
+<path class="detail" d="M 87.0 184.6 h 38.7"/>
+<path class="detail" d="M 87.0 188.6 h 38.7"/>
+<path class="detail" d="M 87.0 192.6 h 38.7"/>
+<path class="detail" d="M 87.0 196.6 h 38.7"/>
+</g>
+<rect class="marker" x="50.3" y="17.0" width="4" height="7"/>
+<rect class="marker" x="108.3" y="17.0" width="4" height="7"/>
+<rect class="marker" x="166.3" y="17.0" width="4" height="7"/>
+<rect class="marker" x="224.3" y="17.0" width="4" height="7"/>
+<rect class="marker" x="282.3" y="17.0" width="4" height="7"/>
+<rect class="marker" x="340.3" y="17.0" width="4" height="7"/>
+<rect class="marker" x="398.3" y="17.0" width="4" height="7"/>
+</svg>

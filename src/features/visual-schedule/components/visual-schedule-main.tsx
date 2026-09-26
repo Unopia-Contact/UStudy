@@ -101,6 +101,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
         width: calendar.scrollWidth,
         height: calendar.scrollHeight,
         pixelRatio: 2,
+        filter: (node) => !(node instanceof HTMLElement && node.dataset.exportIgnore === 'true'),
       });
       downloadImage(dataUrl, `thoi-khoa-bieu-tuan-${currentWeek}.png`);
     } catch (error) {

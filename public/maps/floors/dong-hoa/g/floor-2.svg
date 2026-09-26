@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Nhà G · Tầng 2">
+<title>Nhà G · Tầng 2</title>
+<style>.room{fill:#70c9e5;fill-opacity:.8;stroke:#795b72;stroke-width:2.1}.service{fill:#b8dbe7;stroke:#795b72;stroke-width:2.1}.wall{fill:none;stroke:#465463;stroke-width:2.6}.detail{fill:none;stroke:#35546a;stroke-width:1.6}.code{font:600 11px Arial,sans-serif;fill:#164966;text-anchor:middle}.label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.minor{font:8px Arial,sans-serif;fill:#164966;text-anchor:middle}.marker{fill:#465463}</style>
+<g id="room-g206"><title>G206 · PTN Hóa lý 1 &amp; 2</title>
+<rect class="room" x="20.0" y="24.3" width="116.0" height="115.4"/>
+<text class="code" x="78.0" y="77.0">G206</text>
+<text class="label" x="78.0" y="94.0">PTN Hóa lý 1 &amp; 2</text>
+<path class="detail" d="M 71.0 139.8 v 6 l 7 -6 M 85.0 139.8 v 6 l -7 -6"/>
+</g>
+<g id="room-g205"><title>G205 · PTN Hóa lý 1 &amp; 2</title>
+<rect class="room" x="136.0" y="24.3" width="169.0" height="115.4"/>
+<text class="code" x="220.5" y="77.0">G205</text>
+<text class="label" x="220.5" y="94.0">PTN Hóa lý 1 &amp; 2</text>
+<path class="detail" d="M 213.5 139.8 v 6 l 7 -6 M 227.5 139.8 v 6 l -7 -6"/>
+</g>
+<g id="room-g204"><title>G204 · PTN Vật lý đại cương 2</title>
+<rect class="room" x="422.2" y="24.3" width="170.2" height="115.4"/>
+<text class="code" x="507.3" y="77.0">G204</text>
+<text class="label" x="507.3" y="94.0">PTN Vật lý</text>
+<text class="label" x="507.3" y="106.0">đại cương 2</text>
+<path class="detail" d="M 500.3 139.8 v 6 l 7 -6 M 514.3 139.8 v 6 l -7 -6"/>
+</g>
+<g id="room-g203"><title>G203 · PTN Mô &amp; Vật liệu Y Sinh</title>
+<rect class="room" x="592.4" y="24.3" width="175.3" height="115.4"/>
+<text class="code" x="680.1" y="77.0">G203</text>
+<text class="label" x="680.1" y="94.0">PTN Mô &amp; Vật liệu</text>
+<text class="label" x="680.1" y="106.0">Y Sinh</text>
+<path class="detail" d="M 673.1 139.8 v 6 l 7 -6 M 687.1 139.8 v 6 l -7 -6"/>
+</g>
+<g id="room-g202"><title>G202 · Phòng học</title>
+<rect class="room" x="887.5" y="24.3" width="177.8" height="115.4"/>
+<text class="code" x="976.4" y="77.0">G202</text>
+<text class="label" x="976.4" y="94.0">Phòng học</text>
+<path class="detail" d="M 969.4 139.8 v 6 l 7 -6 M 983.4 139.8 v 6 l -7 -6"/>
+</g>
+<g id="room-g201"><title>G201 · Phòng học</title>
+<rect class="room" x="1065.3" y="24.3" width="114.7" height="115.4"/>
+<text class="code" x="1122.6" y="77.0">G201</text>
+<text class="label" x="1122.6" y="94.0">Phòng học</text>
+<path class="detail" d="M 1115.6 139.8 v 6 l 7 -6 M 1129.6 139.8 v 6 l -7 -6"/>
+</g>
+<path id="corridor-1" class="wall" d="M 20.0 139.8 v 22.7 H 306.2"/>
+<path id="corridor-2" class="wall" d="M 359.2 139.8 v 22.7 H 828.2"/>
+<path id="corridor-3" class="wall" d="M 887.5 139.8 v 22.7 H 1180.0"/>
+<rect class="service" x="359.2" y="24.3" width="63.0" height="46.4"/>
+<rect class="service" x="359.2" y="70.7" width="63.0" height="45.3"/>
+<text class="minor" x="390.7" y="50.5">WC</text>
+<text class="minor" x="390.7" y="96.4">WC</text>
+<g id="stairs-core-785"><title>Thang bộ</title><path class="wall" d="M 359.2 116.0 v 28.7 h 63.0"/>
+<path class="detail" d="M 363.2 122.5 h 55.0"/>
+<path class="detail" d="M 363.2 126.5 h 55.0"/>
+<path class="detail" d="M 363.2 130.5 h 55.0"/>
+<path class="detail" d="M 363.2 134.5 h 55.0"/>
+<path class="detail" d="M 363.2 138.5 h 55.0"/>
+</g>
+<rect class="service" x="766.4" y="24.3" width="61.8" height="46.4"/>
+<rect class="service" x="766.4" y="70.7" width="61.8" height="45.3"/>
+<text class="minor" x="797.3" y="50.5">WC</text>
+<text class="minor" x="797.3" y="96.4">WC</text>
+<g id="stairs-core-1108"><title>Thang bộ</title><path class="wall" d="M 766.4 116.0 v 28.7 h 61.8"/>
+<path class="detail" d="M 770.4 122.5 h 53.8"/>
+<path class="detail" d="M 770.4 126.5 h 53.8"/>
+<path class="detail" d="M 770.4 130.5 h 53.8"/>
+<path class="detail" d="M 770.4 134.5 h 53.8"/>
+<path class="detail" d="M 770.4 138.5 h 53.8"/>
+</g>
+<g id="service-teachers"><title>Phòng giáo viên</title><rect class="service" x="303.7" y="162.4" width="58.0" height="46.4"/><text class="minor" x="332.7" y="185.6">P. giáo viên</text></g>
+<g id="service-east"><title>Phòng giáo viên</title><rect class="service" x="825.7" y="162.4" width="60.5" height="46.4"/><text class="minor" x="856.0" y="185.6">Phòng trực</text></g>
+<g id="stairs-outer-1"><title>Thang bộ</title><path class="wall" d="M 83.0 162.4 v 55.0 h 46.7 v -55.0"/>
+<path class="detail" d="M 87.0 167.4 h 38.7"/>
+<path class="detail" d="M 87.0 171.4 h 38.7"/>
+<path class="detail" d="M 87.0 175.4 h 38.7"/>
+<path class="detail" d="M 87.0 179.4 h 38.7"/>
+<path class="detail" d="M 87.0 183.4 h 38.7"/>
+<path class="detail" d="M 87.0 187.4 h 38.7"/>
+<path class="detail" d="M 87.0 191.4 h 38.7"/>
+</g>
+<g id="stairs-outer-2"><title>Thang bộ</title><path class="wall" d="M 1067.8 162.4 v 55.0 h 44.1 v -55.0"/>
+<path class="detail" d="M 1071.8 167.4 h 36.1"/>
+<path class="detail" d="M 1071.8 171.4 h 36.1"/>
+<path class="detail" d="M 1071.8 175.4 h 36.1"/>
+<path class="detail" d="M 1071.8 179.4 h 36.1"/>
+<path class="detail" d="M 1071.8 183.4 h 36.1"/>
+<path class="detail" d="M 1071.8 187.4 h 36.1"/>
+<path class="detail" d="M 1071.8 191.4 h 36.1"/>
+</g>
+<rect class="marker" x="50.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="108.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="166.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="224.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="282.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="340.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="398.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="456.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="514.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="572.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="630.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="688.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="746.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="804.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="862.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="920.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="978.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="1036.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="1094.3" y="21.3" width="4" height="7"/>
+<rect class="marker" x="1152.3" y="21.3" width="4" height="7"/>
+</svg>
