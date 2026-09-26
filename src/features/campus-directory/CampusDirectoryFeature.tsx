@@ -3,22 +3,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CAMPUS_UNITS, type CampusUnit, type CampusUnitLocation, type CampusUnitType } from '../../assets/data/campus-directory';
 import { APP_ROUTES } from '../../app/routes';
-import { AppSelect } from '../../components/ui/form';
 import { searchCampusUnits } from './campus-directory-search';
 import { CampusDirectoryDetail } from './components/CampusDirectoryDetail';
 import { CampusDirectoryListItem } from './components/CampusDirectoryListItem';
-
-// Thêm 'laboratory' vào danh sách hiển thị option (nếu có dùng)
-const TYPE_OPTIONS: Array<{ id: 'all' | CampusUnitType; name: string }> = [
-    { id: 'all', name: 'Tất cả đơn vị' },
-    { id: 'faculty', name: 'Khoa' },
-    { id: 'department', name: 'Bộ môn' },
-    { id: 'laboratory', name: 'Phòng thí nghiệm' },
-    { id: 'office', name: 'Phòng ban' },
-    { id: 'center', name: 'Trung tâm' },
-    { id: 'student-service', name: 'Dịch vụ sinh viên' },
-    { id: 'library', name: 'Thư viện' },
-];
 
 const UNIT_TYPE_ORDER: CampusUnitType[] = [
     'faculty', 
@@ -67,7 +54,7 @@ const SEARCH_EXPANDED_TYPES: Record<CampusUnitType, boolean> = {
 export function CampusDirectoryFeature() {
     const navigate = useNavigate();
     const [query, setQuery] = useState('');
-    const [type, setType] = useState<'all' | CampusUnitType>('all');
+    const [type] = useState<'all' | CampusUnitType>('all');
     const [selectedId, setSelectedId] = useState(CAMPUS_UNITS[0]?.id ?? '');
     const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
     const [expandedTypes, setExpandedTypes] = useState(INITIAL_EXPANDED_TYPES);
@@ -120,7 +107,6 @@ export function CampusDirectoryFeature() {
                         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm đơn vị, thủ tục, dịch vụ..." className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-9 text-sm text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-[#004A98] focus:ring-2 focus:ring-blue-100" />
                         {query && <button type="button" onClick={() => setQuery('')} aria-label="Xóa tìm kiếm" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X className="h-4 w-4" /></button>}
                     </label>
-                        {/* <AppSelect value={type} options={TYPE_OPTIONS} onChange={(value) => setType(value as 'all' | CampusUnitType)} ariaLabel="Lọc loại đơn vị" className="mt-3" triggerClassName="h-10" /> */}
                     </div>
 
 

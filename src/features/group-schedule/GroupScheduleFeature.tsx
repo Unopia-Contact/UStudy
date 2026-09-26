@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from 'react';
-import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap, MoreHorizontal, ChevronDown, ChevronUp, List, Info } from 'lucide-react';
+import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap, List } from 'lucide-react';
 
 import { GroupMemberCard } from './components/GroupMemberCard';
 import { buildSavedGroupSchedule, GroupScheduleCalendarPreview } from './components/GroupScheduleCalendarPreview';
@@ -10,21 +10,21 @@ import { GroupScheduleComparison } from './components/GroupScheduleComparison';
 import { SavedSchedulesModal } from './components/SavedSchedulesModal';
 import { CourseClassFilterModal } from '../study-roadmap';
 import { Button } from '../../components/ui/form/button';
-import { AppDialog } from '../../components/ui/overlays/app-dialog';
+import { RoadmapDialog } from '../study-roadmap/components/RoadmapDialog';
+import { DayOffFields } from '../../components/schedule/day-off-fields';
 import { AppSelect } from '../../components/ui/form';
 import { Input } from '../../components/ui/form/input';
 import { Textarea } from '../../components/ui/form/textarea';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../../components/ui/overlays/dropdown-menu';
 import { PageHeader } from '../../components/layout/page-header';
-import { buildDensityMap, decodeGroupURL } from './services/group-scheduler';
-import type { ClassPreferenceLevel, ClassPreferenceSelection, CourseSharingMap, GroupMemberToken, GroupScheduleOption } from './types';
+import { buildDensityMap } from './services/group-scheduler';
+import type { ClassPreferenceLevel, ClassPreferenceSelection, CourseSharingMap, GroupMemberToken } from './types';
 import { parseCourseInput, useGroupScheduler } from './hooks/use-group-scheduler';
 import { readFromStorage, saveToStorage } from '../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../config';
 import type { Course, SavedSchedule } from '../../types';
 import type { SolverPreferences } from '../study-roadmap';
 import courseDbJson from '../../logic/scheduler/Course_db.json';
-import { cycleDayOffSession, formatDayOffSession, formatDaysOff, getDayOffSession } from '../../utils/dayOffPreferences';
+import { formatDaysOff } from '../../utils/dayOffPreferences';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../components/course';
 import { ScheduleOptionSelector } from '../schedule';
 import { useCampus } from '../../context/CampusContext';
@@ -72,17 +72,6 @@ function makeDraft(): GroupMemberToken {
         personalCourses: [],
         busyMask: [],
     };
-}
-
-function extractHash(value: string): string {
-    const trimmed = value.trim();
-    if (!trimmed) return '';
-    try {
-        return new URL(trimmed).hash;
-    } catch {
-        const hashIndex = trimmed.indexOf('#');
-        return hashIndex >= 0 ? trimmed.slice(hashIndex) : trimmed;
-    }
 }
 
 function getCourseCode(course: Course): string {
@@ -138,11 +127,8 @@ function loadClassOptionsByCourse(): Record<string, GroupClassOption[]> {
 }
 
 export function GroupSchedulePage({
-    onPageChange,
     selectedCourseIds,
     allCourses = [],
-    allowedClassesMap = {},
-    setAllowedClassesMap,
     onRemoveSelectedCourse,
     embedded = false,
     modeSwitch,
@@ -150,8 +136,6 @@ export function GroupSchedulePage({
     const { defaultCampusId } = useCampus();
     const {
         members,
-        shareUrl,
-        urlWarning,
         decodeError,
         solving,
         result,
@@ -168,7 +152,6 @@ export function GroupSchedulePage({
         analyzeTradeoff,
         clearResult,
         setResult,
-        getOptionRegistrations,
     } = useGroupScheduler();
 
     const savedUIState = useMemo(() => {
@@ -190,7 +173,6 @@ export function GroupSchedulePage({
     const [resultViewMode, setResultViewMode] = useState<GroupScheduleResultViewMode>(savedUIState.resultViewMode);
     const [draft, setDraft] = useState<GroupMemberToken>(makeDraft);
     const [manualCourseInput, setManualCourseInput] = useState('');
-    const [mergeInput, setMergeInput] = useState('');
     const [localNotice, setLocalNotice] = useState<string | null>(null);
 
     const [showListModal, setShowListModal] = useState(false);
@@ -229,7 +211,7 @@ export function GroupSchedulePage({
         });
     }, [courseSharing, groupPreferredClasses, groupPrefs, setShareConfig]);
     const [expandedClassCourseId, setExpandedClassCourseId] = useState<string | null>(null);
-    const [isAdvancedOpen, setIsAdvancedOpen] = useState(savedUIState.isAdvancedOpen);
+    const [isAdvancedOpen] = useState(savedUIState.isAdvancedOpen);
     const [showMembersPanel, setShowMembersPanel] = useState(savedUIState.showMembersPanel);
     const [filterModalCourse, setFilterModalCourse] = useState<Course | null>(null);
     const [editingMemberIndex, setEditingMemberIndex] = useState<number | null>(null);
@@ -291,18 +273,6 @@ export function GroupSchedulePage({
     const groupCourses = useMemo(() => buildDensityMap(members), [members]);
     const classOptionsByCourse = useMemo(() => loadClassOptionsByCourse(), []);
     const selectedOption = result?.solutions[activeResultIndex] ?? result?.solutions[0];
-    const sharedCourseCount = useMemo(() => groupCourses.filter((course) => course.isShared).length, [groupCourses]);
-    const groupClassPreferenceSummary = useMemo(() => {
-        return Object.values(groupPreferredClasses).reduce(
-            (summary, selection) => ({
-                excluded: summary.excluded + (selection.excluded?.length ?? 0),
-                preferred: summary.preferred + (selection.preferred?.length ?? 0),
-                required: summary.required + (selection.required?.length ?? 0),
-            }),
-            { excluded: 0, preferred: 0, required: 0 },
-        );
-    }, [groupPreferredClasses]);
-
     const buildDraftClassPreferences = (): Record<string, ClassPreferenceSelection> => {
         const next = Object.fromEntries(
             Object.entries(personalClassPreferences).map(([courseId, selection]) => [
@@ -392,26 +362,6 @@ export function GroupSchedulePage({
 
         if (addMember(nextDraft)) {
             resetMemberDraft();
-        }
-    };
-
-    const mergeMembersFromLink = () => {
-        try {
-            const decoded = decodeGroupURL(extractHash(mergeInput));
-            const existingIds = new Set(members.map((member) => member.id).filter((id): id is string => Boolean(id)));
-            const merged = [...members];
-            decoded.forEach((member) => {
-                const incoming = member.id ? member : { ...member, id: createMemberId() };
-                if (!existingIds.has(incoming.id)) {
-                    existingIds.add(incoming.id);
-                    merged.push(incoming);
-                }
-            });
-            replaceMembers(merged);
-            setMergeInput('');
-            setLocalNotice(`Đã gộp ${merged.length - members.length} thành viên từ link.`);
-        } catch (error) {
-            setLocalNotice(error instanceof Error ? error.message : 'Không đọc được link nhóm.');
         }
     };
 
@@ -541,18 +491,6 @@ export function GroupSchedulePage({
     };
 
 
-    const handleUseSchedule = (option: GroupScheduleOption, memberIndex: number) => {
-        const registrations = getOptionRegistrations(option, memberIndex);
-        saveToStorage(STORAGE_KEYS.ACTIVE_GROUP_SCHEDULE, {
-            source: 'group-scheduler',
-            updatedAt: new Date().toISOString(),
-            registrations,
-            option: option.option,
-            memberIndex,
-        });
-        onPageChange?.('schedule');
-    };
-
     const saveSelectedGroupSchedule = () => {
         const fallbackMemberIndex = selectedOption?.schedules[0]?.memberIndex ?? activePreviewMemberIndex;
         const memberIndex = showGroupCalendarPreview ? activePreviewMemberIndex : fallbackMemberIndex;
@@ -659,7 +597,9 @@ export function GroupSchedulePage({
                                 type="button"
                                 disabled={!isClickable}
                                 onClick={() => isClickable && setActiveStep(step.id)}
-                                className="group relative z-10 flex min-w-0 items-center gap-2 text-left transition-opacity focus:outline-none disabled:opacity-45"
+                                aria-label={`Bước ${step.id}: ${step.label}`}
+                                aria-current={isActive ? 'step' : undefined}
+                                className="group relative z-10 flex min-h-11 min-w-0 items-center gap-2 text-left transition-opacity focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-45"
                             >
                                 <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all ${isDone
                                     ? 'bg-emerald-600 text-white shadow-sm'
@@ -686,6 +626,7 @@ export function GroupSchedulePage({
                     );
                 })}
             </div>
+            <p className="text-sm font-medium text-[#004A98] md:hidden">Bước {activeStep}/3 · {stepItems.find(step => step.id === activeStep)?.label}</p>
         </div>
     );
 
@@ -873,34 +814,7 @@ export function GroupSchedulePage({
                             {formatDaysOff(draft.personalConfig?.daysOff)}
                         </span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        {[0, 1, 2, 3, 4, 5, 6].map((day) => {
-                            const offSession = getDayOffSession(draft.personalConfig?.daysOff, day);
-                            return (
-                                <button
-                                    key={day}
-                                    type="button"
-                                    onClick={() => setDraft((current) => ({
-                                        ...current,
-                                        personalConfig: {
-                                            ...current.personalConfig,
-                                            daysOff: cycleDayOffSession(current.personalConfig?.daysOff, day),
-                                        },
-                                    }))}
-                                    className={`flex h-10 min-w-10 flex-col items-center justify-center rounded-lg border px-2 text-xs font-semibold transition-colors ${offSession === 'all'
-                                        ? 'border-[#004A98] bg-blue-50 text-[#004A98]'
-                                        : offSession === 'morning' || offSession === 'afternoon'
-                                            ? 'border-blue-200 bg-blue-50/50 text-[#004A98]'
-                                            : 'border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50/40'
-                                        }`}
-                                    title="Bấm lần lượt: cả ngày, sáng, chiều, bỏ chọn"
-                                >
-                                    <span>{day === 6 ? 'CN' : `T${day + 2}`}</span>
-                                    {offSession && <span className="mt-0.5 text-[9px] font-medium leading-none">{formatDayOffSession(offSession)}</span>}
-                                </button>
-                            );
-                        })}
-                    </div>
+                    <details><summary className="min-h-11 cursor-pointer text-sm text-[#004A98]">Chỉnh ngày muốn nghỉ</summary><DayOffFields label="Thành viên muốn nghỉ" value={draft.personalConfig?.daysOff} onChange={daysOff => setDraft(current => ({ ...current, personalConfig: { ...current.personalConfig, daysOff } }))} /></details>
                 </div>
 
                 {/* Footer: notice + submit */}
@@ -1094,49 +1008,7 @@ export function GroupSchedulePage({
                                     Ngày nhóm muốn nghỉ
                                 </label>
 
-                                <div className="flex flex-wrap gap-2">
-                                    {[0, 1, 2, 3, 4, 5, 6].map((day) => {
-                                        const offSession = getDayOffSession(
-                                            groupPrefs.daysOff,
-                                            day
-                                        );
-
-                                        return (
-                                            <button
-                                                key={day}
-                                                type="button"
-                                                onClick={() =>
-                                                    setGroupPrefs((current) => ({
-                                                        ...current,
-                                                        daysOff: cycleDayOffSession(
-                                                            current.daysOff,
-                                                            day
-                                                        ),
-                                                    }))
-                                                }
-                                                className={`flex h-12 w-12 flex-col items-center justify-center rounded-lg border text-xs font-bold transition-colors ${offSession === "all"
-                                                        ? "border-red-500 bg-red-500 text-white"
-                                                        : offSession === "morning"
-                                                            ? "border-amber-300 bg-amber-50 text-amber-700"
-                                                            : offSession === "afternoon"
-                                                                ? "border-orange-300 bg-orange-50 text-orange-700"
-                                                                : "border-gray-200 bg-white text-gray-400 hover:border-red-300"
-                                                    }`}
-                                                title="Bấm lần lượt: nghỉ cả ngày, nghỉ sáng, nghỉ chiều, bỏ chọn"
-                                            >
-                                                <span>
-                                                    {day === 6 ? "CN" : `T${day + 2}`}
-                                                </span>
-
-                                                {offSession && (
-                                                    <span className="mt-0.5 text-[9px] font-medium leading-none">
-                                                        {formatDayOffSession(offSession)}
-                                                    </span>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                <details><summary className="min-h-11 cursor-pointer text-sm text-[#004A98]">{formatDaysOff(groupPrefs.daysOff)} · Chỉnh ngày nghỉ</summary><DayOffFields label="Nhóm muốn nghỉ" value={groupPrefs.daysOff} onChange={daysOff => setGroupPrefs(current => ({ ...current, daysOff }))} /></details>
                             </div>
                         </div>
                     </div>
@@ -1164,7 +1036,9 @@ export function GroupSchedulePage({
                         const targetSelection = getTargetSelection(course.courseId);
                         const preferenceTargets = getClassPreferenceTargets(course.courseId, course.subscribers);
                         return (
-                        <div key={course.courseId} className="grid gap-3 rounded-lg border border-gray-200 border-l-[3px] border-l-[#004A98] p-3 lg:grid-cols-[320px_minmax(0,1fr)]">
+                        <details key={course.courseId} className="rounded-lg border border-gray-200">
+                        <summary className="min-h-11 cursor-pointer px-3 py-3 text-sm font-medium text-gray-900">{getGroupCourseName(course.courseId)}<span className="ml-2 text-xs text-gray-500">{course.courseId} · {course.subscribers.length} người</span></summary>
+                        <div className="grid gap-3 border-t border-gray-200 p-3 lg:grid-cols-[320px_minmax(0,1fr)]">
                             <div>
                                 <div className="font-mono text-sm font-semibold text-gray-900">{course.courseId}</div>
                                 <div className="mt-0.5 text-sm font-medium text-gray-800">{getGroupCourseName(course.courseId)}</div>
@@ -1293,6 +1167,7 @@ export function GroupSchedulePage({
                                 ) : null}
                             </div>
                         </div>
+                        </details>
                     );})
                 )}
             </div>
@@ -1307,7 +1182,7 @@ export function GroupSchedulePage({
                     <p className="mt-1 text-sm text-gray-500">{result?.solutions.length || 0} phương án khả dụng.</p>
                 </div>
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                    <button type="button" onClick={() => setActiveStep(2)} className="ustudy-button-normal"><Settings className="h-4 w-4" /><span className="hidden sm:inline">Chỉnh cấu hình</span></button>
+                    <button type="button" onClick={() => setActiveStep(2)} className="ustudy-button-normal min-h-11"><Settings className="h-4 w-4" /><span>Cấu hình</span></button>
                     {selectedOption && (
                         <button
                             type="button"
@@ -1315,7 +1190,7 @@ export function GroupSchedulePage({
                             className="ustudy-button-normal"
                         >
                             <Save className="h-4 w-4" />
-                            <span className="hidden sm:inline">Lưu lịch</span>
+                            <span>Lưu lịch</span>
                         </button>
                     )}
 
@@ -1327,7 +1202,7 @@ export function GroupSchedulePage({
                         className="ustudy-button-normal"
                     >
                         <List className="w-3.5 h-3.5" />
-                        <span className="hidden md:inline">Lịch đã lưu</span>
+                        <span>Lịch đã lưu</span>
                         {savedSchedules.length > 0 && (
                             <span className="ustudy-badge-count text-[10px] font-bold">
                                 {savedSchedules.length}
@@ -1410,18 +1285,15 @@ export function GroupSchedulePage({
                 <div className="rounded-md bg-gray-50 p-4 text-sm text-gray-500">Chưa có kết quả. Hãy chạy xếp lịch trước.</div>
             )}
 
-            {result?.solutions.length ? <div className="mt-4"><GroupScheduleComparison options={result.solutions} activeIndex={activeResultIndex} /></div> : null}
+            {result?.solutions.length ? <details className="mt-4 border-t border-gray-200 pt-3"><summary className="min-h-11 cursor-pointer text-sm font-medium text-[#004A98]">So sánh các phương án</summary><GroupScheduleComparison options={result.solutions} activeIndex={activeResultIndex} /></details> : null}
 
             <OpenClassDetailDialog target={openClassDetails} onOpenChange={(open) => { if (!open) setOpenClassDetails(null); }} />
 
-            {selectedOption && (
-                <AppDialog
-                    open={showSaveGroupScheduleModal}
-                    onOpenChange={setShowSaveGroupScheduleModal}
+            {selectedOption && showSaveGroupScheduleModal && (
+                <RoadmapDialog
+                    onClose={() => setShowSaveGroupScheduleModal(false)}
                     title="Lưu lịch nhóm"
                     description="Lưu phương án hiện tại để mở lại trong Lịch đã lưu."
-                    icon={Save}
-                    size="sm"
                     footer={(
                         <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                             <button
@@ -1460,7 +1332,7 @@ export function GroupSchedulePage({
                     <p className="border-l-2 border-[#004A98] bg-blue-50 px-3 py-2 text-xs leading-5 text-slate-600">
                         Lưu cả nhóm và các lớp của phương án đang xem. Khi mở lại, bạn vẫn có thể đổi thành viên để xem lịch riêng từng người.
                     </p>
-                </AppDialog>
+                </RoadmapDialog>
             )}
 
             {false && showSaveGroupScheduleModal && selectedOption && (
@@ -1482,7 +1354,7 @@ export function GroupSchedulePage({
                                 type="text"
                                 value={groupScheduleName}
                                 onChange={(event) => setGroupScheduleName(event.target.value)}
-                                placeholder={`VD: Nhóm - PA ${selectedOption.option}`}
+                                placeholder={`VD: Nhóm - PA ${selectedOption?.option ?? 1}`}
                                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
                                 onKeyDown={(event) => event.key === 'Enter' && saveSelectedGroupSchedule()}
                             />

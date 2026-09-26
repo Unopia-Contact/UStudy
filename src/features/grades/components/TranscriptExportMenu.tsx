@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { downloadXlsxWorkbook } from '../../../helpers/export/xlsx';
 import { GPACalculator } from '../services/gpa-calculator';
 import type { StudentCourseGrade } from '../types';

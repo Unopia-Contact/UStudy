@@ -1,5 +1,5 @@
-import { Cpu, List, Save, Settings, Trash2 } from 'lucide-react';
-import type { SavedSchedule } from '../../../types';
+import { Cpu, List, Save, Settings, Trash2, MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../../../components/ui/overlays/dropdown-menu';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -12,6 +12,7 @@ interface BuilderToolbarProps {
   onOpenSavedList: () => void;
   onSave: () => void;
   onClear: () => void;
+  onCreateImage?: () => void;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -25,9 +26,24 @@ export function BuilderToolbar({
   onOpenSavedList,
   onSave,
   onClear,
+  onCreateImage,
 }: BuilderToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <>
+    <div className="flex justify-end md:hidden">
+      <DropdownMenu><DropdownMenuTrigger asChild><button type="button" aria-label="Thao tác với lịch dự kiến" className="flex min-h-11 items-center gap-2 rounded-lg border border-gray-200 px-3 text-sm"><MoreHorizontal className="h-4 w-4" />Thao tác</button></DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={onOpenConfig}>Ưu tiên xếp lịch</DropdownMenuItem>
+          <DropdownMenuItem onSelect={onOpenSavedList}>Lịch đã lưu ({savedSchedulesCount})</DropdownMenuItem>
+          <DropdownMenuItem disabled={!hasSelections} onSelect={onSave}>Lưu phương án</DropdownMenuItem>
+          {onCreateImage && <DropdownMenuItem disabled={!hasSelections} onSelect={onCreateImage}>Tạo ảnh lịch</DropdownMenuItem>}
+          <DropdownMenuItem disabled={solving} onSelect={onFullSolve}>Xếp tự động lại từ đầu</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled={!hasSelections} onSelect={() => { if (window.confirm('Xóa các lựa chọn lớp trong phương án đang xếp? Giỏ môn vẫn được giữ.')) onClear(); }} className="text-red-600">Xóa lựa chọn lớp</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+    <div className="hidden md:flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={onOpenConfig}
@@ -90,5 +106,6 @@ export function BuilderToolbar({
         {solving ? 'Đang xếp...' : 'Xếp tự động'}
       </button>
     </div>
+    </>
   );
 }

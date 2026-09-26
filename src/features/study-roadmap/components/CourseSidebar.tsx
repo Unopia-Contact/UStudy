@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronRight, Lock, Search, X, Circle, CheckCircle2, AlertTriangle, Check, Sparkles, Shuffle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lock, Search, X, Circle, CheckCircle2, AlertTriangle, Shuffle } from 'lucide-react';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
 import type { Course } from '../../../types';
@@ -46,13 +46,11 @@ export function CourseSidebar({
   registeredCourses,
   allowedClassesMap,
   selections,
-  conflicts,
   focusedCourseCode,
   onSelectClass,
   onRemoveSelection,
   onToggleAllowedClass,
   unfilledCount,
-  totalCredits,
   onHybridSolve,
   solvingHybrid,
 }: CourseSidebarProps) {
@@ -95,11 +93,7 @@ export function CourseSidebar({
   // Auto-expand and scroll when focusedCourseCode changes
   useEffect(() => {
     if (!focusedCourseCode) return;
-    setExpandedCourses(prev => {
-      const next = new Set(prev);
-      next.add(focusedCourseCode);
-      return next;
-    });
+    setExpandedCourses(new Set([focusedCourseCode]));
     requestAnimationFrame(() => {
       courseRefs.current[focusedCourseCode]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -138,16 +132,13 @@ export function CourseSidebar({
     setExpandedCourses(prev => {
       const next = new Set(prev);
       if (next.has(courseId)) next.delete(courseId);
-      else next.add(courseId);
+      else { next.clear(); next.add(courseId); }
       return next;
     });
   };
 
   const getSelectionForCourse = (courseCode: string) =>
     selections.find(s => s.courseCode === courseCode);
-
-  const getCourseConflicts = (courseCode: string) =>
-    conflicts.filter(c => c.involvedCourses.includes(courseCode));
 
   const lockedCount = selections.filter(s => s.locked).length;
 
@@ -162,7 +153,8 @@ export function CourseSidebar({
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Tìm môn..."
-            className="h-8 w-full rounded-lg border border-gray-200 bg-gray-50 pl-8 pr-8 text-xs outline-none transition-colors focus:border-[#004A98] focus:bg-white focus:ring-1 focus:ring-[#004A98]/20"
+            aria-label="Tìm môn để chọn lớp"
+            className="min-h-11 w-full rounded-lg border border-gray-200 bg-white pl-8 pr-8 text-base md:text-sm outline-none transition-colors focus:border-[#004A98] focus:ring-1 focus:ring-[#004A98]/20"
           />
           {search && (
             <button type="button" onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -216,7 +208,6 @@ export function CourseSidebar({
               const courseCode = course.code;
               const isExpanded = expandedCourses.has(courseCode);
               const selection = getSelectionForCourse(courseCode);
-              const courseConflicts = getCourseConflicts(courseCode);
               const classes = courseClasses[courseCode] ?? [];
               const allowedClassIds = allowedClassesMap[courseCode] ?? classes.map((item) => item.id);
               const isFocused = focusedCourseCode === courseCode;
@@ -243,7 +234,8 @@ export function CourseSidebar({
                         <span className="text-[10px] text-gray-400">{course.credits} TC</span>
                         {selection?.locked && <Lock className="h-3 w-3 text-[#004A98]" />}
                       </div>
-                      <p className="mt-0.5 truncate text-xs font-medium text-gray-800">{course.nameVi}</p>
+                      <p className="mt-0.5 text-sm font-medium text-gray-800">{course.nameVi}</p>
+                      <p className="mt-1 text-xs text-gray-500">{selection ? selection.locked ? `Đã khóa lớp ${selection.classId}` : `Lớp ${selection.classId} · ${selection.source === 'manual' ? 'Ưu tiên' : 'Tự động'}` : 'Chưa chọn lớp'}</p>
                       {selection && !selection.locked && selection.source === 'solver' && selection.preferredClassId && selection.classId !== selection.preferredClassId && (
                         <div className="mt-1.5 flex items-start gap-1 rounded bg-amber-50 px-1.5 py-1 text-[10px] text-amber-700 border border-amber-100">
                           <AlertTriangle className="h-3 w-3 shrink-0 mt-[1px]" />
@@ -334,12 +326,14 @@ export function CourseSidebar({
                                 >
                                   <div className="min-w-0 flex-1">
                                     <p className={`text-xs font-semibold ${isLockedClass ? 'text-[#004A98]' : 'text-gray-700'}`}>{cls.id.replace(/_/g, ' ')}</p>
-                                    <p className="mt-0.5 truncate text-[10px] text-gray-500">{formatScheduleStrings(cls.schedule)}</p>
+                                    <p className="mt-0.5 text-xs leading-5 text-gray-500">{formatScheduleStrings(cls.schedule)}</p>
+                                    <p className="mt-1 text-xs text-[#004A98]">{isLockedClass ? 'Đã khóa · Nhấn để bỏ khóa' : 'Nhấn để khóa lớp này'}</p>
                                   </div>
                                 </button>
 
                                 {isLockedClass && <Lock className="h-4 w-4 shrink-0 text-[#004A98]" aria-label="Lớp bắt buộc" />}
 
+                                <label className="order-first flex h-11 w-11 shrink-0 flex-col items-center justify-center gap-1 text-[10px] text-gray-500">
                                 <input
                                   type="checkbox"
                                   checked={isAllowed}
@@ -347,10 +341,12 @@ export function CourseSidebar({
                                     onToggleAllowedClass(courseCode, cls.id, classes.map((item) => item.id));
                                     if (isAllowed && isLockedClass) onRemoveSelection(courseCode);
                                   }}
-                                  className="order-first h-3.5 w-3.5 shrink-0 cursor-pointer rounded border-gray-300 text-[#004A98] focus:ring-[#004A98] md:h-3.5 md:w-3.5"
+                                  className="h-4 w-4 cursor-pointer rounded border-gray-300 text-[#004A98] focus:ring-[#004A98]"
                                   aria-label={isAllowed ? `Loại ${cls.id} khỏi xếp lịch` : `Cho phép ${cls.id} được xếp lịch`}
                                   title={isAllowed ? 'Loại khỏi xếp lịch' : 'Cho phép xếp lịch'}
                                 />
+                                Xét lớp
+                                </label>
                               </div>
                             );
                           })}

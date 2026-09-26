@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Bell, BellOff, BookOpen, CalendarClock, Check, GraduationCap, Plus, Trash2 } from 'lucide-react';
+import { Bell, BellOff, BookOpen, CalendarClock, Check, ExternalLink, GraduationCap, Plus, Trash2 } from 'lucide-react';
 import { AppDialog } from '../../../components/ui/overlays/app-dialog';
 import { AppSelect } from '../../../components/ui/form';
-import { supportsCalendarNotifications } from '../../../mobile/calendar-notifications';
+import {
+  openAppNotificationSettings,
+  scheduleTestCalendarNotification,
+  supportsCalendarNotifications,
+} from '../../../mobile/calendar-notifications';
 import type { DashboardCalendarSource } from '../services/dashboard-layout';
 
 type ReminderUnit = 'minutes' | 'hours' | 'days';
@@ -16,6 +20,7 @@ interface ReminderDraft {
 export interface DashboardCalendarSettingsSaveResult {
   saved: boolean;
   message?: string;
+  needsNotificationSettings?: boolean;
 }
 
 interface DashboardCalendarSettingsDialogProps {
@@ -75,7 +80,11 @@ export function DashboardCalendarSettingsDialog({
   const [draftNotificationsEnabled, setDraftNotificationsEnabled] = useState(notificationsEnabled);
   const [draftReminders, setDraftReminders] = useState<ReminderDraft[]>(() => reminderMinutes.map(createReminderDraft));
   const [saveError, setSaveError] = useState('');
+  const [needsNotificationSettings, setNeedsNotificationSettings] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isOpeningSettings, setIsOpeningSettings] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [testNotificationMessage, setTestNotificationMessage] = useState('');
 
   useEffect(() => {
     if (!open) return;
@@ -84,6 +93,8 @@ export function DashboardCalendarSettingsDialog({
     setDraftNotificationsEnabled(notificationsEnabled);
     setDraftReminders(reminderMinutes.map(createReminderDraft));
     setSaveError('');
+    setNeedsNotificationSettings(false);
+    setTestNotificationMessage('');
   }, [days, notificationsEnabled, open, reminderMinutes, sources]);
 
   const parsedDays = Number(draftDays);
@@ -119,6 +130,7 @@ export function DashboardCalendarSettingsDialog({
     if (!canSave) return;
     setIsSaving(true);
     setSaveError('');
+    setNeedsNotificationSettings(false);
     try {
       const result = await onSave({
         sources: draftSources,
@@ -129,6 +141,7 @@ export function DashboardCalendarSettingsDialog({
 
       if (!result.saved) {
         setSaveError(result.message || 'Không thể lưu thiết lập thông báo.');
+        setNeedsNotificationSettings(result.needsNotificationSettings === true);
         return;
       }
       onOpenChange(false);
@@ -137,6 +150,33 @@ export function DashboardCalendarSettingsDialog({
       setSaveError('Không thể lưu thiết lập. Hãy đóng hẳn UStudy, mở lại rồi thử lần nữa.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleOpenNotificationSettings = async () => {
+    setIsOpeningSettings(true);
+    try {
+      await openAppNotificationSettings();
+      setSaveError('Bật quyền Thông báo cho UStudy, quay lại ứng dụng rồi nhấn Lưu thiết lập lần nữa.');
+    } catch (error) {
+      console.error('[calendar-settings] Không thể mở cài đặt thông báo:', error);
+      setSaveError('Không thể mở tự động. Vào Cài đặt điện thoại > Ứng dụng > UStudy > Thông báo.');
+    } finally {
+      setIsOpeningSettings(false);
+    }
+  };
+
+  const handleSendTestNotification = async () => {
+    setIsSendingTest(true);
+    setTestNotificationMessage('');
+    try {
+      await scheduleTestCalendarNotification();
+      setTestNotificationMessage('Đã yêu cầu Android gửi thông báo thử. Nếu vừa cấp quyền, thông báo sẽ xuất hiện ngay sau khi đóng hộp thoại cấp quyền.');
+    } catch (error) {
+      console.error('[calendar-settings] Không thể gửi thông báo thử:', error);
+      setTestNotificationMessage(error instanceof Error ? error.message : 'Không thể gửi thông báo thử.');
+    } finally {
+      setIsSendingTest(false);
     }
   };
 
@@ -151,7 +191,20 @@ export function DashboardCalendarSettingsDialog({
       footer={(
         <div className="w-full">
           {saveError && (
-            <p className="mb-2 border-l-2 border-red-500 bg-red-50 px-3 py-2 text-left text-xs leading-5 text-red-700">{saveError}</p>
+            <div className="mb-2 border-l-2 border-red-500 bg-red-50 px-3 py-2 text-left text-xs leading-5 text-red-700">
+              <p>{saveError}</p>
+              {needsNotificationSettings && (
+                <button
+                  type="button"
+                  onClick={handleOpenNotificationSettings}
+                  disabled={isOpeningSettings}
+                  className="mt-1.5 inline-flex items-center gap-1.5 font-semibold text-[#004A98] hover:underline disabled:opacity-50"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  {isOpeningSettings ? 'Đang mở...' : 'Mở cài đặt thông báo'}
+                </button>
+              )}
+            </div>
           )}
           <div className="flex justify-end">
             <button
@@ -299,6 +352,30 @@ export function DashboardCalendarSettingsDialog({
                   <Plus className="h-4 w-4" />
                   Thêm mốc nhắc
                 </button>
+
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-gray-100 pt-3">
+                  <button
+                    type="button"
+                    onClick={handleSendTestNotification}
+                    disabled={isSendingTest}
+                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 hover:border-[#004A98]/40 hover:bg-blue-50 hover:text-[#004A98] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Bell className="h-4 w-4" />
+                    {isSendingTest ? 'Đang gửi thử...' : 'Gửi thông báo thử'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenNotificationSettings}
+                    disabled={isOpeningSettings}
+                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 hover:border-[#004A98]/40 hover:bg-blue-50 hover:text-[#004A98] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {isOpeningSettings ? 'Đang mở...' : 'Cài đặt thông báo'}
+                  </button>
+                  {testNotificationMessage && (
+                    <p className="w-full text-xs leading-5 text-gray-500">{testNotificationMessage}</p>
+                  )}
+                </div>
               </div>
             )}
           </>

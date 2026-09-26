@@ -27,6 +27,7 @@ public class ScheduleWidgetPlugin extends Plugin {
             return;
         }
         TodayScheduleWidgetProvider.refreshAll(getContext());
+        NextScheduleWidgetProvider.refreshAll(getContext());
         call.resolve();
     }
 
@@ -39,6 +40,7 @@ public class ScheduleWidgetPlugin extends Plugin {
                 return;
             }
             TodayScheduleWidgetProvider.refreshAll(getContext());
+            NextScheduleWidgetProvider.refreshAll(getContext());
             call.resolve();
             return;
         }
@@ -71,6 +73,7 @@ public class ScheduleWidgetPlugin extends Plugin {
                 return;
             }
             TodayScheduleWidgetProvider.refreshAll(getContext());
+            NextScheduleWidgetProvider.refreshAll(getContext());
             call.resolve();
         } catch (Exception error) {
             call.reject("Không thể đọc dữ liệu lịch.", error);

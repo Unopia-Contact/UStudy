@@ -22,14 +22,17 @@ public class ScheduleWidgetListService extends RemoteViewsService {
 
     private static final class Row {
         final boolean dayHeader;
+        final boolean alternateDay;
         final String label;
         final String startTime;
         final String endTime;
         final String title;
         final String room;
 
-        private Row(boolean dayHeader, String label, String startTime, String endTime, String title, String room) {
+        private Row(boolean dayHeader, boolean alternateDay, String label, String startTime, String endTime,
+                String title, String room) {
             this.dayHeader = dayHeader;
+            this.alternateDay = alternateDay;
             this.label = label;
             this.startTime = startTime;
             this.endTime = endTime;
@@ -37,9 +40,11 @@ public class ScheduleWidgetListService extends RemoteViewsService {
             this.room = room;
         }
 
-        static Row day(String label) { return new Row(true, label, "", "", "", ""); }
+        static Row day(String label, boolean alternate) {
+            return new Row(true, alternate, label, "", "", "", "");
+        }
         static Row session(String start, String end, String title, String room) {
-            return new Row(false, "", start, end, title, room);
+            return new Row(false, false, "", start, end, title, room);
         }
     }
 
@@ -66,6 +71,7 @@ public class ScheduleWidgetListService extends RemoteViewsService {
             SimpleDateFormat dayLabel = new SimpleDateFormat("EEEE, dd/MM", new Locale("vi", "VN"));
             dayLabel.setTimeZone(zone);
             String lastDate = "";
+            int dayIndex = 0;
 
             try {
                 JSONObject data = new JSONObject(snapshot);
@@ -77,9 +83,8 @@ public class ScheduleWidgetListService extends RemoteViewsService {
                     if (date.compareTo(today) < 0) continue;
                     if (!date.equals(lastDate)) {
                         Date parsed = dateKey.parse(date);
-                        String text = date.equals(today) ? "Hôm nay · " + dayLabel.format(parsed)
-                                : dayLabel.format(parsed);
-                        nextRows.add(Row.day(text));
+                        nextRows.add(Row.day(dayLabel.format(parsed), dayIndex % 2 == 1));
+                        dayIndex++;
                         lastDate = date;
                     }
                     nextRows.add(Row.session(event.getString("startTime"), event.getString("endTime"),
@@ -94,7 +99,7 @@ public class ScheduleWidgetListService extends RemoteViewsService {
         @Override public int getCount() { return rows.size(); }
         @Override public long getItemId(int position) { return position; }
         @Override public boolean hasStableIds() { return false; }
-        @Override public int getViewTypeCount() { return 2; }
+        @Override public int getViewTypeCount() { return 3; }
         @Override public RemoteViews getLoadingView() { return null; }
 
         @Override
@@ -103,7 +108,8 @@ public class ScheduleWidgetListService extends RemoteViewsService {
             if (position < 0 || position >= current.size()) return null;
             Row row = current.get(position);
             if (row.dayHeader) {
-                RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_day_header);
+                RemoteViews views = new RemoteViews(context.getPackageName(), row.alternateDay
+                        ? R.layout.widget_day_header_alt : R.layout.widget_day_header);
                 views.setTextViewText(R.id.widget_day_label, row.label);
                 return views;
             }

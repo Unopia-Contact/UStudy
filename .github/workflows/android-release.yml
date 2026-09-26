@@ -24,9 +24,11 @@ jobs:
     env:
       USTUDY_RELEASE_BUILD_NUMBER: ${{ github.run_number }}
       USTUDY_RELEASE_BUILD_ATTEMPT: ${{ github.run_attempt }}
-      USTUDY_RELEASE_STORE_FILE: ${{ runner.temp }}/ustudy-release.keystore
 
     steps:
+      - name: Set signing file path
+        run: echo "USTUDY_RELEASE_STORE_FILE=$RUNNER_TEMP/ustudy-release.keystore" >> "$GITHUB_ENV"
+
       - name: Check signing configuration
         env:
           USTUDY_RELEASE_KEYSTORE_BASE64: ${{ secrets.USTUDY_RELEASE_KEYSTORE_BASE64 }}

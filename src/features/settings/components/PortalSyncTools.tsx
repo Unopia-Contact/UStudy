@@ -46,13 +46,13 @@ function MobilePortalSyncTools() {
           <span className="ustudy-icon-badge ustudy-icon-primary"><Smartphone className="h-5 w-5" /></span>
           <div className="min-w-0">
             <h3 className="text-sm font-bold text-gray-900">Đồng bộ Portal trên điện thoại</h3>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+            <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-gray-500 md:block">
               Đăng nhập Portal trong ứng dụng, bấm đồng bộ và xem trước thay đổi trước khi lưu.
             </p>
             <p className="mt-1 text-xs font-medium text-[#004A98]">Năm học {academicYear} · Học kỳ {semesterNumber}</p>
           </div>
         </div>
-        <button type="button" onClick={() => void openPortal()} disabled={isOpening} className="ustudy-button-primary shrink-0">
+        <button type="button" onClick={() => void openPortal()} disabled={isOpening} className="ustudy-button-primary min-h-11 shrink-0 justify-center">
           {isOpening ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
           {isOpening ? 'Đang mở Portal' : 'Mở Portal và đồng bộ'}
         </button>
@@ -73,6 +73,7 @@ function BrowserPortalSyncTools() {
   const [detectedVersion, setDetectedVersion] = useState(getInjectedPortalExtensionVersion);
   const [isChecking, setIsChecking] = useState(true);
   const [dialogMode, setDialogMode] = useState<ExtensionDialogMode | null>(null);
+  const [showOtherMethods, setShowOtherMethods] = useState(false);
 
   const refreshState = useCallback(async () => {
     setIsChecking(true);
@@ -116,7 +117,10 @@ function BrowserPortalSyncTools() {
           </button>
         </section>
 
-        <div className="grid gap-2 md:grid-cols-2">
+        <button type="button" onClick={() => setShowOtherMethods((value) => !value)} aria-expanded={showOtherMethods} className="flex min-h-11 w-full items-center justify-between border-t border-gray-200 px-1 text-sm font-medium text-[#004A98] md:hidden">
+          Extension & bookmarklet <span aria-hidden="true">{showOtherMethods ? '−' : '+'}</span>
+        </button>
+        <div className={`${showOtherMethods ? 'grid' : 'hidden'} gap-2 md:grid md:grid-cols-2`}>
           <section className="flex min-w-0 flex-col gap-2 rounded-lg bg-white px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-2.5">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#004A98] text-white">

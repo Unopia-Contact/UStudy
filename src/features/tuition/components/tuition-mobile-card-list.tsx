@@ -10,12 +10,11 @@ export function TuitionMobileCardList({
     return (
         <div className="md:hidden divide-y divide-gray-100">
             {currentSemesterData.map((course) => (
-                <div key={course.stt} className="px-4 py-3">
+                <div key={course.stt} className="px-3 py-2">
                     <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                            <p className="text-[11px] font-mono font-bold text-[#004A98]">{course.courseCode}</p>
-                            <p className="text-xs font-medium text-gray-900 mt-0.5 truncate">{course.courseName}</p>
-                            <p className="text-[10px] text-gray-500 mt-0.5">{course.credits} TC • {course.tuitionCredits} TC HP • {course.periods} tiết</p>
+                            <p title={course.courseName} className="truncate text-xs font-medium leading-tight text-gray-900">{course.courseName}</p>
+                            <p className="mt-0.5 text-[11px] leading-tight text-gray-500">{course.courseCode}</p>
                         </div>
                         <div className="flex-shrink-0 text-right">
                             <p className="text-xs font-bold text-[#004A98]">{new Intl.NumberFormat('vi-VN').format(course.actualFee)}₫</p>

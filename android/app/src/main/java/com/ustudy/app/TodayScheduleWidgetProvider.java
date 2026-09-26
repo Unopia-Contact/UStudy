@@ -8,9 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.RemoteViews;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -49,42 +47,36 @@ public class TodayScheduleWidgetProvider extends AppWidgetProvider {
         String today = dateFormat.format(new Date());
         String snapshot = ScheduleWidgetPlugin.preferences(context).getString(ScheduleWidgetPlugin.KEY_SNAPSHOT, null);
         String status = ScheduleWidgetPlugin.preferences(context).getString(ScheduleWidgetPlugin.KEY_STATUS, null);
-        int todayCount = 0;
-        int upcomingCount = 0;
         boolean current = false;
         if (snapshot != null) {
             try {
                 JSONObject data = new JSONObject(snapshot);
                 current = today.compareTo(data.getString("validUntil")) <= 0;
-                if (current) {
-                    JSONArray events = data.getJSONArray("events");
-                    for (int i = 0; i < events.length(); i++) {
-                        String date = events.getJSONObject(i).getString("date");
-                        if (today.equals(date)) todayCount++;
-                        if (today.compareTo(date) <= 0) upcomingCount++;
-                    }
-                }
             } catch (Exception ignored) {
                 current = false;
             }
         }
 
         for (int id : ids) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_today_schedule);
-            Intent openApp = new Intent(context, MainActivity.class);
+            final String emptyMessage = snapshot == null
+                    ? ("no-schedule".equals(status) ? "Chưa có thời khóa biểu. Mở UStudy để đồng bộ." : "Mở UStudy để nạp lịch học.")
+                    : current ? "Không có lịch trong 30 ngày tới." : "Lịch đã cũ. Mở UStudy để cập nhật.";
+            RemoteViews views = WidgetSizeLayouts.create(manager.getAppWidgetOptions(id),
+                    250f, 190f, (width, height) -> createViews(context, id, height, emptyMessage));
+            manager.updateAppWidget(id, views);
+        }
+        manager.notifyAppWidgetViewDataChanged(ids, R.id.widget_schedule_list);
+    }
+
+    private static RemoteViews createViews(Context context, int id, float height, String message) {
+            RemoteViews views = new RemoteViews(context.getPackageName(), WidgetGeometry.compactSchedule(height)
+                    ? R.layout.widget_today_schedule_compact : R.layout.widget_today_schedule);
+            Intent openApp = new Intent(Intent.ACTION_VIEW, Uri.parse("com.ustudy.app://schedule"),
+                    context, MainActivity.class);
             openApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             PendingIntent pending = PendingIntent.getActivity(context, 0, openApp,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             views.setOnClickPendingIntent(R.id.widget_header, pending);
-            views.setTextViewText(R.id.widget_subtitle, todayCount > 0
-                    ? "Hôm nay · " + todayCount + " buổi học"
-                    : upcomingCount > 0 ? "Hôm nay nghỉ · " + upcomingCount + " buổi sắp tới" : "Lịch học của bạn");
-            Bundle options = manager.getAppWidgetOptions(id);
-            boolean compact = options != null && options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 200) < 150;
-            views.setViewVisibility(R.id.widget_subtitle, compact ? View.GONE : View.VISIBLE);
-            String message = snapshot == null
-                    ? ("no-schedule".equals(status) ? "Chưa có thời khóa biểu. Mở UStudy để đồng bộ." : "Mở UStudy để nạp lịch học.")
-                    : current ? "Không có lịch trong 30 ngày tới." : "Lịch đã cũ. Mở UStudy để cập nhật.";
             views.setTextViewText(R.id.widget_empty, message);
 
             Intent adapter = new Intent(context, ScheduleWidgetListService.class);
@@ -92,8 +84,6 @@ public class TodayScheduleWidgetProvider extends AppWidgetProvider {
             adapter.setData(Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME)));
             views.setRemoteAdapter(R.id.widget_schedule_list, adapter);
             views.setEmptyView(R.id.widget_schedule_list, R.id.widget_empty);
-            manager.updateAppWidget(id, views);
-        }
-        manager.notifyAppWidgetViewDataChanged(ids, R.id.widget_schedule_list);
+            return views;
     }
 }

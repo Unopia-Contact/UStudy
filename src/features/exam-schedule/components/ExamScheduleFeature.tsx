@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Calendar, Clock, MapPin, AlertCircle, FileDown, Bell, BookOpen, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, AlertCircle, FileDown, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useStudentDb } from '../../../hooks/useStudentDb';
 import { hasImportedData } from '../../../helpers/localStorage/data-import-status';
 import { useDepartmentData } from '../../../context/DepartmentContext';
@@ -31,7 +31,7 @@ export function ExamScheduleVi() {
     const { academicYear, semesterNumber } = useDepartmentData();
 
     const [selectedType, setSelectedType] = useState<'all' | 'Giữa kỳ' | 'Cuối kỳ'>('all');
-    const [selectedLocation, setSelectedLocation] = useState<string>('all');
+    const [selectedLocation] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isCalendarExportOpen, setIsCalendarExportOpen] = useState(false);
 
@@ -495,7 +495,7 @@ export function ExamScheduleVi() {
                         </div>
                     ) : (
                         <div className="divide-y divide-gray-100">
-                            {filteredData.map((exam, index) => {
+                            {filteredData.map((exam) => {
                                 const daysUntil = getDaysUntilExam(exam.examDate);
                                 return (
                                     <div key={exam.id} className="px-4 py-3">

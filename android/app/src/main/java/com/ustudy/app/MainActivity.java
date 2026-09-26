@@ -8,6 +8,13 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(PortalSyncPlugin.class);
         registerPlugin(ScheduleWidgetPlugin.class);
+        registerPlugin(NotificationSettingsPlugin.class);
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        NotificationSettingsPlugin.handlePermissionResult(requestCode);
     }
 }

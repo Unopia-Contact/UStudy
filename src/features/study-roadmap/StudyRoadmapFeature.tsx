@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, Book, ClipboardList, ShoppingCart, X } from 'lucide-react';
+import { Calendar, Book, ClipboardList, ShoppingCart, Info } from 'lucide-react';
+import { RoadmapDialog } from './components/RoadmapDialog';
 import { useCourseData } from '../../hooks/useCourseData';
 import { useRegisteredCourses } from '../../hooks/useRegisteredCourses';
 import { type ClassSection } from '../../types';
@@ -16,13 +17,16 @@ import { SelectionView } from './components/SelectionView';
 import { CalendarView } from './components/CalenderView';
 import { StudyPlanView } from './components/StudyPlanView';
 import { SelectionBasket } from './components/SelectionBasket';
+import { MobileBottomSheet } from '../../components/ui/overlays/mobile-bottom-sheet';
 import { PrerequisiteFlowchart } from './components/PrerequisiteFlowchart';
 import { useScheduleSolver } from './hooks/use-schedule-solver';
 import { GroupSchedulePage } from '../group-schedule';
 import type { Course } from '../../types';
 import { createPortal } from 'react-dom';
+import './roadmap-mobile.css';
+import { useRoadmapScrollMemory } from './hooks/use-roadmap-scroll-memory';
 import { useCampus } from '../../context/CampusContext';
-import { APP_ROUTES, STUDY_ROADMAP_TAB_TO_PATH, getStudyRoadmapTabFromPath } from '../../app/routes';
+import { STUDY_ROADMAP_TAB_TO_PATH, getStudyRoadmapTabFromPath } from '../../app/routes';
 import { tabs, type Tab } from './types';
 import {
     createCourseCodeSet,
@@ -60,6 +64,7 @@ export function StudyRoadmapFeature() {
 
     // State giỏ hàng mobile: true = mở drawer giỏ hàng
     const [showMobileBasket, setShowMobileBasket] = useState(false);
+    const [helpOpen, setHelpOpen] = useState(false);
 
     useEffect(() => {
         saveToStorage(STORAGE_KEYS.ALLOWED_CLASSES_MAP, allowedClassesMap);
@@ -73,14 +78,19 @@ export function StudyRoadmapFeature() {
         saveToStorage(STORAGE_KEYS.STUDY_ROADMAP_ACTIVE_TAB, activeTab);
     }, [activeTab]);
 
-    useEffect(() => {
-        setSearchTerm('');
-    }, [activeTab]);
-
     // Đóng basket drawer khi chuyển tab
     useEffect(() => {
         setShowMobileBasket(false);
     }, [activeTab]);
+
+    useEffect(() => {
+        const desktopQuery = window.matchMedia('(min-width: 1024px)');
+        const closeBasketOnDesktop = () => {
+            if (desktopQuery.matches) setShowMobileBasket(false);
+        };
+        desktopQuery.addEventListener('change', closeBasketOnDesktop);
+        return () => desktopQuery.removeEventListener('change', closeBasketOnDesktop);
+    }, []);
 
     useEffect(() => {
         if (!tabFromPath) {
@@ -160,57 +170,24 @@ export function StudyRoadmapFeature() {
     };
 
     const confirmedSections: ClassSection[] = currentSections;
+    useRoadmapScrollMemory(activeTab, isReady);
     const handleGetConflicts = (section: ClassSection) => getConflicts(section, [...registeredSections, ...confirmedSections], defaultCampusId);
     
-    // ---- Mobile Basket Drawer (portal vào body) ----
-    const MobileBasketDrawer = createPortal(
+    const MobileBasketControls = (
         <>
-            {/* Backdrop */}
             {showMobileBasket && (
-                <div
-                    className="md:hidden fixed inset-0 z-40 bg-black/50"
-                    style={{ backdropFilter: 'blur(2px)' }}
-                    onClick={() => setShowMobileBasket(false)}
-                />
-            )}
-
-            {/* Drawer */}
-            <div
-                className="md:hidden ustudy-card fixed left-0 right-0 bottom-0 z-50 flex flex-col rounded-t-2xl shadow-2xl"
-                style={{
-                    // Để trên bottom nav (64px)
-                    bottom: '64px',
-                    maxHeight: '80vh',
-                    transform: showMobileBasket ? 'translateY(0)' : 'translateY(110%)',
-                    transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
-                }}
-            >
-                {/* Handle + Header */}
-                <div className="flex-shrink-0">
-                    <div className="flex justify-center pt-3 pb-1">
-                        <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
-                    </div>
-                    <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
-                        <div className="flex items-center gap-2">
-                            <ShoppingCart className="w-5 h-5 text-[#004A98]" />
-                            <span className="font-semibold text-gray-900">Giỏ môn học</span>
-                            {pendingSelectedCourses.size > 0 && (
-                                <span className="ustudy-badge-count">
-                                    {pendingSelectedCourses.size}
-                                </span>
-                            )}
-                        </div>
-                        <button
-                            onClick={() => setShowMobileBasket(false)}
-                            className="ustudy-action-icon"
-                        >
-                            <X className="w-4 h-4 text-gray-600" />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Content: SelectionBasket scroll bên trong */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <MobileBottomSheet
+                    title="Giỏ môn học"
+                    eyebrow={`${pendingSelectedCourses.size} môn đã chọn`}
+                    ariaLabel="Giỏ môn học"
+                    onClose={() => setShowMobileBasket(false)}
+                    className="lg:hidden"
+                    sheetClassName="h-[min(80dvh,42rem)]"
+                    contentClassName="overflow-hidden"
+                    scrollContent={false}
+                    footer={<button type="button" disabled={pendingSelectedCourses.size === 0} className="ustudy-button-primary min-h-11 w-full" onClick={() => { setShowMobileBasket(false); setActiveTab('calendar'); }}>Tiếp tục xếp lịch</button>}
+                    sheetId="study-roadmap-basket"
+                >
                     <SelectionBasket
                         selectedCourses={Array.from(pendingSelectedCourses)
                             .map(id => globalAllCourses.find(c => c.id === id)!)
@@ -220,35 +197,27 @@ export function StudyRoadmapFeature() {
                         onRemoveCourse={handleCourseToggle}
                         allowedClassesMap={allowedClassesMap}
                         setAllowedClassesMap={setAllowedClassesMap}
+                        mobileSheet
                     />
-                </div>
-            </div>
+                </MobileBottomSheet>
+            )}
 
             {/* FAB button - chỉ hiện khi đang ở tab selection và chưa mở drawer */}
-            {activeTab === 'selection' && !showMobileBasket && (
-                <button
-                    className="md:hidden fixed z-35 flex items-center gap-2 rounded-full bg-[#004A98] text-white shadow-lg transition-all active:scale-95"
-                    style={{
-                        bottom: '80px', // trên bottom nav
-                        right: '16px',
-                        padding: '12px 20px',
-                        boxShadow: '0 4px 20px rgba(0,74,152,0.4)',
-                    }}
-                    onClick={() => setShowMobileBasket(true)}
-                >
-                    <ShoppingCart className="w-5 h-5" />
-                    <span className="font-semibold text-sm">Giỏ hàng</span>
-                    {pendingSelectedCourses.size > 0 && (
-                        <span
-                            className="bg-white text-[#004A98] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
-                        >
-                            {pendingSelectedCourses.size}
-                        </span>
-                    )}
-                </button>
+            {activeTab === 'selection' && !showMobileBasket && pendingSelectedCourses.size > 0 && (
+                createPortal(
+                    <button
+                        type="button"
+                        className="roadmap-action-bar md:hidden"
+                        onClick={() => setShowMobileBasket(true)}
+                    >
+                        <ShoppingCart className="h-5 w-5" />
+                        <span className="flex-1 text-left">{pendingSelectedCourses.size} môn · {globalAllCourses.filter(c => pendingSelectedCourses.has(c.id)).reduce((sum, c) => sum + (Number(c.credits) || 0), 0)} TC chọn thêm</span>
+                        <span className="font-semibold text-[#004A98]">Xem giỏ →</span>
+                    </button>,
+                    document.body,
+                )
             )}
-        </>,
-        document.body
+        </>
     );
 
     if (!isReady) {
@@ -264,6 +233,7 @@ export function StudyRoadmapFeature() {
             <PageShell
                 header={<PageHeader
                     title="Lộ trình học tập"
+                    className="roadmap-page-header"
                     description="Đây là lộ trình học tập của bạn."
                 />}
             >
@@ -278,12 +248,15 @@ export function StudyRoadmapFeature() {
                 header={<PageHeader
                     title="Lộ trình học tập"
                     description="Chọn môn học và xem lịch trực quan với phát hiện xung đột thời gian."
+                    className="roadmap-page-header"
+                    actions={<button type="button" aria-label="Hướng dẫn lộ trình học tập" className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100" onClick={() => setHelpOpen(true)}><Info className="h-5 w-5" /></button>}
                 />}
             >
+                {helpOpen && <RoadmapDialog title="Lộ trình học tập" onClose={() => setHelpOpen(false)}><div className="space-y-4 text-sm leading-6"><p><strong>Kế hoạch:</strong> Phác thảo các môn muốn học theo học kỳ; môn dự kiến không phải tín chỉ đã tích lũy.</p><p><strong>Chọn môn:</strong> Thêm môn từ danh sách lớp mở vào giỏ và xem học phí tham khảo.</p><p><strong>Xếp lịch:</strong> Chọn lớp hoặc tìm phương án tự động cho cá nhân/nhóm. Lưu phương án không đăng ký môn trên Portal.</p></div></RoadmapDialog>}
                 {/* Nội dung chính */}
-                <div className="flex-1 w-full min-w-0">
+                <div className="roadmap-mobile flex-1 w-full min-w-0">
                     {/* Navigation */}
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <NavigationBar
                             tabs={[
                                 // { id: tabs.trainingProgram, label: 'Chương trình đào tạo', icon: Book },
@@ -297,13 +270,13 @@ export function StudyRoadmapFeature() {
                     </div>
 
                     {/* Mobile Navigation */}
-                    <div className="md:hidden">
+                    <div className="roadmap-mobile-tabs lg:hidden">
                         <NavigationBar
                             tabs={[
                                 // { id: tabs.trainingProgram, label: 'Lộ trình', icon: Book },
-                                { id: tabs.studyPlan, label: 'Kế hoạch', description: 'Tiến độ theo học kỳ', icon: ClipboardList },
-                                { id: 'selection', label: 'Chọn môn', description: 'Học phần và học phí', icon: ShoppingCart },
-                                { id: 'calendar', label: 'Xếp lịch', description: 'Lịch dự kiến', icon: Calendar, showBadge: true, badgeCount: pendingSelectedCourses.size },
+                                { id: tabs.studyPlan, label: 'Kế hoạch', icon: ClipboardList },
+                                { id: 'selection', label: 'Chọn môn', icon: ShoppingCart },
+                                { id: 'calendar', label: 'Xếp lịch', icon: Calendar, showBadge: true, badgeCount: pendingSelectedCourses.size },
                             ]}
                             activeTab={activeTab}
                             setActiveTab={setActiveTab}
@@ -324,7 +297,15 @@ export function StudyRoadmapFeature() {
                         {/* Tab 2: Chọn môn học */}
                         {activeTab === 'selection' && (
                             // Desktop: 2 cột. Mobile: 1 cột (giỏ hàng ẩn vào drawer)
-                            <div className="flex flex-col md:flex-row md:flex-nowrap gap-6 items-start w-full">
+                            <div className="flex w-full flex-col items-start gap-6 lg:flex-row lg:flex-nowrap">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowMobileBasket(true)}
+                                    className="hidden min-h-11 w-full items-center justify-between rounded-lg border border-blue-200 bg-white px-4 text-sm font-semibold text-[#004A98] transition-colors hover:bg-blue-50 md:flex lg:hidden"
+                                >
+                                    <span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4" />Giỏ môn học</span>
+                                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs">{pendingSelectedCourses.size} môn</span>
+                                </button>
 
                                 {/* CỘT TRÁI: danh sách môn học */}
                                 <div
@@ -333,23 +314,7 @@ export function StudyRoadmapFeature() {
                                     style={{ height: undefined }}
                                 >
                                     {/* Desktop: fixed height để scroll độc lập */}
-                                    <div className="hidden md:block overflow-y-auto" style={{ height: 'calc(100vh - 11rem)' }}>
-                                        <SelectionView
-                                            searchTerm={searchTerm}
-                                            setSearchTerm={setSearchTerm}
-                                            viewMode={viewMode}
-                                            setViewMode={setViewMode}
-                                            recommended={recommended}
-                                            all={all}
-                                            filteredCourses={filteredCourses}
-                                            selectedCourses={pendingSelectedCourses}
-                                            handleCourseToggle={handleCourseToggle}
-                                            handleShowFlowchart={handleShowFlowchart}
-                                            registeredCourseCodes={registeredCourseCodes}
-                                        />
-                                    </div>
-                                    {/* Mobile: không fixed height */}
-                                    <div className="md:hidden pb-36">
+                                    <div className="pb-24 lg:pb-0 lg:h-[calc(100vh-11rem)] lg:overflow-y-auto">
                                         <SelectionView
                                             searchTerm={searchTerm}
                                             setSearchTerm={setSearchTerm}
@@ -368,7 +333,7 @@ export function StudyRoadmapFeature() {
 
                                 {/* CỘT PHẢI: giỏ hàng - chỉ hiện trên desktop */}
                                 <div
-                                    className="hidden md:block w-[26vw] xl:w-[24vw] 2xl:w-[22vw] flex-shrink-0"
+                                    className="hidden w-[26vw] flex-shrink-0 lg:block xl:w-[24vw] 2xl:w-[22vw]"
                                     style={{ height: 'calc(100vh - 11rem)' }}
                                 >
                                     <SelectionBasket
@@ -430,8 +395,7 @@ export function StudyRoadmapFeature() {
                 )}
             </PageShell>
 
-            {/* Mobile Basket Drawer + FAB */}
-            {MobileBasketDrawer}
+            {MobileBasketControls}
         </>
     );
 }

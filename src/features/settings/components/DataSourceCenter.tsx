@@ -233,9 +233,9 @@ function InlineHistoryList({ entries, onRename }: { entries: ImportHistoryEntry[
   );
 }
 
-export function DataSourceCenter() {
+export function DataSourceCenter({ defaultExpanded = false }: { defaultExpanded?: boolean }) {
   const [stamp, setStamp] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [selectedSource, setSelectedSource] = useState<SourceView | null>(null);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -396,7 +396,7 @@ export function DataSourceCenter() {
           <h3 className="font-semibold text-slate-900">Trung tâm dữ liệu</h3>
           <p className="mt-0.5 truncate text-xs text-slate-500 sm:text-sm">Kiểm tra nguồn, độ mới và lịch sử nhập dữ liệu.</p>
         </div>
-        <div className="hidden items-center gap-5 md:flex">
+        <div className="hidden items-center gap-5 xl:flex">
           <div className="text-right"><p className="text-sm font-semibold text-slate-800">{availableCount}/{sources.length} nguồn</p><p className="text-xs text-slate-500">đã có dữ liệu</p></div>
           <div className="text-right"><p className="text-sm font-semibold text-slate-800">{latestUpdatedAt ? formatRelativeTime(latestUpdatedAt) : 'Chưa có'}</p><p className="text-xs text-slate-500">cập nhật gần nhất</p></div>
           {attentionCount > 0 && <div className="border-l border-slate-200 pl-5 text-right"><p className="text-sm font-semibold text-amber-700">{attentionCount} nguồn</p><p className="text-xs text-slate-500">cần chú ý</p></div>}
@@ -417,26 +417,26 @@ export function DataSourceCenter() {
               <span className="shrink-0 text-xs text-slate-500">{availableCount} sẵn sàng · {sources.length - availableCount} chưa có</span>
             </div>
 
-            <div className="hidden grid-cols-[minmax(220px,1fr)_150px_150px_140px_20px] gap-4 rounded-t-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] font-semibold uppercase text-gray-500 sm:grid">
+            <div className="hidden grid-cols-[minmax(220px,1fr)_150px_150px_140px_20px] gap-4 rounded-t-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] font-semibold uppercase text-gray-500 xl:grid">
               <span>Nguồn</span><span>Học kỳ</span><span>Cập nhật</span><span className="text-right">Trạng thái</span><span />
             </div>
-            <div className="divide-y divide-gray-100 border-y border-gray-200 sm:rounded-b-lg sm:border-x">
+            <div className="divide-y divide-gray-100 border-y border-gray-200 xl:rounded-b-lg xl:border-x">
               {sources.map((source) => {
                 const freshness = getFreshness(source);
                 const Icon = source.icon;
                 return (
-                  <button key={source.id} type="button" onClick={() => setSelectedSource(source)} className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-1 py-3.5 text-left transition hover:bg-gray-50/70 sm:grid-cols-[minmax(220px,1fr)_150px_150px_140px_20px] sm:gap-4 sm:px-3">
+                  <button key={source.id} type="button" onClick={() => setSelectedSource(source)} className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-1 py-3.5 text-left transition hover:bg-gray-50/70 xl:grid-cols-[minmax(220px,1fr)_150px_150px_140px_20px] xl:gap-4 xl:px-3">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#004A98]"><Icon className="h-4 w-4" /></div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900">{source.label}</p>
-                        <p className="mt-0.5 truncate text-xs text-slate-500 sm:hidden">{source.period} · {formatRelativeTime(source.updatedAt)}</p>
+                        <p className="mt-0.5 truncate text-xs text-slate-500 xl:hidden">{source.period} · {formatRelativeTime(source.updatedAt)}</p>
                       </div>
                     </div>
-                    <div className="hidden truncate text-xs font-medium text-slate-700 sm:block">{source.period}</div>
-                    <div className="hidden text-xs text-slate-600 sm:block"><Clock3 className="mr-1.5 inline h-3.5 w-3.5" />{formatRelativeTime(source.updatedAt)}</div>
+                    <div className="hidden truncate text-xs font-medium text-slate-700 xl:block">{source.period}</div>
+                    <div className="hidden text-xs text-slate-600 xl:block"><Clock3 className="mr-1.5 inline h-3.5 w-3.5" />{formatRelativeTime(source.updatedAt)}</div>
                     <span className={`justify-self-end rounded-full px-2 py-1 text-xs ${freshness.className}`}>{freshness.label}</span>
-                    <ChevronRight className="hidden h-4 w-4 text-slate-400 sm:block" />
+                    <ChevronRight className="hidden h-4 w-4 text-slate-400 xl:block" />
                   </button>
                 );
               })}

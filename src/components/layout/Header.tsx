@@ -136,11 +136,11 @@ export function Header({
           {/* ---- Bên trái: tiêu đề + bộ chọn học kỳ ---- */}
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {/* Tiêu đề: ẩn trên mobile nếu có bộ chọn, ngược lại hiện trên cả mobile và desktop */}
-            <h2 className={`desktop-only text-gray-900 whitespace-nowrap text-sm sm:text-base md:text-lg`} style={{ fontWeight: 600 }}>
+            <h2 className="hidden whitespace-nowrap text-lg text-gray-900 lg:block" style={{ fontWeight: 600 }}>
               Hệ thống hỗ trợ quản lý học tập
             </h2>
             <h2
-              className="mobile-only flex items-center gap-2 whitespace-nowrap text-sm text-gray-900 sm:text-base md:text-lg"
+              className="flex items-center gap-2 whitespace-nowrap text-sm text-gray-900 sm:text-base lg:hidden"
               style={{ fontWeight: 600 }}
             >
               <GraduationCap className="h-8 w-8 shrink-0 rounded-md bg-[#0058B2] p-1 text-white lg:h-9 lg:w-9 lg:rounded-lg" />
@@ -195,7 +195,7 @@ export function Header({
             <NotificationMenu />
 
             {/* Divider - ẩn trên mobile */}
-            <div className="hidden md:block h-10 w-px bg-gray-200"></div>
+            <div className="hidden h-10 w-px bg-gray-200 lg:block"></div>
 
             {hasStudentProfile ? (
               <>
@@ -205,14 +205,14 @@ export function Header({
                     <span className="text-white text-xs md:text-sm" style={{ fontWeight: 600 }}>{nameInitial}</span>
                   </div>
                   {/* Tên sinh viên: ẩn trên mobile */}
-                  <div className="hidden md:block text-left">
+                  <div className="hidden text-left lg:block">
                     <p className="text-gray-900 text-sm" style={{ fontWeight: 500 }}>{studentName || 'Sinh viên'}</p>
                     <p className="text-gray-500 text-xs" style={{ fontWeight: 400 }}>Đã đồng bộ</p>
                   </div>
                 </div>
 
                 {/* Divider - ẩn trên mobile */}
-                <div className="hidden md:block h-10 w-px bg-gray-200"></div>
+                <div className="hidden h-10 w-px bg-gray-200 lg:block"></div>
 
                 {/* Open Portal Button */}
                 <button
@@ -224,7 +224,7 @@ export function Header({
                   {isOpeningPortal
                     ? <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={2.5} />
                     : <ExternalLink className="h-4 w-4" strokeWidth={2.5} />}
-                  <span className="hidden md:inline" style={{ fontWeight: 500 }}>Mở Portal</span>
+                  <span className="hidden lg:inline" style={{ fontWeight: 500 }}>Mở Portal</span>
                 </button>
 
                 {/* Log Out Button */}
@@ -234,7 +234,7 @@ export function Header({
                 >
                   <LogOut className="w-4 h-4" strokeWidth={2.5} />
                   {/* Text: ẩn trên mobile */}
-                  <span className="hidden md:inline" style={{ fontWeight: 500 }}>Đăng xuất</span>
+                  <span className="hidden lg:inline" style={{ fontWeight: 500 }}>Đăng xuất</span>
                 </button>
               </>
             ) : (

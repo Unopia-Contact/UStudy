@@ -22,6 +22,7 @@ interface SelectionBasketProps {
     compact?: boolean;
     title?: string;
     description?: string;
+    mobileSheet?: boolean;
 }
 
 function parseCredits(value: unknown): number {
@@ -41,6 +42,7 @@ export function SelectionBasket({
     compact = false,
     title = 'Giỏ môn học',
     description,
+    mobileSheet = false,
 }: SelectionBasketProps) {
     const [filterModalCourse, setFilterModalCourse] = useState<Course | null>(null);
     const {
@@ -118,17 +120,20 @@ export function SelectionBasket({
     );
 
     const formatCurrency = (amount: number) => FinancialLogic.formatCurrency(amount);
+    if (mobileSheet && filterModalCourse && allowedClassesMap && setAllowedClassesMap) {
+        return <div className="min-h-0 h-full overflow-y-auto p-4"><CourseClassFilterModal courseCode={filterModalCourse.id} courseNameVi={filterModalCourse.nameVi} isOpen onClose={() => setFilterModalCourse(null)} allowedClassesMap={allowedClassesMap} setAllowedClassesMap={setAllowedClassesMap} classPreferenceMap={classPreferenceMap} setClassPreferenceMap={setClassPreferenceMap} embedded /></div>;
+    }
 
     return (
-        <div className={`ustudy-card flex h-full w-full flex-col overflow-hidden ${compact ? '' : 'shadow-lg'}`}>
-            <div className="w-full flex-shrink-0 border-b border-gray-200 p-4">
+        <div className={`${mobileSheet ? '' : 'ustudy-card'} flex h-full min-h-0 w-full flex-col overflow-hidden ${compact || mobileSheet ? '' : 'shadow-lg'}`}>
+            <div className={`${mobileSheet ? 'hidden' : ''} w-full flex-shrink-0 border-b border-gray-200 p-4`}>
                 <h3 className="ustudy-card-title">{title}</h3>
                 <p className="ustudy-card-subtitle mt-1">
                     {basketDescription}
                 </p>
             </div>
 
-            <div className="ustudy-scrollbar flex-1 space-y-2 overflow-y-auto p-3">
+            <div className="ustudy-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
                 {selectedCourses.length === 0 ? (
                     <div className="ustudy-empty-state flex-col">
                         <div className="ustudy-icon-badge ustudy-icon-primary-soft mx-auto mb-3 h-12 w-12 md:h-12 md:w-12">
@@ -166,7 +171,8 @@ export function SelectionBasket({
                                 {(allowedClassesMap && setAllowedClassesMap) && (
                                     <button
                                         onClick={() => setFilterModalCourse(course)}
-                                        className="ustudy-action-icon ustudy-action-icon-primary h-7 w-7"
+                                        className="ustudy-action-icon ustudy-action-icon-primary h-11 w-11"
+                                        aria-label={`Lớp được xét cho ${course.nameVi}`}
                                         title="Lọc lớp học"
                                     >
                                         <ListFilter className="w-4 h-4" />
@@ -175,7 +181,8 @@ export function SelectionBasket({
                                 {onRemoveCourse && (
                                     <button
                                         onClick={() => onRemoveCourse(course.id)}
-                                        className="ustudy-action-icon ustudy-action-icon-danger h-7 w-7"
+                                        className="ustudy-action-icon ustudy-action-icon-danger h-11 w-11"
+                                        aria-label={`Bỏ ${course.nameVi} khỏi giỏ`}
                                         title="Xóa khỏi giỏ"
                                     >
                                         <X className="w-4 h-4" />
@@ -196,7 +203,7 @@ export function SelectionBasket({
                         </div>
                         {registeredOnlyCourseCodes.length > 0 && (
                             <div className="mb-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
-                                <span>Trường đăng ký <strong className="font-semibold text-gray-700">{registeredCredits} TC</strong></span>
+                                    <span>Đã đăng ký trên Portal <strong className="font-semibold text-gray-700">{registeredCredits} TC</strong></span>
                                 <span>Chọn thêm <strong className="font-semibold text-gray-700">{selectedCredits} TC</strong></span>
                             </div>
                         )}
@@ -228,7 +235,8 @@ export function SelectionBasket({
                                         {formatCurrency(estimatedTuition)} VNĐ
                                     </p>
                                 </div>
-                                <div className="mt-1 flex items-center justify-between gap-3 border-t border-blue-100 pt-1.5 text-[11px]">
+                                <details className="mt-2 text-xs"><summary className="min-h-8 cursor-pointer text-[#004A98]">Chi tiết học phí tham khảo</summary>
+                                <div className="mt-1 flex items-center justify-between gap-3 border-t border-blue-100 pt-1.5 text-xs">
                                     <span className="font-medium text-gray-600">
                                         {academicYear === forecastAcademicYear
                                             ? `Theo đơn giá ${comparisonAcademicYear}`
@@ -241,11 +249,12 @@ export function SelectionBasket({
                                 <p className="mt-1 text-[10px] leading-4 text-gray-500">
                                     Tổng học phí dự kiến là dự đoán tham khảo, không phải mức thu chính thức của trường.
                                 </p>
+                                </details>
                             </div>
                         </div>
                     }
 
-                    <p className="mt-2 text-center text-[10px] leading-relaxed text-gray-500">
+                    <p className="mt-2 hidden md:block text-center text-xs leading-relaxed text-gray-500">
                         Dữ liệu được lưu tại Local Storage và sẽ xóa khi Đăng xuất
                     </p>
                 </div>

@@ -1,4 +1,4 @@
-import { Shuffle, BookOpen, Hash, Calendar, AlertTriangle, Check, Lock, Circle, Sparkles, Layers } from 'lucide-react';
+import { Shuffle, BookOpen, Hash, Calendar, AlertTriangle, Check, Lock, Circle, Layers } from 'lucide-react';
 import type { DraftSelection, ScheduleConflict } from '../types/schedule-builder-types';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
@@ -24,7 +24,6 @@ export function ScheduleSummary({
   onHybridSolve,
   solvingHybrid,
 }: ScheduleSummaryProps) {
-  const totalSections = selections.reduce((sum, s) => sum + s.classSections.length, 0);
   const totalPeriods = selections.reduce(
     (sum, s) => sum + s.classSections.reduce((ps, cs) => ps + Math.round(cs.endPeriod - cs.startPeriod + 1), 0),
     0,

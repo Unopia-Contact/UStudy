@@ -94,15 +94,15 @@ export function GradeHistoryTable({
             )}
 
             {/* Mobile: Card view */}
-            <div className={`${sortedHistory.length === 0 ? 'hidden ' : ''}divide-y divide-gray-100 md:hidden`}>
+            <div className={`${sortedHistory.length === 0 ? 'hidden ' : ''}divide-y divide-gray-100 lg:hidden`}>
                 {sortedHistory.map((course, idx) => (
                     <GradeHistoryMobileCard key={`${course.code}-${idx}`} course={course} />
                 ))}
             </div>
 
             {/* Desktop: Table view */}
-            <div className={sortedHistory.length === 0 ? 'hidden' : 'hidden overflow-x-auto md:block'}>
-                <table className="w-full table-fixed">
+            <div className={sortedHistory.length === 0 ? 'hidden' : 'hidden overflow-x-auto lg:block'}>
+                <table className="min-w-[960px] w-full table-fixed">
                     <colgroup>
                         <col className="w-[12%]" />
                         <col className="w-[31%]" />

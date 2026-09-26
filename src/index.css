@@ -58,6 +58,22 @@ body:has(:is(
 }
 
 @layer components {
+  .ustudy-app-dialog > [data-slot="dialog-close"] {
+    @apply flex h-11 w-11 items-center justify-center rounded-lg text-white opacity-90;
+  }
+
+  .ustudy-app-dialog > [data-slot="dialog-close"]:hover,
+  .ustudy-app-dialog > [data-slot="dialog-close"]:focus-visible {
+    @apply bg-white/15 text-white opacity-100;
+  }
+
+  @media (max-width: 767px) {
+    .ustudy-app-dialog > [data-slot="dialog-close"] {
+      top: max(0.5rem, env(safe-area-inset-top));
+      right: 0.5rem;
+    }
+  }
+
   .ustudy-app-shell {
     @apply flex h-screen bg-slate-50 text-gray-900;
   }
@@ -141,6 +157,17 @@ body:has(:is(
 
   .ustudy-settings-group {
     @apply rounded-lg bg-slate-50 p-3.5 md:p-4;
+  }
+
+  @media (max-width: 767px) {
+    .ustudy-settings-detail .ustudy-settings-card {
+      @apply rounded-lg p-4 shadow-none;
+    }
+
+    .ustudy-settings-detail .ustudy-settings-title,
+    .ustudy-settings-detail .ustudy-settings-description {
+      @apply hidden;
+    }
   }
 
   .ustudy-icon-badge {

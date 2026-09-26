@@ -1,5 +1,5 @@
-import { CalendarClock, Check, List, Trash2 } from 'lucide-react';
-import { AppDialog } from '../../../components/ui/overlays/app-dialog';
+import { CalendarClock, Check, Trash2 } from 'lucide-react';
+import { RoadmapDialog } from '../../study-roadmap/components/RoadmapDialog';
 import type { SavedSchedule } from '../../../types';
 
 interface SavedSchedulesModalProps {
@@ -17,22 +17,17 @@ export function SavedSchedulesModal({
   onLoadSchedule,
   onDeleteSchedule,
 }: SavedSchedulesModalProps) {
+  if (!isOpen) return null;
   return (
-    <AppDialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <RoadmapDialog
+      onClose={onClose}
       title="Lịch đã lưu"
       description="Các phương án được lưu cục bộ trên trình duyệt này."
-      icon={List}
-      size="md"
       footer={(
         <p className="w-full text-left text-xs leading-5 text-slate-500">
           Mở một lịch sẽ thay thế phương án đang xem.
         </p>
       )}
-      contentClassName="space-y-0 p-0"
     >
       {savedSchedules.length === 0 ? (
         <div className="flex min-h-56 flex-col items-center justify-center px-5 py-12 text-center">
@@ -89,6 +84,6 @@ export function SavedSchedulesModal({
           ))}
         </div>
       )}
-    </AppDialog>
+    </RoadmapDialog>
   );
 }

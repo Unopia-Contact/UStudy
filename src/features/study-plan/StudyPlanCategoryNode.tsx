@@ -14,6 +14,7 @@ interface StudyPlanCategoryNodeProps {
     category: any;
     categoryKey: string;
     depth?: number;
+    expandForSearch?: boolean;
     expandedCategories: Record<string, boolean>;
     onCategoryExpandedChange: (categoryKey: string, expanded: boolean) => void;
     manuallyPlannedCourseIds: Set<string>;
@@ -27,6 +28,7 @@ export function StudyPlanCategoryNode({
     category,
     categoryKey,
     depth = 0,
+    expandForSearch = false,
     expandedCategories,
     onCategoryExpandedChange,
     manuallyPlannedCourseIds,
@@ -35,7 +37,7 @@ export function StudyPlanCategoryNode({
     onRemoveFromPlan,
     onOpenMobilePlanner,
 }: StudyPlanCategoryNodeProps) {
-    const isExpanded = expandedCategories[categoryKey] ?? true;
+    const isExpanded = expandForSearch || (expandedCategories[categoryKey] ?? (typeof window === 'undefined' || window.innerWidth >= 1024));
     const coursesToRender = (category.coursesData || []) as CourseMeta[];
     const childCategories = category.breakdown ? Object.entries(category.breakdown) : [];
     const optionCategories = Array.isArray(category.options) ? category.options : [];
@@ -163,6 +165,7 @@ export function StudyPlanCategoryNode({
                             category={child}
                             depth={depth + 1}
                             expandedCategories={expandedCategories}
+                            expandForSearch={expandForSearch}
                             onCategoryExpandedChange={onCategoryExpandedChange}
                             manuallyPlannedCourseIds={manuallyPlannedCourseIds}
                             creditProgressByPath={creditProgressByPath}

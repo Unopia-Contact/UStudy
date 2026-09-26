@@ -41,7 +41,8 @@ export function GroupMemberCard({ member, index, courseNames = {}, onEdit, onRem
                 variant="ghost"
                 size="icon"
                 onClick={onEdit}
-                className="h-8 w-8 shrink-0 text-slate-400 hover:bg-blue-50 hover:text-[#004A98]"
+                className="h-11 w-11 shrink-0 text-slate-500 hover:bg-blue-50 hover:text-[#004A98]"
+                aria-label={`Chỉnh sửa ${nickname}`}
                 title="Chỉnh sửa thành viên"
               >
                 <Pencil className="h-4 w-4" />
@@ -54,7 +55,8 @@ export function GroupMemberCard({ member, index, courseNames = {}, onEdit, onRem
                 variant="ghost"
                 size="icon"
                 onClick={onRemove}
-                className="h-8 w-8 shrink-0 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                className="h-11 w-11 shrink-0 text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+                aria-label={`Xóa ${nickname}`}
                 title="Xóa thành viên"
               >
                 <Trash2 className="h-4 w-4" />

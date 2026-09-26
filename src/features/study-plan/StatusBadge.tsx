@@ -16,7 +16,7 @@ const STATUS_META: Record<DisplayStatus, {
 }> = {
     planned: {
         label: 'Đã lên lịch',
-        mobileLabel: 'Đã lịch',
+        mobileLabel: 'Dự kiến',
         barClass: 'bg-indigo-500',
         textClass: 'text-indigo-700',
     },
@@ -46,7 +46,7 @@ const STATUS_META: Record<DisplayStatus, {
     },
     none: {
         label: 'Chưa học',
-        mobileLabel: 'Chưa',
+        mobileLabel: 'Chưa học',
         barClass: 'bg-gray-300',
         textClass: 'text-gray-500',
     },
@@ -59,7 +59,7 @@ export function StatusBadge({ status, rootCompleted = false, isPlanned = false }
     return (
         <span className="inline-flex w-full items-center gap-2 text-left">
             <span className={`h-4 w-1 rounded-full ${meta.barClass}`} />
-            <span className={`text-[11px] font-semibold md:text-sm ${meta.textClass}`}>
+            <span className={`text-xs font-medium md:text-sm ${meta.textClass}`}>
                 <span className="hidden md:inline">{meta.label}</span>
                 <span className="md:hidden">{meta.mobileLabel}</span>
             </span>

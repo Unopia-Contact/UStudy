@@ -77,6 +77,6 @@ export function readDashboardLayout(): DashboardLayoutPreferences {
   );
 }
 
-export function saveDashboardLayout(layout: DashboardLayoutPreferences): void {
-  savePlain(STORAGE_KEYS.DASHBOARD_LAYOUT, normalizeDashboardLayout(layout));
+export function saveDashboardLayout(layout: DashboardLayoutPreferences): boolean {
+  return savePlain(STORAGE_KEYS.DASHBOARD_LAYOUT, normalizeDashboardLayout(layout));
 }
