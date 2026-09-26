@@ -234,13 +234,12 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
         <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-0.5 md:gap-3">
           {/* Course Code */}
           <div className="order-2 md:order-none md:w-24 flex-shrink-0">
-            <p className="text-xs md:text-sm text-gray-500 md:font-semibold md:text-gray-900 leading-tight md:leading-normal">{course.code}<span className="md:hidden"> · {course.credits} TC</span></p>
+            <p className="text-[11px] md:text-sm text-gray-500 md:font-semibold md:text-gray-900 leading-tight md:leading-normal">{course.code}</p>
           </div>
           {/* Course Name */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-gray-900 font-medium leading-5 md:truncate">{course.nameVi}</p>
+            <p title={course.nameVi} className="truncate text-xs md:text-sm text-gray-900 font-medium leading-tight md:leading-5">{course.nameVi}</p>
           </div>
-          <p className={`order-3 text-xs md:hidden ${statusConfig.textClass}`}>{isRegistered ? 'Đã đăng ký trên Portal' : isSelected ? 'Đã chọn vào giỏ' : statusConfig.label}</p>
         </div>
 
         {/* Credits */}

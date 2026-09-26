@@ -22,7 +22,7 @@
     .roadmap-mobile-tabs nav > button { flex: 1; min-width: 0; padding-inline: 8px; }
     .roadmap-mobile-tabs nav > button > span:first-child { justify-content: center; gap: 4px; }
     .roadmap-mobile-tabs nav > button > span:first-child > svg { display: none; }
-    .roadmap-course-row { background: white; padding-block: 12px; }
+    .roadmap-course-row { background: white; padding-block: 4px; }
     .roadmap-mobile button:focus-visible { outline: 2px solid #004a98; outline-offset: 2px; }
     .roadmap-mobile .study-plan-course-row { padding-block: 12px; }
     .study-plan-course-identity > :first-child { order: 2; }
