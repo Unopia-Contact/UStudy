@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Check, X } from 'lucide-react';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
 import type { ClassPreferenceLevel, ClassPreferenceSelection } from '../../group-schedule/types';
 import courseDbJson from '../../../logic/scheduler/Course_db.json';
+import { RoadmapDialog } from './RoadmapDialog';
 
 interface CourseClassFilterModalProps {
   courseCode: string;
@@ -14,6 +14,7 @@ interface CourseClassFilterModalProps {
   setAllowedClassesMap: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
   classPreferenceMap?: Record<string, ClassPreferenceSelection>;
   setClassPreferenceMap?: React.Dispatch<React.SetStateAction<Record<string, ClassPreferenceSelection>>>;
+  embedded?: boolean;
 }
 
 export function CourseClassFilterModal({
@@ -25,6 +26,7 @@ export function CourseClassFilterModal({
   setAllowedClassesMap,
   classPreferenceMap,
   setClassPreferenceMap,
+  embedded = false,
 }: CourseClassFilterModalProps) {
   const [availableClasses, setAvailableClasses] = useState<{ id: string; schedule?: string[] }[]>([]);
 
@@ -126,27 +128,10 @@ export function CourseClassFilterModal({
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 p-4">
-          <div>
-            <h3 className="font-semibold leading-tight text-gray-900">
-              {usesPreferenceMode ? 'Cấu hình lớp' : 'Lọc lớp'}: {courseCode}
-            </h3>
-            <p className="mt-0.5 text-xs text-gray-500">{courseNameVi}</p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="cursor-pointer rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-200"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
+  const content = (
+        <div className="p-1">
+          {embedded && <button type="button" onClick={onClose} className="mb-3 min-h-11 text-sm font-medium text-[#004A98]">← Quay lại giỏ môn</button>}
+          {embedded && <h3 className="mb-3 text-sm font-semibold">{courseNameVi} · Lớp được xét</h3>}
           {availableClasses.length === 0 ? (
             <div className="py-4 text-center text-sm text-gray-500">Không tìm thấy dữ liệu lớp học cho môn này.</div>
           ) : (
@@ -176,7 +161,7 @@ export function CourseClassFilterModal({
                 </div>
               </div>
 
-              {availableClasses.sort((a, b) => a.id.localeCompare(b.id)).map((availableClass) => {
+              {[...availableClasses].sort((a, b) => a.id.localeCompare(b.id)).map((availableClass) => {
                 const isChecked = activeClasses.has(availableClass.id);
                 const preferenceLevel = getPreferenceLevel(availableClass.id);
                 const classTone = preferenceLevel === 'excluded'
@@ -188,11 +173,10 @@ export function CourseClassFilterModal({
                       : 'border-gray-300 bg-gray-50 hover:bg-gray-100';
 
                 return (
-                  <div key={availableClass.id} className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${classTone}`}>
+                  <div key={availableClass.id} className={`flex flex-wrap items-start gap-3 rounded-lg border p-3 transition-colors ${classTone}`}>
                     {!usesPreferenceMode && (
-                      <label className={`mt-0.5 flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded border ${isChecked ? 'border-[#004A98] bg-[#004A98]' : 'border-gray-300 bg-white'}`}>
-                        <input type="checkbox" className="hidden" checked={isChecked} onChange={() => handleToggle(availableClass.id)} />
-                        {isChecked && <Check className="h-3 w-3 text-white" />}
+                      <label className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">
+                        <input type="checkbox" className="h-4 w-4 accent-[#004A98]" aria-label={`Cho phép lớp ${availableClass.id} được xét`} checked={isChecked} onChange={() => handleToggle(availableClass.id)} />
                       </label>
                     )}
 
@@ -211,7 +195,7 @@ export function CourseClassFilterModal({
                     </div>
 
                     {usesPreferenceMode && (
-                      <div className="grid w-[184px] shrink-0 grid-cols-2 gap-1 rounded-lg bg-white p-1 sm:w-[244px] sm:grid-cols-4">
+                      <div className="grid w-full shrink-0 grid-cols-2 gap-1 rounded-lg bg-white p-1 sm:w-[244px] sm:grid-cols-4">
                         {classPreferenceLabels.map((item) => (
                           <button
                             key={item.label}
@@ -230,17 +214,7 @@ export function CourseClassFilterModal({
             </div>
           )}
         </div>
-
-        <div className="border-t border-gray-100 bg-gray-50 p-4 sm:flex sm:flex-row-reverse">
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex w-full justify-center rounded-md border border-transparent bg-[#004A98] px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-[#003A78] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-          >
-            Đóng
-          </button>
-        </div>
-      </div>
-    </div>
   );
+  if (embedded) return content;
+  return <RoadmapDialog title={usesPreferenceMode ? 'Cấu hình lớp' : 'Lớp được xét'} description={`${courseCode} · ${courseNameVi}`} onClose={onClose} footer={<button type="button" onClick={onClose} className="ustudy-button-primary min-h-11 w-full">Xong</button>}>{content}</RoadmapDialog>;
 }

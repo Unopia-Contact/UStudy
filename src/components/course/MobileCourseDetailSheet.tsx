@@ -27,6 +27,7 @@ interface MobileCourseDetailContentProps {
     status: ReactNode;
     prerequisiteContent: ReactNode;
     additionalContent?: ReactNode;
+    compact?: boolean;
 }
 
 export function MobileCourseSheetFrame({
@@ -43,6 +44,8 @@ export function MobileCourseSheetFrame({
             ariaLabel={`Chi tiết môn ${courseCode}`}
             onClose={onClose}
             footer={footer}
+            contentClassName="overflow-hidden"
+            scrollContent={false}
         >
             {children}
         </MobileBottomSheet>
@@ -54,7 +57,17 @@ export function MobileCourseDetailContent({
     status,
     prerequisiteContent,
     additionalContent,
+    compact = false,
 }: MobileCourseDetailContentProps) {
+    if (compact) return <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span>{course.credits} TC{course.type ? ` · ${course.type}` : ''}</span>{status}</div>
+        <section className="mt-4 border-t border-gray-200 pt-4"><h3 className="mb-2 text-sm font-semibold">Điều kiện học</h3>{prerequisiteContent}</section>
+        {additionalContent}
+        <details className="mt-4 border-t border-gray-200 pt-3"><summary className="min-h-11 cursor-pointer text-sm font-medium text-[#004A98]">Thông tin chương trình đào tạo</summary>
+            <p className="text-xs leading-5 text-gray-500">{course.category || 'Chưa có danh mục'} · LT {course.theoryHours || 0} · TH {course.labHours || 0} · BT {course.exerciseHours || 0} tiết</p>
+            <p className="mt-2 text-sm leading-6 text-gray-600">{course.description || 'Chưa có ghi chú cho môn học này.'}</p>
+        </details>
+    </div>;
     return (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 text-sm">

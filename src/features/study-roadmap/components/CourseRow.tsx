@@ -194,8 +194,12 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
   return (
     <div className="group">
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Chi tiết ${course.nameVi}`}
+        onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); handleDetailsToggle(); } }}
         onClick={handleDetailsToggle}
-      className={`flex items-center gap-1.5 md:gap-3 px-2 md:px-4 py-2 md:py-2.5 border transition-all ${showDescription ? 'rounded-t-lg' : 'rounded-lg'} ${
+      className={`roadmap-course-row flex items-center gap-1.5 md:gap-3 px-2 md:px-4 py-2 md:py-2.5 border transition-all ${showDescription ? 'rounded-t-lg' : 'rounded-lg'} ${
           isRegistered
             ? 'border-emerald-200 bg-emerald-50 cursor-default'
             : course.needsRetake
@@ -204,7 +208,7 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
                 ? 'border-[#004A98] bg-blue-100 shadow-sm'
                 : course.isAvailable
                   ? 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-gray-400'
-                  : 'border-gray-300 bg-gray-100 opacity-60'
+                  : 'border-gray-200 bg-gray-50'
           }`}
       >
         {/* Checkbox / Registered badge */}
@@ -213,30 +217,34 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
             ✓ Đăng ký
           </span>
         ) : (
+          <label className="flex h-11 w-11 shrink-0 items-center justify-center" onClick={e => e.stopPropagation()}>
           <input
             type="checkbox"
             checked={isSelected}
+            aria-label={`Chọn ${course.nameVi}`}
             onChange={() => onToggle(course.id)}
             onClick={(e) => e.stopPropagation()}
             disabled={!course.isAvailable && !course.needsRetake}
             className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#004A98] border-gray-300 rounded focus:ring-[#004A98] cursor-pointer disabled:cursor-not-allowed flex-shrink-0"
           />
+          </label>
         )}
 
         {/* Course Code & Name (Stack on mobile, row on desktop) */}
         <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-0.5 md:gap-3">
           {/* Course Code */}
-          <div className="md:w-24 flex-shrink-0">
-            <p className="text-[11px] md:text-sm font-semibold text-gray-900 leading-tight md:leading-normal">{course.code}</p>
+          <div className="order-2 md:order-none md:w-24 flex-shrink-0">
+            <p className="text-xs md:text-sm text-gray-500 md:font-semibold md:text-gray-900 leading-tight md:leading-normal">{course.code}<span className="md:hidden"> · {course.credits} TC</span></p>
           </div>
           {/* Course Name */}
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] md:text-sm text-gray-500 md:text-gray-900 truncate font-medium md:font-medium leading-tight md:leading-normal">{course.nameVi}</p>
+            <p className="text-sm text-gray-900 font-medium leading-5 md:truncate">{course.nameVi}</p>
           </div>
+          <p className={`order-3 text-xs md:hidden ${statusConfig.textClass}`}>{isRegistered ? 'Đã đăng ký trên Portal' : isSelected ? 'Đã chọn vào giỏ' : statusConfig.label}</p>
         </div>
 
         {/* Credits */}
-        <div className="w-10 md:w-16 flex-shrink-0 text-center">
+        <div className="hidden md:block w-16 flex-shrink-0 text-center">
           <span className="px-1 md:px-2 py-0.5 md:py-1 text-gray-700 text-[10px] md:text-xs rounded font-medium whitespace-nowrap">
             {course.credits} TC
           </span>
@@ -264,7 +272,7 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
               event.stopPropagation();
               handleDetailsToggle();
             }}
-            className="p-1 md:p-1.5 hover:bg-gray-200 rounded transition-colors"
+            className="hidden md:inline-flex p-1.5 hover:bg-gray-200 rounded transition-colors"
             title="Xem chi tiết"
           >
             {showDescription ? (
@@ -278,7 +286,7 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
               onShowFlowchart(course);
               e.stopPropagation();
             }}
-            className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+            className="hidden md:inline-flex p-1.5 hover:bg-gray-200 rounded transition-colors"
             title="Sơ đồ môn tiên quyết"
           >
             <GitBranch className="w-4 h-4 text-gray-600" />

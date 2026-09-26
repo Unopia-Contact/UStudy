@@ -4,6 +4,15 @@ import { CourseRow } from './CourseRow';
 import { MobileCourseDetailContent, MobileCourseSheetFrame } from '../../../components/course';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 import type { Course } from '../../../types';
+import { AppDialog } from '../../../components/ui/overlays/app-dialog';
+import { MobileBottomSheet } from '../../../components/ui/overlays/mobile-bottom-sheet';
+import { useIsMobile } from '../../../components/ui/use-mobile';
+import { matchesSelectionFilter, type SelectionFilter, type CourseGroup } from '../selection-filters';
+import { STORAGE_KEYS } from '../../../config';
+import { readFromStorage } from '../../../helpers/localStorage/save';
+import courseDbJson from '../../../logic/scheduler/Course_db.json';
+import type { CourseSchedule } from './CourseRow';
+import { useRoadmapViewState } from '../hooks/use-roadmap-view-state';
 
 interface SelectionViewProps {
     searchTerm: string;
@@ -34,6 +43,38 @@ export function SelectionView({
     registeredCourseCodes,
 }: SelectionViewProps) {
     const [mobileDetailCourse, setMobileDetailCourse] = useState<Course | null>(null);
+    const mobileClasses = useMemo(() => {
+        if (!mobileDetailCourse) return [];
+        const code = mobileDetailCourse.code.toUpperCase();
+        const imported = readFromStorage<Array<{ id: string; classes?: CourseSchedule[] }>>(STORAGE_KEYS.COURSE_DB_OFFLINE, []);
+        const stored = imported.find(item => item.id?.toUpperCase() === code);
+        const fallback = (courseDbJson as Array<{ id: string; classes?: CourseSchedule[] }>).find(item => item.id?.toUpperCase() === code);
+        return stored?.classes?.length ? stored.classes : fallback?.classes ?? [];
+    }, [mobileDetailCourse]);
+    const [filterOpen, setFilterOpen] = useState(false);
+    const isMobile = useIsMobile();
+    const [filter, setFilter] = useRoadmapViewState<SelectionFilter>('selection-filter', 'all', (v): v is SelectionFilter => typeof v === 'string' && ['all', 'available', 'retake', 'selected', 'unselected'].includes(v));
+    const [group, setGroup] = useRoadmapViewState<CourseGroup>('selection-group', 'all', (v): v is CourseGroup => typeof v === 'string' && ['all', 'core', 'major', 'electives'].includes(v));
+    const [draftFilter, setDraftFilter] = useState<SelectionFilter>('all');
+    const [draftGroup, setDraftGroup] = useState<CourseGroup>('all');
+    const filterCount = Number(filter !== 'all') + Number(group !== 'all');
+    const visibleCourses = Object.fromEntries((['core', 'major', 'electives'] as const).map(key => [key,
+        group !== 'all' && group !== key ? [] : filteredCourses[key].filter(course => matchesSelectionFilter(course, filter, selectedCourses)),
+    ])) as typeof filteredCourses;
+    const hasCatalog = all.core.length + all.major.length + all.electives.length > 0;
+    const filteredEmpty = hasCatalog && (Boolean(searchTerm.trim()) || filterCount > 0 || viewMode === 'recommend');
+    const filterContent = <div className="space-y-5">
+        <label className="block text-sm font-medium">Nhóm kiến thức
+            <select className="mt-2 min-h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-base" value={draftGroup} onChange={e => setDraftGroup(e.target.value as CourseGroup)}>
+                <option value="all">Tất cả nhóm</option><option value="core">Cơ sở ngành</option><option value="major">Chuyên ngành</option><option value="electives">Tự chọn</option>
+            </select>
+        </label>
+        <fieldset><legend className="mb-2 text-sm font-medium">Trạng thái môn</legend>
+            {([['all', 'Tất cả'], ['available', 'Đủ điều kiện theo dữ liệu hiện có'], ['retake', 'Cần học lại'], ['selected', 'Đã chọn vào giỏ'], ['unselected', 'Chưa chọn vào giỏ']] as const).map(([value, label]) =>
+                <label key={value} className="flex min-h-11 items-center gap-3 text-sm"><input type="radio" name="selection-status" checked={draftFilter === value} onChange={() => setDraftFilter(value)} />{label}</label>)}
+        </fieldset>
+    </div>;
+    const filterFooter = <div className="flex w-full gap-3"><button type="button" className="ustudy-button-normal min-h-11" onClick={() => { setDraftFilter('all'); setDraftGroup('all'); }}>Đặt lại</button><button type="button" className="ustudy-button-primary min-h-11 flex-1" onClick={() => { setFilter(draftFilter); setGroup(draftGroup); setFilterOpen(false); }}>Áp dụng</button></div>;
     const { data: { courses: courseMetadata } } = useDepartmentData();
     const mobileCourseMetadata = useMemo(() => (
         mobileDetailCourse
@@ -58,18 +99,19 @@ export function SelectionView({
                         placeholder="Tìm tên môn hoặc mã môn..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:border-transparent"
+                        aria-label="Tìm môn trong danh sách lớp mở"
+                        className="min-h-11 w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-2.5 text-base md:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:border-transparent"
                     />
                 </div>
                 {/* Nút lọc: ẩn label trên mobile */}
-                <button className="flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
+                <button type="button" aria-label="Lọc môn học" onClick={() => { setDraftFilter(filter); setDraftGroup(group); setFilterOpen(true); }} className="flex min-h-11 items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
                     <Filter className="w-4 h-4 text-gray-600" />
-                    <span className="hidden md:inline text-gray-700 text-sm">Lọc</span>
+                    <span className="text-gray-700 text-sm">Lọc{filterCount > 0 ? ` (${filterCount})` : ''}</span>
                 </button>
             </div>
 
             {/* Thông tin - gọn hơn trên mobile */}
-            <div className="mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2 md:gap-3">
+            <div className="hidden md:flex mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-lg items-start gap-2 md:gap-3">
                 <Info className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                     <p className="text-xs md:text-sm text-blue-900 font-medium">
@@ -115,16 +157,18 @@ export function SelectionView({
             </div>
 
             {/* Empty state */}
-            {filteredCourses.core.length + filteredCourses.electives.length + filteredCourses.major.length === 0 && (
+            {filterCount > 0 && <button type="button" className="mb-4 min-h-11 text-sm text-[#004A98]" onClick={() => { setFilter('all'); setGroup('all'); }}>Đang dùng {filterCount} bộ lọc · Xóa bộ lọc</button>}
+            {visibleCourses.core.length + visibleCourses.electives.length + visibleCourses.major.length === 0 && (
                 <div className="flex flex-col items-center justify-center mt-4">
                     <div className="flex flex-col items-center w-full justify-center py-12 md:py-20 px-4 bg-white border border-blue-100 rounded-2xl shadow-sm text-center">
                         <div className="w-14 h-14 md:w-20 md:h-20 p-3 md:p-5 bg-blue-50 rounded-full flex items-center justify-center mb-4 md:mb-5 border border-blue-100 shadow-sm">
                             <DatabaseBackup className="w-7 h-7 md:w-10 md:h-10 text-blue-500" />
                         </div>
-                        <h2 className="text-base md:text-xl font-bold text-gray-900 mb-2 md:mb-3">Đang cập nhật dữ liệu</h2>
+                        <h2 className="text-base md:text-xl font-bold text-gray-900 mb-2 md:mb-3">{filteredEmpty ? 'Không có môn phù hợp' : 'Chưa có dữ liệu lớp mở'}</h2>
                         <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-                            Danh sách lớp mở cho học kỳ này hiện chưa có.
+                            {filteredEmpty ? 'Thử từ khóa khác hoặc bỏ bộ lọc đang dùng.' : 'Nhập danh sách lớp mở từ Portal để chọn môn cho học kỳ này.'}
                         </p>
+                        {filteredEmpty && <button type="button" className="ustudy-button-normal mt-4 min-h-11" onClick={() => { setSearchTerm(''); setFilter('all'); setGroup('all'); setViewMode('all'); }}>Xem tất cả môn</button>}
                     </div>
                 </div>
             )}
@@ -132,7 +176,7 @@ export function SelectionView({
             {/* Section helper */}
             {(['core', 'major', 'electives'] as const).map((key) => {
                 const labels = { core: 'Môn học cơ sở ngành', major: 'Môn học chuyên ngành', electives: 'Môn học tự chọn' };
-                const courses = filteredCourses[key];
+                const courses = visibleCourses[key];
                 if (courses.length === 0) return null;
                 return (
                     <div key={key} className="mb-4 md:mb-6">
@@ -162,6 +206,7 @@ export function SelectionView({
                 );
             })}
 
+            {filterOpen && (isMobile ? <MobileBottomSheet title="Lọc môn học" className="md:hidden" onClose={() => setFilterOpen(false)} footer={filterFooter} contentClassName="p-4">{filterContent}</MobileBottomSheet> : <AppDialog open onOpenChange={setFilterOpen} title="Lọc môn học" footer={filterFooter}>{filterContent}</AppDialog>)}
             {mobileDetailCourse && (
                 <MobileCourseSheetFrame
                     courseCode={mobileDetailCourse.code}
@@ -171,7 +216,7 @@ export function SelectionView({
                         <button
                             type="button"
                             disabled={(!mobileDetailCourse.isAvailable && !mobileDetailCourse.needsRetake) || registeredCourseCodes?.has(mobileDetailCourse.id)}
-                            onClick={() => handleCourseToggle(mobileDetailCourse.id)}
+                            onClick={() => { handleCourseToggle(mobileDetailCourse.id); setMobileDetailCourse(null); }}
                             className={`w-full rounded-xl px-4 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 ${
                                 registeredCourseCodes?.has(mobileDetailCourse.id)
                                     ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
@@ -185,6 +230,8 @@ export function SelectionView({
                     )}
                 >
                     <MobileCourseDetailContent
+                        compact
+                        additionalContent={<section className="mt-4 border-t border-gray-200 pt-4"><h3 className="mb-2 text-sm font-semibold">{mobileClasses.length} lớp có dữ liệu</h3>{mobileClasses.length === 0 ? <p className="text-xs text-gray-500">Chưa có dữ liệu lớp. Cập nhật danh sách lớp mở từ Portal.</p> : <div className="divide-y divide-gray-100">{mobileClasses.map(cls => <div key={cls.id} className="py-3"><p className="text-sm font-medium">Lớp {cls.id.replace(/_/g, ' ')}</p><p className="mt-1 text-xs leading-5 text-gray-500">{cls.schedule?.join(' · ') || 'Chưa có lịch học'}</p>{cls.enrollment?.theory && <p className="mt-1 text-xs text-gray-500">LT: {cls.enrollment.theory.enrolled ?? '?'} / {cls.enrollment.theory.capacity ?? '?'} sinh viên</p>}</div>)}</div>}</section>}
                         course={{
                             code: mobileDetailCourse.code,
                             name: mobileDetailCourse.nameVi,

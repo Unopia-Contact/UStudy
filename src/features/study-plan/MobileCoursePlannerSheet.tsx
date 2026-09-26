@@ -1,4 +1,7 @@
 import { MobileCourseDetailContent, MobileCourseSheetFrame } from '../../components/course';
+import { useEffect, useState } from 'react';
+import { AppSelect } from '../../components/ui/form/app-select';
+import { getStudyPlanSemesterIndex } from './semester-utils';
 import { StatusBadge } from './StatusBadge';
 import type { CourseMeta, StudyPlanStorage, MobileSheetStep, PrerequisiteRule, StudyPlanSemester } from './types';
 
@@ -15,6 +18,9 @@ interface MobileCoursePlannerSheetProps {
     onClose: () => void;
     onSheetStepChange: (step: MobileSheetStep) => void;
     onAddCourseToSemester: (semesterId: string) => void;
+    courseById: Map<string, CourseMeta>;
+    onRemoveCourse: () => void;
+    preferredSemesterId?: string | null;
 }
 
 export function MobileCoursePlannerSheet({
@@ -30,7 +36,20 @@ export function MobileCoursePlannerSheet({
     onClose,
     onSheetStepChange,
     onAddCourseToSemester,
+    courseById,
+    onRemoveCourse,
+    preferredSemesterId,
 }: MobileCoursePlannerSheetProps) {
+    const [targetSemesterId, setTargetSemesterId] = useState<string | null>(null);
+    const [targetYear, setTargetYear] = useState('1');
+    const availableSemesters = studyPlan.semesters.filter(semester => !semester.isHistorical);
+    const yearOf = (semester: StudyPlanSemester) => String(Math.floor((getStudyPlanSemesterIndex(semester.label) ?? 0) / 3) + 1);
+    const availableYears = Array.from(new Set(availableSemesters.map(yearOf)));
+    useEffect(() => {
+        setTargetSemesterId(preferredSemesterId ?? null);
+        const preferred = studyPlan.semesters.find(s => s.id === (preferredSemesterId ?? selectedPlannedSemester?.id));
+        setTargetYear(preferred ? String(Math.floor((getStudyPlanSemesterIndex(preferred.label) ?? 0) / 3) + 1) : String(Math.floor((getStudyPlanSemesterIndex(studyPlan.semesters.find(s => !s.isHistorical)?.label ?? '') ?? 0) / 3) + 1));
+    }, [course?.course_id, sheetStep, preferredSemesterId, selectedPlannedSemester?.id, studyPlan.semesters]);
     if (!course) return null;
 
     const prerequisiteContent = (() => {
@@ -48,7 +67,8 @@ export function MobileCoursePlannerSheet({
         return <p className="text-xs leading-relaxed text-gray-600">Cần học trước: {rules.map((rule) => rule.prereq_id).join(', ')}</p>;
     })();
 
-    const footer = sheetStep === 'details' && !isLocked ? (
+    const footer = !isLocked && sheetStep === 'semesters' ? <button type="button" disabled={!targetSemesterId} className="ustudy-button-primary min-h-11 w-full" onClick={() => { if (targetSemesterId) onAddCourseToSemester(targetSemesterId); }}>Xác nhận học kỳ</button> : sheetStep === 'details' && !isLocked ? (
+        <div className="space-y-2">
         <button
             type="button"
             onClick={() => onSheetStepChange('semesters')}
@@ -56,6 +76,8 @@ export function MobileCoursePlannerSheet({
         >
             {selectedPlannedSemester ? 'Đổi học kỳ' : 'Lên lịch'}
         </button>
+        {selectedPlannedSemester && <button type="button" className="min-h-11 w-full text-sm text-red-600" onClick={onRemoveCourse}>Bỏ khỏi kế hoạch</button>}
+        </div>
     ) : undefined;
 
     return (
@@ -67,6 +89,7 @@ export function MobileCoursePlannerSheet({
         >
             {sheetStep === 'details' ? (
                 <MobileCourseDetailContent
+                    compact
                     course={{
                         code: course.course_id,
                         name: course.course_name_vi,
@@ -102,9 +125,11 @@ export function MobileCoursePlannerSheet({
                         >
                             Quay lại
                         </button>
+                        <AppSelect ariaLabel="Năm muốn lên kế hoạch" value={targetYear} options={availableYears.map(year => ({ id: year, name: `Năm ${year}` }))} onChange={setTargetYear} triggerClassName="min-h-11" className="mb-3" />
+                        {availableSemesters.length === 0 && <p className="py-4 text-sm text-gray-500">Chưa có học kỳ tương lai. Thêm học kỳ ở phần Học kỳ trước.</p>}
                         <div className="space-y-2">
-                            {studyPlan.semesters
-                                .filter((semester) => !semester.isHistorical)
+                            {availableSemesters
+                                .filter((semester) => yearOf(semester) === targetYear)
                                 .map((semester) => {
                                     const semesterIndex = studyPlan.semesters.findIndex((item) => item.id === semester.id);
                                     const plannedIds = studyPlan.plan[semester.id] || [];
@@ -115,13 +140,14 @@ export function MobileCoursePlannerSheet({
                                         <button
                                             key={semester.id}
                                             type="button"
-                                            onClick={() => onAddCourseToSemester(semester.id)}
-                                            className={`w-full rounded-xl border p-3 text-left transition-colors ${isCurrentSemester ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
+                                            onClick={() => setTargetSemesterId(semester.id)}
+                                            aria-pressed={targetSemesterId === semester.id}
+                                            className={`w-full rounded-lg border p-3 text-left transition-colors ${targetSemesterId === semester.id ? 'border-[#004A98] bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
                                         >
                                             <div className="flex items-center justify-between gap-3">
                                                 <div>
                                                     <p className="text-sm font-bold text-gray-900">{semester.label}</p>
-                                                    <p className="mt-0.5 text-xs text-gray-500">{plannedIds.length} môn</p>
+                                                    <p className="mt-0.5 text-xs text-gray-500">{plannedIds.length} môn · {plannedIds.reduce((sum, id) => sum + (Number(courseById.get(id)?.credits) || 0), 0)} → {plannedIds.reduce((sum, id) => sum + (Number(courseById.get(id)?.credits) || 0), 0) + (plannedIds.includes(course.course_id) ? 0 : Number(course.credits) || 0)} TC môn học</p>
                                                 </div>
                                                 {isCurrentSemester && (
                                                     <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">

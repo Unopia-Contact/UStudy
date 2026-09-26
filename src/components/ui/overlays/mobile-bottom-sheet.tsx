@@ -13,6 +13,7 @@ interface MobileBottomSheetProps {
     sheetClassName?: string;
     contentClassName?: string;
     sheetId?: string;
+    scrollContent?: boolean;
 }
 
 export function MobileBottomSheet({
@@ -26,27 +27,42 @@ export function MobileBottomSheet({
     sheetClassName = '',
     contentClassName = '',
     sheetId,
+    scrollContent = true,
 }: MobileBottomSheetProps) {
     const sheetRef = useRef<HTMLElement>(null);
     const dragStartYRef = useRef(0);
     const dragOffsetRef = useRef(0);
     const [dragOffset, setDragOffset] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
+    const onCloseRef = useRef(onClose);
+    onCloseRef.current = onClose;
 
     useEffect(() => {
         const previousOverflow = document.body.style.overflow;
+        const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const focusable = () => Array.from(sheetRef.current?.querySelectorAll<HTMLElement>('button, input, select, textarea, a[href], [tabindex="0"]') ?? []).filter(element => !element.hasAttribute('disabled') && element.getClientRects().length > 0);
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') onClose();
+            if (event.key === 'Escape') onCloseRef.current();
+            if (event.key !== 'Tab') return;
+            const controls = focusable();
+            const first = controls[0];
+            const last = controls[controls.length - 1];
+            if (!first) { event.preventDefault(); sheetRef.current?.focus(); return; }
+            if (event.shiftKey && (document.activeElement === first || !sheetRef.current?.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && (document.activeElement === last || !sheetRef.current?.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
         };
 
         document.body.style.overflow = 'hidden';
         window.addEventListener('keydown', handleKeyDown);
+        const frame = requestAnimationFrame(() => (focusable()[0] ?? sheetRef.current)?.focus());
 
         return () => {
             document.body.style.overflow = previousOverflow;
             window.removeEventListener('keydown', handleKeyDown);
+            cancelAnimationFrame(frame);
+            if (previousFocus?.isConnected) previousFocus.focus();
         };
-    }, [onClose]);
+    }, []);
 
     const updateDragOffset = (offset: number) => {
         const nextOffset = Math.max(0, offset);
@@ -94,10 +110,11 @@ export function MobileBottomSheet({
             <section
                 ref={sheetRef}
                 role="dialog"
+                tabIndex={-1}
                 aria-modal="true"
                 aria-label={ariaLabel || title}
                 data-mobile-sheet={sheetId}
-                className={`absolute inset-x-0 bottom-0 flex max-h-[82vh] flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl ${sheetClassName}`}
+                className={`absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl ${sheetClassName}`}
                 style={{
                     transform: `translateY(${dragOffset}px)`,
                     transition: isDragging ? 'none' : 'transform 180ms ease-out',
@@ -140,7 +157,7 @@ export function MobileBottomSheet({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg border-0 bg-transparent p-2 text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-white/85 transition-colors hover:bg-white/15 hover:text-white"
                             aria-label="Đóng"
                         >
                             <X className="h-5 w-5" />
@@ -149,8 +166,8 @@ export function MobileBottomSheet({
                 </div>
 
                 <div
-                    className={`scrollbar-hide min-h-0 flex-1 overscroll-contain ${contentClassName}`}
-                    style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+                    className={`scrollbar-hide min-h-0 flex-1 overscroll-contain ${scrollContent ? '' : 'flex flex-col'} ${contentClassName}`}
+                    style={{ overflowY: scrollContent ? 'auto' : 'hidden', WebkitOverflowScrolling: 'touch' }}
                 >
                     {children}
                 </div>

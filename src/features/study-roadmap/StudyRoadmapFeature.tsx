@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, Book, ClipboardList, ShoppingCart } from 'lucide-react';
+import { Calendar, Book, ClipboardList, ShoppingCart, Info } from 'lucide-react';
+import { RoadmapDialog } from './components/RoadmapDialog';
 import { useCourseData } from '../../hooks/useCourseData';
 import { useRegisteredCourses } from '../../hooks/useRegisteredCourses';
 import { type ClassSection } from '../../types';
@@ -22,6 +23,8 @@ import { useScheduleSolver } from './hooks/use-schedule-solver';
 import { GroupSchedulePage } from '../group-schedule';
 import type { Course } from '../../types';
 import { createPortal } from 'react-dom';
+import './roadmap-mobile.css';
+import { useRoadmapScrollMemory } from './hooks/use-roadmap-scroll-memory';
 import { useCampus } from '../../context/CampusContext';
 import { STUDY_ROADMAP_TAB_TO_PATH, getStudyRoadmapTabFromPath } from '../../app/routes';
 import { tabs, type Tab } from './types';
@@ -61,6 +64,7 @@ export function StudyRoadmapFeature() {
 
     // State giỏ hàng mobile: true = mở drawer giỏ hàng
     const [showMobileBasket, setShowMobileBasket] = useState(false);
+    const [helpOpen, setHelpOpen] = useState(false);
 
     useEffect(() => {
         saveToStorage(STORAGE_KEYS.ALLOWED_CLASSES_MAP, allowedClassesMap);
@@ -72,10 +76,6 @@ export function StudyRoadmapFeature() {
 
     useEffect(() => {
         saveToStorage(STORAGE_KEYS.STUDY_ROADMAP_ACTIVE_TAB, activeTab);
-    }, [activeTab]);
-
-    useEffect(() => {
-        setSearchTerm('');
     }, [activeTab]);
 
     // Đóng basket drawer khi chuyển tab
@@ -170,6 +170,7 @@ export function StudyRoadmapFeature() {
     };
 
     const confirmedSections: ClassSection[] = currentSections;
+    useRoadmapScrollMemory(activeTab, isReady);
     const handleGetConflicts = (section: ClassSection) => getConflicts(section, [...registeredSections, ...confirmedSections], defaultCampusId);
     
     const MobileBasketControls = (
@@ -182,7 +183,9 @@ export function StudyRoadmapFeature() {
                     onClose={() => setShowMobileBasket(false)}
                     className="lg:hidden"
                     sheetClassName="h-[min(80dvh,42rem)]"
-                    contentClassName="p-4"
+                    contentClassName="overflow-hidden"
+                    scrollContent={false}
+                    footer={<button type="button" disabled={pendingSelectedCourses.size === 0} className="ustudy-button-primary min-h-11 w-full" onClick={() => { setShowMobileBasket(false); setActiveTab('calendar'); }}>Tiếp tục xếp lịch</button>}
                     sheetId="study-roadmap-basket"
                 >
                     <SelectionBasket
@@ -194,25 +197,22 @@ export function StudyRoadmapFeature() {
                         onRemoveCourse={handleCourseToggle}
                         allowedClassesMap={allowedClassesMap}
                         setAllowedClassesMap={setAllowedClassesMap}
+                        mobileSheet
                     />
                 </MobileBottomSheet>
             )}
 
             {/* FAB button - chỉ hiện khi đang ở tab selection và chưa mở drawer */}
-            {activeTab === 'selection' && !showMobileBasket && (
+            {activeTab === 'selection' && !showMobileBasket && pendingSelectedCourses.size > 0 && (
                 createPortal(
                     <button
                         type="button"
-                        className="fixed bottom-[calc(var(--ustudy-mobile-nav-height)+1rem)] right-4 z-30 flex min-h-11 items-center gap-2 rounded-lg bg-[#004A98] px-4 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#003A78] md:hidden"
+                        className="roadmap-action-bar md:hidden"
                         onClick={() => setShowMobileBasket(true)}
                     >
                         <ShoppingCart className="h-5 w-5" />
-                        Giỏ môn học
-                        {pendingSelectedCourses.size > 0 && (
-                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-bold text-[#004A98]">
-                                {pendingSelectedCourses.size}
-                            </span>
-                        )}
+                        <span className="flex-1 text-left">{pendingSelectedCourses.size} môn · {globalAllCourses.filter(c => pendingSelectedCourses.has(c.id)).reduce((sum, c) => sum + (Number(c.credits) || 0), 0)} TC chọn thêm</span>
+                        <span className="font-semibold text-[#004A98]">Xem giỏ →</span>
                     </button>,
                     document.body,
                 )
@@ -233,6 +233,7 @@ export function StudyRoadmapFeature() {
             <PageShell
                 header={<PageHeader
                     title="Lộ trình học tập"
+                    className="roadmap-page-header"
                     description="Đây là lộ trình học tập của bạn."
                 />}
             >
@@ -247,10 +248,13 @@ export function StudyRoadmapFeature() {
                 header={<PageHeader
                     title="Lộ trình học tập"
                     description="Chọn môn học và xem lịch trực quan với phát hiện xung đột thời gian."
+                    className="roadmap-page-header"
+                    actions={<button type="button" aria-label="Hướng dẫn lộ trình học tập" className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100" onClick={() => setHelpOpen(true)}><Info className="h-5 w-5" /></button>}
                 />}
             >
+                {helpOpen && <RoadmapDialog title="Lộ trình học tập" onClose={() => setHelpOpen(false)}><div className="space-y-4 text-sm leading-6"><p><strong>Kế hoạch:</strong> Phác thảo các môn muốn học theo học kỳ; môn dự kiến không phải tín chỉ đã tích lũy.</p><p><strong>Chọn môn:</strong> Thêm môn từ danh sách lớp mở vào giỏ và xem học phí tham khảo.</p><p><strong>Xếp lịch:</strong> Chọn lớp hoặc tìm phương án tự động cho cá nhân/nhóm. Lưu phương án không đăng ký môn trên Portal.</p></div></RoadmapDialog>}
                 {/* Nội dung chính */}
-                <div className="flex-1 w-full min-w-0">
+                <div className="roadmap-mobile flex-1 w-full min-w-0">
                     {/* Navigation */}
                     <div className="hidden lg:block">
                         <NavigationBar
@@ -266,13 +270,13 @@ export function StudyRoadmapFeature() {
                     </div>
 
                     {/* Mobile Navigation */}
-                    <div className="lg:hidden">
+                    <div className="roadmap-mobile-tabs lg:hidden">
                         <NavigationBar
                             tabs={[
                                 // { id: tabs.trainingProgram, label: 'Lộ trình', icon: Book },
-                                { id: tabs.studyPlan, label: 'Kế hoạch', description: 'Tiến độ theo học kỳ', icon: ClipboardList },
-                                { id: 'selection', label: 'Chọn môn', description: 'Học phần và học phí', icon: ShoppingCart },
-                                { id: 'calendar', label: 'Xếp lịch', description: 'Lịch dự kiến', icon: Calendar, showBadge: true, badgeCount: pendingSelectedCourses.size },
+                                { id: tabs.studyPlan, label: 'Kế hoạch', icon: ClipboardList },
+                                { id: 'selection', label: 'Chọn môn', icon: ShoppingCart },
+                                { id: 'calendar', label: 'Xếp lịch', icon: Calendar, showBadge: true, badgeCount: pendingSelectedCourses.size },
                             ]}
                             activeTab={activeTab}
                             setActiveTab={setActiveTab}
@@ -310,23 +314,7 @@ export function StudyRoadmapFeature() {
                                     style={{ height: undefined }}
                                 >
                                     {/* Desktop: fixed height để scroll độc lập */}
-                                    <div className="hidden overflow-y-auto lg:block" style={{ height: 'calc(100vh - 11rem)' }}>
-                                        <SelectionView
-                                            searchTerm={searchTerm}
-                                            setSearchTerm={setSearchTerm}
-                                            viewMode={viewMode}
-                                            setViewMode={setViewMode}
-                                            recommended={recommended}
-                                            all={all}
-                                            filteredCourses={filteredCourses}
-                                            selectedCourses={pendingSelectedCourses}
-                                            handleCourseToggle={handleCourseToggle}
-                                            handleShowFlowchart={handleShowFlowchart}
-                                            registeredCourseCodes={registeredCourseCodes}
-                                        />
-                                    </div>
-                                    {/* Mobile: không fixed height */}
-                                    <div className="pb-36 md:pb-4 lg:hidden">
+                                    <div className="pb-24 lg:pb-0 lg:h-[calc(100vh-11rem)] lg:overflow-y-auto">
                                         <SelectionView
                                             searchTerm={searchTerm}
                                             setSearchTerm={setSearchTerm}

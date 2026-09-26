@@ -1,5 +1,6 @@
 import { Calendar, LayoutList, UsersRound } from 'lucide-react';
 import type { GroupScheduleResultViewMode } from './GroupScheduleResult';
+import { AppSelect } from '../../../components/ui/form/app-select';
 
 type GroupScheduleDisplayMode = 'calendar' | GroupScheduleResultViewMode;
 
@@ -20,7 +21,9 @@ const views: Array<{
 
 export function GroupScheduleResultViewTabs({ value, onChange }: GroupScheduleResultViewTabsProps) {
   return (
-    <div className="mb-4 flex overflow-x-auto rounded-xl bg-gray-100 p-1" aria-label="Chế độ xem kết quả">
+    <>
+    <div className="mb-4 md:hidden"><AppSelect ariaLabel="Chế độ xem kết quả nhóm" value={value} options={views.map(view => ({ id: view.id, name: view.label }))} onChange={view => onChange(view as GroupScheduleDisplayMode)} triggerClassName="min-h-11" /></div>
+    <div className="mb-4 hidden md:flex overflow-x-auto rounded-xl bg-gray-100 p-1" aria-label="Chế độ xem kết quả">
       {views.map((view) => {
         const Icon = view.icon;
         const isActive = value === view.id;
@@ -40,5 +43,6 @@ export function GroupScheduleResultViewTabs({ value, onChange }: GroupScheduleRe
         );
       })}
     </div>
+    </>
   );
 }

@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { AlertTriangle, ChevronDown, ChevronRight, Download, FileSpreadsheet, FileText, Plus, RotateCcw, Trash2, Info, MoreVertical, Maximize, GraduationCap } from 'lucide-react';
 import { AppDialog } from '../../components/ui/overlays/app-dialog';
+import { AppSelect } from '../../components/ui/form/app-select';
 import { downloadXlsxWorkbook } from '../../helpers/export/xlsx';
-import type { CourseDragStartHandler, CourseMeta, StudyPlanStorage } from './types';
+import type { CourseDragStartHandler, CourseMeta, StudyPlanStorage, MobilePlannerOpenHandler } from './types';
 import { DEFAULT_SEMESTER_COUNT, SEMESTERS_PER_STUDY_YEAR, formatStudyPlanSemesterLabel, getStudyPlanSemesterIndex } from './semester-utils';
 
 interface StudyPlanSemesterPanelProps {
@@ -23,6 +24,8 @@ interface StudyPlanSemesterPanelProps {
     onOpenPreview: () => void;
     onDragStart: CourseDragStartHandler;
     onDeleteSemester?: (semesterId: string) => void;
+    onOpenMobilePlanner?: MobilePlannerOpenHandler;
+    onChooseCourses?: (semesterId: string) => void;
 }
 
 type CourseListExportFormat = 'txt' | 'csv' | 'xlsx';
@@ -108,10 +111,13 @@ export function StudyPlanSemesterPanel({
     onDeleteYear,
     onClearStudyPlan,
     onOpenPreview,
+    onOpenMobilePlanner,
+    onChooseCourses,
     onDragStart,
     onDeleteSemester,
 }: StudyPlanSemesterPanelProps) {
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+    const [expandedSemesters, setExpandedSemesters] = useState<Record<string, boolean>>({});
     const [isAddSemesterMenuOpen, setIsAddSemesterMenuOpen] = useState(false);
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
     const [isBottomAddMenuOpen, setIsBottomAddMenuOpen] = useState(false);
@@ -273,10 +279,10 @@ export function StudyPlanSemesterPanel({
         <aside className={`${mobileVisible ? 'block' : 'hidden'} lg:sticky lg:top-0 lg:block lg:max-h-[calc(100vh-8rem)] lg:pl-3`}>
             <div className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                 {/* Header */}
-                <div className="border-b border-white/10 bg-gradient-to-br from-[#0058B2] to-[#0066CC] p-3 shadow-sm lg:p-4">
+                <div className="border-b border-gray-200 bg-white p-3 lg:bg-[#004A98] lg:p-4">
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                            <h2 className="flex items-center text-base font-bold text-white lg:text-xl lg:tracking-tight">
+                            <h2 className="flex items-center text-base font-semibold text-gray-900 lg:text-white">
                                 <span className="pr-1">Khung học kỳ</span>
                                 <div className="group relative">
                                     <button
@@ -309,10 +315,10 @@ export function StudyPlanSemesterPanel({
                                 </div>
                             </h2>
 
-                            <p className="mt-1 text-xs text-blue-100 lg:text-sm">
+                            <p className="mt-1 text-xs text-gray-500 lg:text-blue-100 lg:text-sm">
                                 {plannedStats.courses} môn
-                                <span className="mx-1.5 text-white/40">·</span>
-                                {plannedStats.credits} tín chỉ tích lũy
+                                <span className="mx-1.5">·</span>
+                                {plannedStats.credits} TC trong kế hoạch
                             </p>
                         </div>
 
@@ -320,7 +326,8 @@ export function StudyPlanSemesterPanel({
                             <button
                                 type="button"
                                 onClick={onOpenPreview}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white transition-colors active:bg-white/20 lg:bg-transparent lg:hover:bg-white/10"
+                                className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 lg:text-white lg:hover:bg-white/10"
+                                aria-label="Xem trực quan kế hoạch"
                                 title="Xem trực quan kế hoạch"
                             >
                                 <Maximize className="h-5 w-5" />
@@ -334,7 +341,8 @@ export function StudyPlanSemesterPanel({
                                         setIsAddSemesterMenuOpen(false);
                                         setIsExportMenuOpen(false);
                                     }}
-                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white transition-colors active:bg-white/20 lg:bg-transparent lg:hover:bg-white/10"
+                                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 lg:text-white lg:hover:bg-white/10"
+                                    aria-label="Tùy chọn kế hoạch"
                                     title="Thêm tùy chọn"
                                     aria-expanded={isMoreMenuOpen}
                                     aria-haspopup="menu"
@@ -454,7 +462,8 @@ export function StudyPlanSemesterPanel({
                 <div className="flex min-h-0 flex-1 flex-col bg-white lg:rounded-2xl">
                     <div className="shrink-0 border-b border-gray-200 bg-white p-2 lg:p-3">
                         <div className="flex items-center gap-2">
-                            <div className={`min-w-0 flex-1 ${shouldScrollYearTabs ? 'overflow-x-auto' : 'overflow-x-hidden'}`}>
+                            <div className="min-w-0 flex-1 lg:hidden"><AppSelect value={String(selectedYearGroup?.year ?? selectedYear)} ariaLabel="Năm trong lộ trình" options={semestersByYear.map(group => ({ id: String(group.year), name: `Năm ${group.year}${group.semesters.some(item => item.semester.isCurrent) ? ' · Hiện tại' : ''}` }))} onChange={value => setSelectedYear(Number(value))} triggerClassName="min-h-11" /></div>
+                            <div className={`hidden lg:block min-w-0 flex-1 ${shouldScrollYearTabs ? 'overflow-x-auto' : 'overflow-x-hidden'}`}>
                                 <div
                                     role="tablist"
                                     aria-label="Chọn năm học"
@@ -496,6 +505,7 @@ export function StudyPlanSemesterPanel({
                                     const plannedIds = studyPlan.plan[semester.id] || [];
                                     const totalCredits = plannedIds.reduce((sum, courseId) => sum + getAccumulationCredits(courseId), 0);
                                     const warningCount = plannedIds.filter((courseId) => getMissingPrerequisites(courseId, semesterIndex).length > 0).length;
+                                    const expanded = expandedSemesters[semester.id] ?? (Boolean(semester.isCurrent) || semester.id === studyPlan.semesters.find(s => !s.isHistorical)?.id);
 
                                     return (
                                         <section
@@ -532,6 +542,7 @@ export function StudyPlanSemesterPanel({
                                                 </div>
 
                                                 <div className="flex shrink-0 items-center gap-1">
+                                                    <button type="button" className="flex h-11 w-11 items-center justify-center text-gray-500 lg:hidden" aria-label={`${expanded ? 'Thu gọn' : 'Mở'} ${semester.label}`} aria-expanded={expanded} onClick={() => setExpandedSemesters(current => ({ ...current, [semester.id]: !expanded }))}>{expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</button>
                                                     {warningCount > 0 && (
                                                         <span className="mr-1 inline-flex items-center gap-1 text-[11px] font-medium text-amber-700">
                                                             <AlertTriangle className="h-3 w-3" />{warningCount}
@@ -550,10 +561,10 @@ export function StudyPlanSemesterPanel({
                                                 </div>
                                             </div>
 
-                                            <div className="px-0 pb-0 lg:px-3 lg:pb-3">
+                                            <div className={`${expanded ? 'block' : 'hidden lg:block'} px-0 pb-0 lg:px-3 lg:pb-3`}>
                                                 {plannedIds.length === 0 ? (
                                                     <div className="border-t border-dashed border-gray-200 bg-gray-50/60 px-3 py-4 text-center text-xs text-gray-500 lg:rounded-lg lg:border lg:border-gray-300 lg:bg-white lg:py-3 lg:shadow-[0_0_8px_2px_rgba(59,130,246,0.1)]">
-                                                        {semester.isHistorical ? 'Chưa có dữ liệu môn trong kỳ này' : 'Thả môn vào đây'}
+                                                        {semester.isHistorical ? 'Chưa có dữ liệu môn trong kỳ này' : <><span className="lg:hidden">Chưa có môn dự kiến</span><span className="hidden lg:inline">Thả môn vào đây</span></>}
                                                     </div>
                                                 ) : (
                                                     <div className="divide-y divide-gray-200 border-t border-gray-200 bg-white lg:overflow-hidden lg:rounded-md lg:border lg:border-gray-300 lg:shadow-[0_0_8px_2px_rgba(59,130,246,0.05)]">
@@ -570,18 +581,20 @@ export function StudyPlanSemesterPanel({
                                                                     className="px-3 py-2.5 hover:bg-gray-50 lg:border-b lg:border-gray-200 lg:last:border-b-0"
                                                                 >
                                                                     <div className="flex items-start gap-2">
-                                                                        <div className="min-w-0 flex-1">
+                                                                        <button type="button" onClick={() => onOpenMobilePlanner?.(course)} className="min-w-0 flex-1 text-left">
+                                                                            <p className="text-sm font-medium text-gray-900 lg:hidden">{course.course_name_vi}</p>
                                                                             <div className="flex items-center gap-2">
-                                                                                <span className="pt-1 text-xs font-bold text-gray-900">{course.course_id}</span>
+                                                                                <span className="pt-1 text-xs font-medium text-gray-500 lg:font-bold lg:text-gray-900">{course.course_id}</span>
                                                                                 <span className="text-[11px] font-semibold tabular-nums text-gray-500">{course.credits}<span className="ml-1 font-medium text-gray-400">TC</span></span>
                                                                             </div>
-                                                                            <p className="mt-1 truncate text-xs font-medium text-gray-600">{course.course_name_vi}</p>
-                                                                        </div>
+                                                                            <p className="mt-1 hidden lg:block truncate text-xs font-medium text-gray-600">{course.course_name_vi}</p>
+                                                                        </button>
                                                                         {!semester.isHistorical && (
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => onRemoveCourseFromSemester(courseId, semester.id)}
-                                                                                className="rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                                                                                className="flex h-11 w-11 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                                                                                aria-label={`Bỏ ${course.course_name_vi} khỏi học kỳ`}
                                                                                 title="Xóa khỏi học kỳ"
                                                                             >
                                                                                 <Trash2 className="h-3.5 w-3.5" />
@@ -589,18 +602,19 @@ export function StudyPlanSemesterPanel({
                                                                         )}
                                                                     </div>
                                                                     {missingPrereqs.length > 0 && (
-                                                                        <div className="mt-2 rounded-md bg-amber-50 px-2 py-1.5 text-[11px] leading-relaxed text-amber-800">
+                                                                        <details className="mt-2 text-xs text-amber-800"><summary className="min-h-8 cursor-pointer">Cần kiểm tra {missingPrereqs.length} môn tiên quyết</summary><div className="rounded-md bg-amber-50 px-2 py-1.5 leading-relaxed">
                                                                             Chưa học môn tiên quyết: {missingPrereqs.map((prereqId) => {
                                                                                 const prereq = courseById.get(prereqId);
                                                                                 return prereq ? `${prereqId} - ${prereq.course_name_vi}` : prereqId;
                                                                             }).join(', ')}
-                                                                        </div>
+                                                                        </div></details>
                                                                     )}
                                                                 </div>
                                                             );
                                                         })}
                                                     </div>
                                                 )}
+                                                {!semester.isHistorical && <button type="button" onClick={() => onChooseCourses?.(semester.id)} className="min-h-11 w-full border-t border-gray-100 text-sm font-medium text-[#004A98] lg:hidden">+ Thêm môn vào kỳ này</button>}
                                             </div>
                                         </section>
                                     );

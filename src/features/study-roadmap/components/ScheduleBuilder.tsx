@@ -6,7 +6,7 @@ import {
   useRef,
   type MutableRefObject,
 } from 'react';
-import { Calendar, PanelLeftOpen, Save } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import type { Course, ClassSection } from '../../../types';
 import type { RegisteredCourse } from '../../../logic/scheduler/RegistrationResolver';
 import type { SolverPreferences, ScheduleOption } from '../hooks/use-schedule-solver';
@@ -14,6 +14,9 @@ import { useScheduleDraft } from '../hooks/use-schedule-draft';
 import { useConflictValidator } from '../hooks/use-conflict-validator';
 import { CourseSidebar } from './CourseSidebar';
 import { BuilderGrid } from './BuilderGrid';
+import { BuilderDayList } from './BuilderDayList';
+import { AppSelect } from '../../../components/ui/form/app-select';
+import { useRoadmapViewState } from '../hooks/use-roadmap-view-state';
 import { BuilderToolbar } from './BuilderToolbar';
 import { ScheduleOptionSelector } from '../../schedule/components/ScheduleOptionSelector';
 import { MobileBottomSheet } from '../../../components/ui/overlays/mobile-bottom-sheet';
@@ -101,6 +104,7 @@ export function ScheduleBuilder({
   const { conflicts } = useConflictValidator(activeDraftSelections, displaySections, defaultCampusId);
   const [focusedCourseCode, setFocusedCourseCode] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileView, setMobileView] = useRoadmapViewState<'day' | 'week'>('schedule-mode', 'day', (v): v is 'day' | 'week' => v === 'day' || v === 'week');
 
   const handleFullSolve = useCallback(() => {
     const coursesToSchedule = Array.from(selectedCourses)
@@ -207,6 +211,7 @@ export function ScheduleBuilder({
 
   const handleClickSection = useCallback((courseCode: string) => {
     setFocusedCourseCode(courseCode);
+    if (window.innerWidth < 1024) setMobileSidebarOpen(true);
   }, []);
 
   const totalCredits = useMemo(() => {
@@ -221,6 +226,7 @@ export function ScheduleBuilder({
       selectedCourses,
       allCurrentCourses
     ).length;
+  const readyToSave = activeDraftSelections.length > 0 && unfilledCount === 0 && !conflicts.some(conflict => conflict.severity === 'error');
 
   const handleClear = useCallback(() => {
     draft.clearDraft();
@@ -311,18 +317,22 @@ export function ScheduleBuilder({
         </div>
 
         {/* RIGHT: Calendar grid */}
-        <div className="min-w-0 flex-1 flex flex-col" style={{ height: 'calc(100vh - 7rem)' }}>
+        <div className="min-w-0 flex-1 flex flex-col lg:h-[calc(100vh-7rem)]">
+          <div className="mb-3 grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1 md:hidden">
+            {([['day', 'Theo ngày'], ['week', 'Bảng tuần']] as const).map(([view, label]) => <button type="button" key={view} aria-pressed={mobileView === view} onClick={() => setMobileView(view)} className={`min-h-11 rounded-lg text-sm font-medium ${mobileView === view ? 'bg-white text-[#004A98] shadow-sm' : 'text-gray-600'}`}>{label}</button>)}
+          </div>
           {options.length > 0 && (
             <div className="mb-3">
-              <ScheduleOptionSelector
+              <div className="md:hidden"><AppSelect ariaLabel="Phương án lịch" value={String(activeOption)} options={options.map((_, i) => ({ id: String(i), name: `Phương án ${i + 1} / ${options.length}` }))} onChange={value => setActiveOption(Number(value))} triggerClassName="min-h-11" /></div>
+              <div className="hidden md:block"><ScheduleOptionSelector
                 options={options.map((_, i) => ({ id: i, label: `PA ${i + 1}` }))}
                 activeIndex={activeOption}
                 onChange={setActiveOption}
-              />
+              /></div>
             </div>
           )}
 
-          <div className="relative flex-1 min-h-0">
+          <div className={`${mobileView === 'day' ? 'hidden md:block' : 'block'} relative flex-1 min-h-0 h-[65dvh] lg:h-auto`}>
             <BuilderGrid
               allSections={displaySections}
               selections={activeDraftSelections}
@@ -331,22 +341,9 @@ export function ScheduleBuilder({
               onClickSection={handleClickSection}
             />
           </div>
+          {mobileView === 'day' && <div className="md:hidden"><BuilderDayList sections={displaySections} onOpen={handleClickSection} /></div>}
         </div>
       </div>
-
-      {/* Mobile: FAB to open sidebar */}
-      {!mobileSidebarOpen && (
-        <button
-          type="button"
-          onClick={() => setMobileSidebarOpen(true)}
-          className="fixed bottom-[calc(7.75rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-12 w-12 items-center justify-center rounded-lg bg-[#004A98] text-white shadow-lg transition-colors hover:bg-[#003A78] md:bottom-4 lg:hidden"
-          style={{ boxShadow: '0 4px 20px rgba(0,74,152,0.4)' }}
-          aria-label="Mở danh sách môn và lớp"
-          title="Mở danh sách môn và lớp"
-        >
-          <PanelLeftOpen className="h-5 w-5" />
-        </button>
-      )}
 
       {/* Mobile sidebar overlay */}
       {mobileSidebarOpen && (
@@ -358,6 +355,7 @@ export function ScheduleBuilder({
           sheetId="schedule-builder-courses"
           sheetClassName="h-[min(82dvh,42rem)]"
           contentClassName="overflow-hidden"
+          scrollContent={false}
         >
           <CourseSidebar
             selectedCourseIds={selectedCourses}
@@ -391,25 +389,15 @@ export function ScheduleBuilder({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
+            <button type="button" onClick={() => setMobileSidebarOpen(true)} className="min-h-11 rounded-lg border border-gray-200 px-3 text-xs font-semibold text-[#004A98]">Chọn lớp</button>
             <button
               type="button"
-              onClick={handleHybridSolve}
+              onClick={readyToSave ? onOpenSaveModal : handleHybridSolve}
               disabled={solving}
               className="min-h-11 whitespace-nowrap rounded-lg bg-[#004A98] px-3 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#003A78] disabled:opacity-60"
             >
-              {solving ? 'Đang tạo...' : 'Hoàn thiện'}
+              {solving ? 'Đang tạo...' : readyToSave ? 'Lưu lịch' : activeDraftSelections.length === 0 ? 'Xếp tự động' : 'Hoàn thiện'}
             </button>
-            {activeDraftSelections.length > 0 && (
-              <button
-                type="button"
-                onClick={onOpenSaveModal}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#004A98]/30 bg-white text-[#004A98] transition-colors hover:bg-blue-50"
-                aria-label="Lưu phương án"
-                title="Lưu phương án"
-              >
-                <Save className="h-4 w-4" />
-              </button>
-            )}
           </div>
         </div>
       </div>

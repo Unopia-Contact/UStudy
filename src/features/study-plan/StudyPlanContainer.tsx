@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { DatabaseBackup } from 'lucide-react';
+import { useRoadmapViewState } from '../study-roadmap/hooks/use-roadmap-view-state';
 import { useDepartmentData } from '../../context/DepartmentContext';
 import { useStudentDb } from '../../hooks/useStudentDb';
 import { STORAGE_KEYS } from '../../config';
@@ -34,9 +35,11 @@ export function StudyPlanContainer() {
 
     const layoutRef = useRef<HTMLDivElement>(null);
     const activeResizePointerIdRef = useRef<number | null>(null);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useRoadmapViewState<string>('plan-search', '', (v): v is string => typeof v === 'string');
     const [activeDropId, setActiveDropId] = useState<string | null>(null);
-    const [mobileTab, setMobileTab] = useState<MobilePlannerTab>('courses');
+    const [mobileTab, setMobileTab] = useRoadmapViewState<MobilePlannerTab>('plan-tab', 'courses', (v): v is MobilePlannerTab => v === 'courses' || v === 'semesters');
+    const [preferredSemesterId, setPreferredSemesterId] = useState<string | null>(null);
+    const [lastPlanAction, setLastPlanAction] = useState<{ message: string; undo: () => void } | null>(null);
     const [mobileSheetStep, setMobileSheetStep] = useState<MobileSheetStep>('details');
     const [selectedMobileCourseId, setSelectedMobileCourseId] = useState<string | null>(null);
     const [selectedMobileCourseRootCompleted, setSelectedMobileCourseRootCompleted] = useState(false);
@@ -152,6 +155,16 @@ export function StudyPlanContainer() {
             credits: totalCredits,
         };
     }, [getAccumulationCredits, plannedCourseIds]);
+    const mobileCreditSummary = useMemo(() => {
+        const summary = { passed: 0, studying: 0, planned: 0 };
+        for (const id of courseById.keys()) {
+            const status = getCourseStatus(id);
+            if (status === 'passed') summary.passed += getAccumulationCredits(id);
+            else if (status === 'studying') summary.studying += getAccumulationCredits(id);
+            else if (manuallyPlannedCourseIds.has(id)) summary.planned += getAccumulationCredits(id);
+        }
+        return summary;
+    }, [courseById, getCourseStatus, getAccumulationCredits, manuallyPlannedCourseIds]);
 
     const prereqByCourse = useMemo(() => {
         const map = new Map<string, PrerequisiteRule[]>();
@@ -261,12 +274,12 @@ export function StudyPlanContainer() {
         event.dataTransfer.setData('text/plain', courseId);
     };
 
-    const openMobileCoursePlanner = (course: CourseMeta, rootCompleted = false): boolean => {
+    const openMobileCoursePlanner = (course: CourseMeta, rootCompleted = false, step: MobileSheetStep = 'details'): boolean => {
         if (typeof window === 'undefined' || window.innerWidth >= 1024) return false;
 
         setSelectedMobileCourseId(course.course_id);
         setSelectedMobileCourseRootCompleted(rootCompleted);
-        setMobileSheetStep('details');
+        setMobileSheetStep(step);
         return true;
     };
 
@@ -432,9 +445,16 @@ export function StudyPlanContainer() {
 
     const addMobileCourseToSemester = (semesterId: string) => {
         if (!selectedMobileCourse) return;
+        const courseId = selectedMobileCourse.course_id;
+        const previousSemesters = studyPlan.semesters.filter(s => !s.isHistorical && (studyPlan.plan[s.id] || []).includes(courseId)).map(s => s.id);
         addCourseToSemester(selectedMobileCourse.course_id, semesterId);
         closeMobileCoursePlanner();
-        setMobileTab('semesters');
+        setLastPlanAction({ message: `Đã thêm ${courseId} vào ${studyPlan.semesters.find(s => s.id === semesterId)?.label ?? 'kế hoạch'}`, undo: () => setStudyPlan(previous => ({ ...previous, plan: Object.fromEntries(previous.semesters.map(s => {
+            const ids = previous.plan[s.id] || [];
+            if (s.isHistorical) return [s.id, ids];
+            const without = ids.filter(id => id !== courseId);
+            return [s.id, previousSemesters.includes(s.id) ? [...without, courseId] : without];
+        })) })) });
     };
 
     const updateLayoutWidth = (clientX: number) => {
@@ -511,18 +531,21 @@ export function StudyPlanContainer() {
 
     return (
         <>
-            <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl border border-gray-200 bg-white p-1 shadow-sm lg:hidden">
+            <div className="mb-3 lg:hidden"><p className="text-sm font-medium text-gray-900">Đã đạt {mobileCreditSummary.passed} TC · Đang học {mobileCreditSummary.studying} TC</p><p className="mt-1 text-xs leading-5 text-gray-500">Dự kiến thêm {mobileCreditSummary.planned} TC. Tiến độ theo nhóm tính cả kế hoạch, không phải tín chỉ đã tích lũy.</p></div>
+            {lastPlanAction && <div role="status" className="mb-3 border-b border-gray-200 pb-2 lg:hidden"><p className="text-xs text-gray-600">{lastPlanAction.message}</p><div className="flex gap-4"><button type="button" className="min-h-11 text-sm font-medium text-[#004A98]" onClick={() => { lastPlanAction.undo(); setLastPlanAction(null); }}>Hoàn tác</button><button type="button" className="min-h-11 text-sm text-[#004A98]" onClick={() => setMobileTab('semesters')}>Xem học kỳ</button><button type="button" className="ml-auto min-h-11 text-xs text-gray-500" onClick={() => setLastPlanAction(null)}>Đóng</button></div></div>}
+            {preferredSemesterId && mobileTab === 'courses' && <div className="mb-3 flex items-center justify-between gap-3 border-b border-gray-200 pb-2 text-xs text-[#004A98] lg:hidden"><span>Chọn môn cho {studyPlan.semesters.find(s => s.id === preferredSemesterId)?.label}</span><button type="button" className="min-h-11 px-2" onClick={() => setPreferredSemesterId(null)}>Bỏ chọn kỳ</button></div>}
+            <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1 lg:hidden">
                 <button
                     type="button"
                     onClick={() => setMobileTab('courses')}
-                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${mobileTab === 'courses' ? 'bg-[#004A98] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
+                    className={`min-h-11 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${mobileTab === 'courses' ? 'bg-white text-[#004A98] shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                     Môn học
                 </button>
                 <button
                     type="button"
                     onClick={() => setMobileTab('semesters')}
-                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${mobileTab === 'semesters' ? 'bg-[#004A98] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
+                    className={`min-h-11 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${mobileTab === 'semesters' ? 'bg-white text-[#004A98] shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                     Học kỳ
                 </button>
@@ -579,6 +602,8 @@ export function StudyPlanContainer() {
                     onAddYear={addStudyYear}
                     onDeleteYear={deleteStudyYear}
                     onDeleteSemester={deleteSemester}
+                    onOpenMobilePlanner={openMobileCoursePlanner}
+                    onChooseCourses={(semesterId) => { setPreferredSemesterId(semesterId); setMobileTab('courses'); }}
                     onClearStudyPlan={clearStudyPlan}
                     onOpenPreview={() => setRightView('preview')}
                     onDragStart={handleDragStart}
@@ -598,6 +623,9 @@ export function StudyPlanContainer() {
                 onClose={closeMobileCoursePlanner}
                 onSheetStepChange={setMobileSheetStep}
                 onAddCourseToSemester={addMobileCourseToSemester}
+                courseById={courseById}
+                preferredSemesterId={preferredSemesterId}
+                onRemoveCourse={() => { if (selectedMobileCourse) removeCourseFromPlan(selectedMobileCourse.course_id); closeMobileCoursePlanner(); }}
             />
         </>
     );

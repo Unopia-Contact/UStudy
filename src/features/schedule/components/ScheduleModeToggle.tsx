@@ -11,7 +11,7 @@ export function ScheduleModeToggle({ mode, onChange }: ScheduleModeToggleProps) 
       <button
         type="button"
         onClick={() => onChange('personal')}
-        className={`flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors md:flex-none ${
+        className={`min-h-11 flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors md:min-h-0 md:flex-none ${
           mode === 'personal'
             ? 'bg-white text-[#004A98] shadow-sm'
             : 'text-gray-500 hover:text-gray-900'
@@ -22,7 +22,7 @@ export function ScheduleModeToggle({ mode, onChange }: ScheduleModeToggleProps) 
       <button
         type="button"
         onClick={() => onChange('group')}
-        className={`flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors md:flex-none ${
+        className={`min-h-11 flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors md:min-h-0 md:flex-none ${
           mode === 'group'
             ? 'bg-white text-[#004A98] shadow-sm'
             : 'text-gray-500 hover:text-gray-900'

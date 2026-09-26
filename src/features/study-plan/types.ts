@@ -56,4 +56,4 @@ export interface ParsedSemester {
 }
 
 export type CourseDragStartHandler = (courseId: string, event: DragEvent<HTMLDivElement>) => void;
-export type MobilePlannerOpenHandler = (course: CourseMeta, rootCompleted?: boolean) => boolean;
+export type MobilePlannerOpenHandler = (course: CourseMeta, rootCompleted?: boolean, step?: MobileSheetStep) => boolean;
