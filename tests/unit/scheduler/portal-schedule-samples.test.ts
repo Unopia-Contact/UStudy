@@ -43,10 +43,9 @@ describe('Portal schedule samples', () => {
       .map(({ code }) => code);
 
     expect(resolutions.filter(({ resolution }) => resolution.status === 'ambiguous')).toEqual([]);
-    expect(resolutions.filter(({ resolution }) => resolution.status === 'matched')).toHaveLength(64);
+    expect(resolutions.filter(({ resolution }) => resolution.status === 'matched')).toHaveLength(71);
     expect(unresolved).toEqual([
-      'P.cs2:D001', 'P.cs2:G202', 'P.cs2:G502', 'P.cs2:D109', 'P.cs2:G301', 'P.cs2:TT_TDTT1',
-      'P.cs2:G201', 'P.cs2:G501', 'P.cs2:G302', 'P.cs2:TNSDC1_A306', 'P.cs2:TNHDC_A110',
+      'P.cs2:D109', 'P.cs2:TT_TDTT1', 'P.cs2:TNSDC1_A306', 'P.cs2:TNHDC_A110',
       'P.cs2:TNHDC_A107', 'P.cs2:TNHDC_A108', 'P.cs2:TNHDC_A109', 'P.cs2:PMT_B4-2_5.',
       'P.cs2:PMT_B4-2_6.', 'P.cs2:TNL_A211', 'P.cs2:TNL_A213',
     ]);
