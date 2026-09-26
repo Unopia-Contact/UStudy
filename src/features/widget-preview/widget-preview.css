@@ -196,9 +196,34 @@
 .widget-mock svg { flex: none; }
 
 .widget-mock-next {
+  margin: 0;
   padding: 6px 8px;
   border-radius: 18px;
 }
+
+.widget-mock-schedule {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.widget-mock-next-slot {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+.widget-mock-next.is-expanded .widget-mock-course-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  font-size: 12px;
+}
+.widget-mock-next.is-expanded .widget-mock-next-time { font-size: 13px; }
+.widget-mock-next.is-expanded .widget-mock-date strong { font-size: 25px; }
+.widget-mock-next.is-expanded .widget-mock-next-room { font-size: 11px; }
+.widget-mock-next.is-expanded .widget-mock-next-footer { font-size: 9px; }
 
 .widget-mock-next-header {
   display: flex;
