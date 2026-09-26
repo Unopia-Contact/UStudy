@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Nhà C · Tầng hầm">
+<title>Nhà C · Tầng hầm</title>
+<style>.room{fill:#70c9e5;fill-opacity:.8;stroke:#9f5360;stroke-width:2.2}.service{fill:#b6dcea;stroke:#9f5360;stroke-width:2.2}.unlabeled{fill:#dbf0f5;stroke:#9f5360;stroke-width:2}.wall{fill:none;stroke:#9f5360;stroke-width:2.4;stroke-linejoin:miter}.detail{fill:none;stroke:#35546a;stroke-width:1.6}.code{font:600 11px Arial,sans-serif;fill:#164966;text-anchor:middle}.label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.minor{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.parking{font:16px Arial,sans-serif;fill:#164966;text-anchor:middle}.marker{fill:#9f5360}</style>
+<g id="room-c002"><title>C002 · PTN Khoa Khoa học và Công nghệ vật liệu</title>
+<rect class="room" x="27.1" y="23.6" width="108.6" height="115.4"/>
+<text class="code" x="81.4" y="78.4">C002</text>
+<text class="label" x="81.4" y="95.4">PTN Khoa KH</text>
+<text class="label" x="81.4" y="107.4">&amp; CN vật liệu</text>
+</g>
+<path class="detail" d="M 73.4 139.1 v 8 l 8 -7 M 89.4 139.1 v 8 l -8 -7"/>
+<g id="room-c001"><title>C001 · PTN Hóa đại cương</title>
+<rect class="room" x="135.7" y="23.6" width="310.0" height="115.4"/>
+<text class="code" x="290.8" y="78.4">C001</text>
+<text class="label" x="290.8" y="95.4">PTN Hóa đại cương</text>
+</g>
+<path class="detail" d="M 282.8 139.1 v 8 l 8 -7 M 298.8 139.1 v 8 l -8 -7"/>
+<g><title>WC</title><rect class="service" x="445.8" y="23.6" width="107.0" height="64.8"/>
+<text class="minor" x="499.3" y="59.0">WC</text></g>
+<g><title>Kho vật tư</title><rect class="service" x="445.8" y="88.4" width="107.0" height="49.7"/>
+<text class="minor" x="499.3" y="116.3">Kho vật tư</text></g>
+<g><title>Phòng máy bơm</title><rect class="service" x="1069.0" y="19.9" width="103.9" height="57.3"/>
+<text class="minor" x="1120.9" y="51.5">Phòng máy bơm</text></g>
+<g><title>Bể nước</title><rect class="service" x="1069.0" y="77.1" width="103.9" height="55.4"/>
+<text class="minor" x="1120.9" y="107.8">Bể nước</text></g>
+<g id="parking"><title>Bãi xe ô tô</title><text class="parking" x="860.5" y="95.4">Bãi xe ô tô</text></g>
+<g id="stairs-1"><title>Thang bộ</title><path class="wall" d="M 444.2 168.2 V 222.6 H 555.9 V 168.2"/><path class="detail" d="M 449.2 217.6 L 550.9 173.2"/><text class="minor" x="500.1" y="234.6">Thang bộ</text></g>
+<g id="stairs-2"><title>Thang bộ</title><path class="wall" d="M 1069.0 166.3 V 216.0 H 1174.4 V 166.3"/><path class="detail" d="M 1074.0 211.0 L 1169.4 171.3"/><text class="minor" x="1121.7" y="228.0">Thang bộ</text></g>
+<path class="wall" d="M 27.1 175.7 L 447.3 175.7"/>
+<path class="wall" d="M 555.9 18.0 L 555.9 138.1"/>
+<path class="wall" d="M 651.9 18.0 L 651.9 138.1"/>
+<path class="wall" d="M 651.9 168.2 L 1069.0 168.2"/>
+</svg>

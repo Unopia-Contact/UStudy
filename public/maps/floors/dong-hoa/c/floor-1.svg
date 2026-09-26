@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Nhà C · Tầng 1">
+<title>Nhà C · Tầng 1</title>
+<style>.room{fill:#70c9e5;fill-opacity:.8;stroke:#9f5360;stroke-width:2.2}.service{fill:#b6dcea;stroke:#9f5360;stroke-width:2.2}.unlabeled{fill:#dbf0f5;stroke:#9f5360;stroke-width:2}.wall{fill:none;stroke:#9f5360;stroke-width:2.4;stroke-linejoin:miter}.detail{fill:none;stroke:#35546a;stroke-width:1.6}.code{font:600 11px Arial,sans-serif;fill:#164966;text-anchor:middle}.label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.minor{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.parking{font:16px Arial,sans-serif;fill:#164966;text-anchor:middle}.marker{fill:#9f5360}</style>
+<g id="room-c111"><title>C111 · Thư viện</title>
+<rect class="room" x="25.0" y="29.3" width="274.6" height="151.8"/>
+<text class="code" x="162.3" y="102.2">C111</text>
+<text class="label" x="162.3" y="119.2">Thư viện</text>
+</g>
+<g id="room-c110"><title>C110 · Phòng Công tác Sinh viên</title>
+<rect class="room" x="299.7" y="29.3" width="68.9" height="67.9"/>
+<text class="code" x="334.1" y="60.3">C110</text>
+<text class="label" x="334.1" y="77.3">P. CTSV</text>
+</g>
+<g id="room-c109"><title>C109 · Phòng Thanh tra</title>
+<rect class="room" x="299.7" y="97.2" width="68.9" height="42.4"/>
+<text class="code" x="334.1" y="115.4">C109</text>
+<text class="label" x="334.1" y="132.4">P. TTr</text>
+</g>
+<g id="room-c108"><title>C108 · PTN Điện tử - Viễn thông 4</title>
+<rect class="room" x="434.4" y="27.4" width="101.8" height="111.2"/>
+<text class="code" x="485.3" y="80.0">C108</text>
+<text class="label" x="485.3" y="97.0">PTN Điện tử</text>
+<text class="label" x="485.3" y="109.0">Viễn thông 4</text>
+</g>
+<path class="detail" d="M 477.3 138.7 v 8 l 8 -7 M 493.3 138.7 v 8 l -8 -7"/>
+<g id="room-c107"><title>C107 · PTN Điện tử - Viễn thông 3</title>
+<rect class="room" x="536.2" y="27.4" width="100.8" height="111.2"/>
+<text class="code" x="586.6" y="80.0">C107</text>
+<text class="label" x="586.6" y="97.0">PTN Điện tử</text>
+<text class="label" x="586.6" y="109.0">Viễn thông 3</text>
+</g>
+<path class="detail" d="M 578.6 138.7 v 8 l 8 -7 M 594.6 138.7 v 8 l -8 -7"/>
+<g id="room-c106"><title>C106 · PTN Điện tử - Viễn thông 2</title>
+<rect class="room" x="637.0" y="27.4" width="135.8" height="111.2"/>
+<text class="code" x="704.9" y="80.0">C106</text>
+<text class="label" x="704.9" y="97.0">PTN Điện tử</text>
+<text class="label" x="704.9" y="109.0">Viễn thông 2</text>
+</g>
+<path class="detail" d="M 696.9 138.7 v 8 l 8 -7 M 712.9 138.7 v 8 l -8 -7"/>
+<g id="room-c105"><title>C105 · PTN Điện tử - Viễn thông 1</title>
+<rect class="room" x="838.6" y="23.7" width="65.8" height="112.2"/>
+<text class="code" x="871.5" y="76.7">C105</text>
+<text class="label" x="871.5" y="93.7">PTN Điện tử</text>
+<text class="label" x="871.5" y="105.7">Viễn thông 1</text>
+</g>
+<path class="detail" d="M 863.5 135.8 v 8 l 8 -7 M 879.5 135.8 v 8 l -8 -7"/>
+<g id="room-c104"><title>C104 · PTN KT nhúng và NL tái tạo</title>
+<rect class="room" x="904.5" y="23.7" width="65.8" height="112.2"/>
+<text class="code" x="937.4" y="76.7">C104</text>
+<text class="label" x="937.4" y="93.7">PTN KT nhúng</text>
+<text class="label" x="937.4" y="105.7">&amp; NL tái tạo</text>
+</g>
+<path class="detail" d="M 929.4 135.8 v 8 l 8 -7 M 945.4 135.8 v 8 l -8 -7"/>
+<g id="room-c103"><title>C103 · Bộ môn Vật lý điện tử</title>
+<rect class="room" x="970.3" y="23.7" width="66.9" height="112.2"/>
+<text class="code" x="1003.7" y="76.7">C103</text>
+<text class="label" x="1003.7" y="93.7">Bộ môn VL</text>
+<text class="label" x="1003.7" y="105.7">điện tử</text>
+</g>
+<path class="detail" d="M 995.7 135.8 v 8 l 8 -7 M 1011.7 135.8 v 8 l -8 -7"/>
+<g id="room-c102"><title>C102 · Bộ môn Vật lý điện tử</title>
+<rect class="room" x="1037.1" y="23.7" width="66.9" height="112.2"/>
+<text class="code" x="1070.6" y="76.7">C102</text>
+<text class="label" x="1070.6" y="93.7">Bộ môn VL</text>
+<text class="label" x="1070.6" y="105.7">điện tử</text>
+</g>
+<path class="detail" d="M 1062.6 135.8 v 8 l 8 -7 M 1078.6 135.8 v 8 l -8 -7"/>
+<g id="room-c101"><title>C101 · PTN DESLAB</title>
+<rect class="room" x="1104.0" y="23.7" width="68.9" height="112.2"/>
+<text class="code" x="1138.5" y="76.7">C101</text>
+<text class="label" x="1138.5" y="93.7">PTN DESLAB</text>
+</g>
+<path class="detail" d="M 1130.5 135.8 v 8 l 8 -7 M 1146.5 135.8 v 8 l -8 -7"/>
+<g id="stairs-1"><title>Thang bộ</title><path class="wall" d="M 298.6 174.5 V 224.5 H 369.6 V 174.5"/><path class="detail" d="M 303.6 219.5 L 364.6 179.5"/><text class="minor" x="334.1" y="236.5">Thang bộ</text></g>
+<g id="stairs-2"><title>Thang bộ</title><path class="wall" d="M 704.9 173.6 V 222.6 H 773.8 V 173.6"/><path class="detail" d="M 709.9 217.6 L 768.8 178.6"/><text class="minor" x="739.4" y="234.6">Thang bộ</text></g>
+<path class="wall" d="M 25.0 180.1 L 298.6 180.1"/>
+<path class="wall" d="M 434.4 176.4 L 704.9 176.4"/>
+<path class="wall" d="M 773.8 172.6 L 838.6 172.6"/>
+<path class="wall" d="M 838.6 171.7 L 1173.9 171.7"/>
+</svg>

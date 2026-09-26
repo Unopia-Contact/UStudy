@@ -1,159 +1,126 @@
-# Hướng dẫn cập nhật bản đồ khuôn viên
+# Nhập dữ liệu Campus Map
 
-## Các tệp liên quan
+## Nguồn duy nhất cho từng loại dữ liệu
 
-| Tệp | Vai trò |
-| --- | --- |
-| `src/features/campus-map/campus-data.ts` | Nguồn dữ liệu tòa nhà, tầng, phòng và toàn bộ bản vẽ tầng. Đây là nơi chỉnh sửa chính. |
-| `src/features/campus-map/campusmap.tsx` | Giao diện bản đồ khuôn viên và chọn tòa nhà. |
-| `src/features/campus-map/FloorPlanView.tsx` | Component dùng chung để hiển thị sơ đồ tầng. Không tạo layout riêng cho từng tòa trong tệp này. |
+- `src/assets/data/campus-map/campuses.ts`: cơ sở, tòa, tầng và phòng. Số lượng và danh sách trong UI đều suy ra từ đây.
+- `src/features/campus-map/DongHoaCampusDiagram.tsx`: hình học sơ đồ khuôn viên CS2. Các chữ A–G trên hình không tự tạo tòa trong inventory. Chỉ hình của tòa đã khai báo trong `campuses.ts` mới chọn được.
+- `src/assets/data/campus-map/floor-maps.ts`: danh sách asset sơ đồ tầng, keyed bằng `campus/building/floor`.
+- `public/maps/floors/`: SVG sơ đồ tầng được `floor-maps.ts` tham chiếu.
+- `src/integrations/hcmus-portal/rooms/bindings.ts`: mã Portal trỏ đến ID phòng trong inventory.
 
-## Cách hoạt động của sơ đồ tầng
+## Thêm tòa, tầng và phòng
 
-Mỗi tầng có thể có một trường `plan` độc lập. `plan` là một canvas SVG với kích thước và danh sách thành phần riêng, vì vậy mỗi tòa có thể có hành lang, cầu thang và phòng khác nhau.
+Trong `campuses.ts`, thêm tòa vào `buildings` của đúng cơ sở. Mỗi tòa có `id`, `code`, `name`, `kind`, `status` và `floors`. Mỗi tầng có `id`, `label`, `sortOrder` và `rooms`. Mỗi phòng có `id`, `code`, `label`, `kind` và `status`. Có thể thêm `aliases` và `verification` khi có nguồn xác minh.
 
-Giao diện không tự tạo hành lang, lưới phòng hoặc sơ đồ mẫu. Nếu một tầng chưa có `plan`, trang chỉ hiển thị trạng thái chưa thiết kế.
+ID runtime tự ghép theo thứ tự `campus/building/floor/room`. Ví dụ phòng `id: '2'` ở tầng `6` của tòa `b4-2` tại `dong-hoa` có ID `dong-hoa/b4-2/6/2`. Giữ ID ổn định vì deep link và Portal binding dùng nó.
+
+## Thêm sơ đồ tầng
+
+### Quy cách khai báo thống nhất trong `campuses.ts`
+
+- Mỗi cơ sở, tòa, tầng và phòng là một object tường minh; không dùng tuple, helper sinh phòng, `.map()` hoặc bảng override.
+- Thứ tự trường cơ sở: `id`, `code`, `name`, `shortName`, `status`, `map` (nếu có), `buildings`.
+- Thứ tự trường tòa: `id`, `code`, `name`, `shortName` (nếu có), `kind`, `aliases`, `status`, `verification`, `map`, `floors`.
+- Thứ tự trường tầng: `id`, `label`, `level`, `sortOrder`, `rooms`.
+- Thứ tự trường phòng: `id`, `code`, `label`, `name` (nếu có), `kind`, `aliases`, `status`, `verification`, `map`, `navigation`.
+- Trường tùy chọn chưa có dữ liệu thì bỏ, không thêm tên/chức năng suy đoán. Không tự đổi ID chỉ để nhìn đồng nhất: ID hiện có được dùng trong deep link và binding Portal.
+- `room.map.shapeId` chỉ liên kết hình phòng; asset SVG và `viewBox` vẫn khai báo duy nhất trong `floor-maps.ts`.
+- `kind` phải thuộc kiểu `Room` trong `src/domain/campus-map/types.ts`, không dùng `any` để lách kiểm tra.
+
+Đặt SVG tại `public/maps/floors/<campus-id>/<building-id>/`. Tên file dùng `floor-<floor-id>.svg`, rồi thêm một entry trong `floor-maps.ts`:
 
 ```ts
-{
-  number: 1,
-  rooms: [],
-  plan: {
-    width: 900,
-    height: 600,
-    elements: [
-      {
-        id: 'vien-ngoai',
-        type: 'path',
-        d: 'M40 40 H860 V560 H40 Z',
-        fill: '#FFFFFF',
-        stroke: '#64748B',
-        strokeWidth: 3,
-      },
-      {
-        id: 'hanh-lang',
-        type: 'area',
-        x: 80,
-        y: 260,
-        width: 740,
-        height: 70,
-        label: 'Hành lang',
-        fill: '#F1F5F9',
-      },
-      {
-        id: 'a101',
-        type: 'room',
-        code: 'A101',
-        label: 'Phòng học 101',
-        aliases: ['Phòng 101'],
-        x: 90,
-        y: 90,
-        width: 180,
-        height: 130,
-      },
-      {
-        id: 'thang-bo',
-        type: 'label',
-        x: 750,
-        y: 160,
-        text: 'Thang bộ',
-        size: 15,
-      },
-    ],
+export const FLOOR_MAPS: Partial<Record<FloorId, MapAsset>> = {
+  'dong-hoa/f/1': {
+    asset: '/maps/floors/dong-hoa/f/floor-1.svg',
+    viewBox: [0, 0, 1200, 800],
+    shapeIds: ['room-f101'],
   },
-}
+};
 ```
 
-## Các thành phần có thể vẽ
+Nếu vị trí phòng đã xác minh, thêm `map: { shapeId: 'room-f101' }` vào phòng tương ứng trong `campuses.ts`. `shapeId` phải có trong `shapeIds` của sơ đồ tầng. Không nhập sơ đồ tầng trong `campuses.ts` hay component UI. Phòng chưa có sơ đồ vẫn được liệt kê và tìm kiếm.
 
-- `room`: Phòng hình chữ nhật. Bắt buộc có `code`; có thể thêm `label`, `aliases`, `roomType` và `fill`.
-- `area`: Khu vực hình chữ nhật có nhãn, phù hợp cho hành lang, sảnh thang máy, nhà vệ sinh hoặc khu chờ.
-- `path`: Đường SVG tùy ý, dùng khi cần vẽ tường, cầu thang, phòng méo, mũi tên hoặc hình không phải hình chữ nhật.
-- `label`: Chữ tự do tại đúng tọa độ SVG.
+## Liên kết mã Portal
 
-Thứ tự trong `elements` cũng là thứ tự vẽ. Nên đặt nền, viền hoặc tường ở trước; phòng và nhãn đặt sau để chúng hiển thị phía trên.
+### Tòa A — cơ sở Đông Hòa
 
-## Vẽ hành lang và đường đi
+Bốn bản vẽ nằm tại `public/maps/floors/dong-hoa/a/`, cùng `viewBox="0 0 1200 250"`:
 
-### Hành lang bao quanh một khu vực
+| Tầng | ID tầng runtime | File | Phòng trên sơ đồ |
+| --- | --- | --- | --- |
+| Tầng hầm | `dong-hoa/a/0` | `basement.svg` | A001–A004 (4 phòng) |
+| Tầng 1 | `dong-hoa/a/1` | `floor-1.svg` | A101–A111 (11 phòng) |
+| Tầng 2 | `dong-hoa/a/2` | `floor-2.svg` | A201–A214 (14 phòng) |
+| Tầng 3 | `dong-hoa/a/3` | `floor-3.svg` | A301–A311 (11 phòng) |
 
-Dùng `path` với một hình ngoài và một hình trong. `fillRule: 'evenodd'` khiến hình trong trở thành phần rỗng, tạo thành hành lang bao quanh. Đặt phần tử này trước các phòng để phòng được vẽ phía trên hành lang.
+Inventory, tên và loại phòng được khai báo bằng object tường minh trong `campuses.ts`.
+Ví dụ A107 có ID `dong-hoa/a/1/107`, liên kết tới `<g id="room-a107">` trong `floor-1.svg`.
+Nhóm SVG chứa cả hình phòng và chữ, nên chọn phòng sẽ làm nổi bật cả hai.
+Tên và vị trí có nguồn `user-provided-building-a-floor-svg`, mức `observed`; không coi đây là xác minh mã Portal đặc biệt.
 
-```ts
-{
-  id: 'hanh-lang-quanh-san',
-  type: 'path',
-  // Hình ngoài 700 x 400, chừa rỗng một khối giữa 520 x 220.
-  d: 'M100 100 H800 V500 H100 Z M190 190 H710 V410 H190 Z',
-  fill: '#E2E8F0',
-  fillRule: 'evenodd',
-  stroke: '#CBD5E1',
-  strokeWidth: 2,
-}
-```
+Mã chuẩn `P.cs2:A107` được resolver nhận diện theo cấu trúc, không cần thêm binding trùng lặp.
+Mã có tiền tố khác chỉ thêm binding khi đã đối chiếu; không tự suy ra tiền tố PTN từ tên phòng.
+Tầng hầm dùng `id: '0'`, `level: -1`; ID placeholder cũ `dong-hoa/a/basement/1` đã thay bằng `dong-hoa/a/0/001`.
 
-Sau đó vẽ phòng hoặc khu vực vào phần rỗng ở giữa, ví dụ `x: 190`, `y: 190`, `width: 520`, `height: 220`.
+Kiểm tra toàn bộ 40 liên kết bằng `pnpm exec vitest run tests/unit/building-a-maps.test.ts` (test local).
 
-### Đường đi dạng nét
+### Tòa C — cơ sở Đông Hòa
 
-Dùng `path` mở, không có `fill`, rồi tăng `strokeWidth`. Cách này phù hợp để chỉ lối đi ngoài trời, lối thoát hoặc đường nối giữa các khu.
+| Tầng | ID tầng runtime | File trong `public/maps/floors/dong-hoa/c/` | Phòng trên sơ đồ |
+| --- | --- | --- | --- |
+| Tầng hầm | `dong-hoa/c/0` | `basement.svg` | C001–C002 (2 phòng) |
+| Tầng 1 | `dong-hoa/c/1` | `floor-1.svg` | C101–C111 (11 phòng) |
+| Tầng 2 | `dong-hoa/c/2` | `floor-2.svg` | C201–C208 và P209 (9 phòng) |
 
-```ts
-{
-  id: 'loi-di-chinh',
-  type: 'path',
-  d: 'M90 520 H360 V430 H690',
-  fill: 'none',
-  stroke: '#CBD5E1',
-  strokeWidth: 28,
-}
-```
+Cả ba sơ đồ dùng `viewBox="0 0 1200 250"`. Tổng cộng 22 phòng.
+Ví dụ C108 có ID `dong-hoa/c/1/108`, shape `room-c108`; mã chuẩn `P.cs2:C108` được phân giải theo cấu trúc.
+C201–C207 chưa có tên/chức năng trong sơ đồ, nên không thêm tên giả và dùng `kind: 'other'`.
+P209 được giữ nguyên theo sơ đồ: ID `dong-hoa/c/2/p209`, shape `room-p209`, tên `PTN Thực vật`.
+Phòng này tìm được bằng P209 nhưng chưa có binding Portal; không tự coi P209 là C209.
+Placeholder cũ C001 (`dong-hoa/c/0/1`) được thay bằng `dong-hoa/c/0/001`.
+Nguồn dữ liệu là `user-provided-building-c-floor-svg`, mức `observed`.
 
-Tọa độ trong `d` dùng cùng hệ với `plan.width` và `plan.height`. Có thể dùng một công cụ vẽ SVG để lấy chuỗi `d`, sau đó dán vào đây.
+Kiểm tra bằng `pnpm exec vitest run tests/unit/building-c-maps.test.ts`.
 
-## Phòng học và tìm kiếm
+### Sơ đồ NĐH cũ đã khôi phục
 
-Khai báo mọi phòng trong `floors[].rooms`. Đây là nguồn dữ liệu duy nhất cho tìm kiếm, gợi ý, bộ lọc và danh sách phòng.
+`public/maps/floors/dong-hoa/ndh/floor-1.svg` được chuyển từ phần `NDH`, tầng 1 trong
+`src/features/campus-map/campus-data.ts` của nhánh `CampusMap`, commit `3b252a72997c134db1415f2d94d9018c840c8709`.
+Sơ đồ được đăng ký tại `dong-hoa/ndh/1` trong `floor-maps.ts`.
+Bản hiện tại dùng sơ đồ người dùng đã xoay trái 90°, giữ hình học, hành lang, thang bộ, thang máy và WC.
+Người dùng xác nhận NĐH101–109 là phòng **1.1–1.9**. Nhãn đã đổi thành NĐH 1.1–1.9, ID hình là `room-ndh1-1` đến `room-ndh1-9`.
+File đầu vào `nha-dieu-hanh-tang-1-xoay-trai.svg` đã chuẩn hóa thành `floor-1.svg`.
+`viewBox` chuẩn là `0 0 950 530`; nhóm `translate(-25 -450)` giữ đúng vùng cắt của bản đầu vào `25 450 950 530`.
+Không bỏ nhóm dịch tọa độ: renderer inline chỉ lấy nội dung bên trong SVG, không giữ `viewBox` của file gốc.
+Các ID trùng của WC/cầu thang được đổi thành ID riêng. Không khôi phục component/data cũ vào source chính.
 
-Khi phòng đã có vị trí trên sơ đồ, thêm phần tử `type: 'room'` tương ứng trong `plan.elements` với cùng `code`. Phần tử này chỉ quyết định cách vẽ và vị trí; không tham gia tìm kiếm để tránh trùng dữ liệu.
+Inventory tầng 1 có đủ 9 phòng, ID `dong-hoa/ndh/1/1` đến `dong-hoa/ndh/1/9`; mỗi phòng có `room.map.shapeId` tương ứng để highlight.
+ID phòng 1.9 hiện có được giữ nguyên. Không tạo alias 101–109 để tránh tiếp tục dùng mã cũ.
+Mã chuẩn `P.cs2:NĐH1.9` được resolver nhận diện theo cấu trúc, không cần thêm binding trùng lặp.
+Mở tòa NĐH → tầng 1 → **Xem bản đồ tầng** hoặc tìm NĐH 1.9 để xem vị trí.
+Tầng 2 của bản cũ có `elements: []`, nên không đăng ký bản vẽ rỗng và không tự vẽ tầng 2.
 
-`label` là tên hiển thị của phòng. `aliases` là các tên gọi khác để tìm kiếm và không được hiển thị thành phòng riêng.
+### Tòa G — cơ sở Đông Hòa
 
-### Mô tả và thông tin liên hệ của phòng
+| Tầng | ID tầng runtime | File trong `public/maps/floors/dong-hoa/g/` | Phòng |
+| --- | --- | --- | --- |
+| Tầng hầm | `dong-hoa/g/0` | `basement.svg` | G001–G004 (4 phòng) |
+| Tầng 1 | `dong-hoa/g/1` | `floor-1.svg` | G101–G108 (8 phòng) |
+| Tầng 2 | `dong-hoa/g/2` | `floor-2.svg` | G201–G206 (6 phòng) |
+| Tầng 3 | `dong-hoa/g/3` | `floor-3.svg` | G301–G306 (6 phòng) |
+| Tầng 4 | `dong-hoa/g/4` | `floor-4.svg` | G401–G406 (6 phòng) |
+| Tầng 5 | `dong-hoa/g/5` | `floor-5.svg` | G501–G506 (6 phòng) |
 
-Thông tin chi tiết được khai báo trực tiếp trong phần tử tương ứng của `floors[].rooms`. Tất cả các trường đều không bắt buộc; giao diện chỉ hiển thị những trường đã nhập.
+Tổng cộng 36 phòng; sáu sơ đồ dùng `viewBox="0 0 1200 250"`.
+Tên/chức năng được chép từ sơ đồ, nguồn `user-provided-building-g-floor-svg`, mức `observed`.
+G403, G404, G503 và G504 chưa có tên/chức năng nên dùng `kind: 'other'`, không tự đặt tên.
+Ví dụ G205 có ID `dong-hoa/g/2/205` và shape `room-g205` trong `floor-2.svg`.
+Mã chuẩn `P.cs2:G205` được resolver nhận diện theo cấu trúc; mã tiền tố đặc biệt cần đối chiếu trước khi thêm binding.
+Sơ đồ khuôn viên đã có hình tòa G; việc thêm inventory khiến hình này chọn được mà không cần thêm thông tin tòa vào component UI.
 
-```ts
-{
-  code: 'PĐT',
-  name: 'Phòng Đào tạo - NĐH 2.4',
-  type: 'office',
-  aliases: ['pdt', 'phong dao tao', 'bảng điểm'],
-  description: 'Tiếp nhận và hỗ trợ các thủ tục liên quan đến đào tạo.',
-  phone: '(028) 0000 0000',
-  email: 'example@hcmus.edu.vn',
-  website: 'https://example.hcmus.edu.vn',
-  openingHours: 'Thứ Hai - Thứ Sáu, 08:00 - 16:30',
-}
-```
+Kiểm tra bằng `pnpm exec vitest run tests/unit/building-g-maps.test.ts`.
 
-- `description`: Nội dung mô tả tự do; có thể xuống dòng bằng `\n`.
-- `phone`: Số điện thoại, được hiển thị thành liên kết gọi điện.
-- `email`: Email, được hiển thị thành liên kết gửi thư.
-- `website`: Địa chỉ đầy đủ bắt đầu bằng `https://`, được mở trong tab mới.
-- `openingHours`: Giờ làm việc hoặc khoảng thời gian tiếp nhận.
+Sau khi phòng đã có trong inventory, thêm binding trong `bindings.ts` với `roomId` hoàn chỉnh. Ví dụ `P.cs2:PM_B4-2_6.2` trỏ đến `dong-hoa/b4-2/6/2`. Binding `verified` cần `sourceIds` hoặc `note` ghi nguồn xác minh.
 
-Không khai báo các trường này trong `plan.elements`. Bản vẽ chỉ giữ vị trí và hình dạng của phòng; thông tin phòng luôn lấy từ `floors[].rooms`.
-
-## Tọa độ bản đồ khuôn viên
-
-Tọa độ các tòa trên bản đồ tổng dùng hệ `viewBox="0 0 760 560"` trong `campusmap.tsx`. Chỉnh `x`, `y`, `width`, `height` và `rotate` của tòa tương ứng trong `CAMPUS_BUILDINGS`; không ghi cứng thông tin tòa trong JSX SVG.
-
-## Kiểm tra sau khi chỉnh sửa
-
-Sau khi cập nhật dữ liệu hoặc UI, chạy:
-
-```powershell
-npx tsc --noEmit
-npm run build
-```
+Chạy `pnpm exec vitest run tests/unit/campus-map.test.ts` để kiểm tra ID trùng, shape thiếu và binding không hợp lệ.

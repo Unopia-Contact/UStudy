@@ -18,6 +18,7 @@ interface AppDialogProps {
   contentClassName?: string;
   backgroundHeader?: string;
   mobileFullScreen?: boolean;
+  preserveMobileNavigation?: boolean;
 }
 
 const sizeClasses: Record<AppDialogSize, string> = {
@@ -40,10 +41,14 @@ export function AppDialog({
   contentClassName,
   backgroundHeader,
   mobileFullScreen = false,
+  preserveMobileNavigation = false,
 }: AppDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(
+      <DialogContent
+        data-preserve-mobile-navigation={preserveMobileNavigation ? 'true' : undefined}
+        overlayClassName={preserveMobileNavigation ? 'ustudy-dialog-above-mobile-nav' : undefined}
+        className={cn(
         'ustudy-app-dialog top-[calc((100dvh+env(safe-area-inset-top)-env(safe-area-inset-bottom))/2)] grid-rows-[auto_minmax(0,1fr)_auto] max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] gap-0 overflow-hidden rounded-2xl border-0 border-slate-200 bg-white p-0 shadow-2xl outline-none ring-0 sm:top-1/2 sm:max-h-[calc(100vh-2rem)]',
         mobileFullScreen && 'max-md:inset-0 max-md:left-0 max-md:top-0 max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:w-screen max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none max-md:shadow-none',
         sizeClasses[size],

@@ -14,6 +14,7 @@ import {
     type CampusId,
 } from '../../../domain/campus';
 import type { AcademicRuleContext } from '../../../domain/academic-rules';
+import { extractPortalLocationCode } from '../../../integrations/hcmus-portal/rooms';
 import {
     normalizeScheduleComponentType,
     resolveCourseWorkload,
@@ -34,6 +35,7 @@ export interface ParsedScheduleEntry {
     endPeriod: number;
     /** Phòng học (nếu có trong chuỗi) */
     room?: string;
+    portalLocationCode?: string;
     /** Phần raw string gốc */
     raw: string;
 }
@@ -88,6 +90,13 @@ function getSharedTrailingRoom(scheduleParts: string[]): string | undefined {
         : undefined;
 }
 
+function getSharedTrailingPortalCode(scheduleParts: string[]): string | undefined {
+    const codes = scheduleParts.map((part) => extractPortalLocationCode(part));
+    const trailing = codes.at(-1);
+    return codes.length > 1 && trailing && codes.slice(0, -1).every((code) => !code)
+        ? trailing : undefined;
+}
+
 // ─── Core Functions ─────────────────────────────────────────────────
 
 export const ScheduleLogic = {
@@ -118,11 +127,15 @@ export const ScheduleLogic = {
                 startPeriod,
                 endPeriod,
                 room,
+                portalLocationCode: extractPortalLocationCode(match[0]) ?? undefined,
                 raw: `T${dayStr}(${match[2]}-${match[3]})`,
             });
         }
 
-        return inheritTrailingRoom(results);
+        const withRooms = inheritTrailingRoom(results);
+        const trailingCode = withRooms.at(-1)?.portalLocationCode;
+        return trailingCode && withRooms.slice(0, -1).every((entry) => !entry.portalLocationCode)
+            ? withRooms.map((entry) => ({ ...entry, portalLocationCode: trailingCode })) : withRooms;
     },
 
     /**
@@ -402,6 +415,7 @@ export const ScheduleLogic = {
             const scheduleStr: string = course.schedule || '';
             const scheduleParts: string[] = scheduleStr.split(/[;,]/).map((s) => s.trim()).filter(Boolean);
             const sharedTrailingRoom = getSharedTrailingRoom(scheduleParts);
+            const sharedTrailingPortalCode = getSharedTrailingPortalCode(scheduleParts);
 
             if (scheduleParts.length > 0 && !countedCourseCodes.has(normalizedCourseId)) {
                 countedCourseCodes.add(normalizedCourseId);
@@ -426,6 +440,7 @@ export const ScheduleLogic = {
                 let room = getRoomFromMatch(match) || sharedTrailingRoom || '';
                 const baseDayOfWeek = dayOfWeek;
                 const baseRoom = room;
+                const portalLocationCode = extractPortalLocationCode(part) ?? sharedTrailingPortalCode;
                 const basePeriods = ScheduleLogic.adjustPeriodsForPractical(cType, rawStart, rawEnd);
 
                 // --- Apply Global Overrides ---
@@ -457,6 +472,7 @@ export const ScheduleLogic = {
                     sessionId,
                     dayOfWeek,
                     room,
+                    portalLocationCode: override?.room !== undefined && override.room !== baseRoom ? undefined : portalLocationCode,
                     adjusted,
                     color: override?.color ?? color,
                     note: override?.note,
@@ -478,7 +494,7 @@ export const ScheduleLogic = {
                 ? Math.ceil(requiredHours / periodsPerWeek)
                 : 0;
 
-            parsedSessions.forEach(({ partIdx, sessionId, dayOfWeek, room, adjusted, color: sessionColor, note, resolvedCampus, baseValues }) => {
+            parsedSessions.forEach(({ partIdx, sessionId, dayOfWeek, room, portalLocationCode, adjusted, color: sessionColor, note, resolvedCampus, baseValues }) => {
                 const periodRange = tryResolvePeriodRange(resolvedCampus.campusId, adjusted.startPeriod, adjusted.endPeriod);
                 const startTime = periodRange?.startTime
                     ?? ScheduleLogic.periodToTimeString(adjusted.startPeriod, true, resolvedCampus.campusId);
@@ -508,6 +524,7 @@ export const ScheduleLogic = {
                     type: cType,
                     instructor: course.instructor || '',
                     room: room || '',
+                    portalLocationCode,
                     dayOfWeek,
                     startPeriod: adjusted.startPeriod,
                     endPeriod: adjusted.endPeriod,

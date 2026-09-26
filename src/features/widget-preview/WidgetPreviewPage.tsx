@@ -50,7 +50,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function NextClassMock({ state, width, height }: { state: SampleState; width: number; height: number }) {
-    const side = Math.min(width, height);
+    const expanded = width >= 180 && height >= 130;
     const hasData = state === 'sample' || state === 'long-title';
     const title = state === 'long-title'
         ? 'Nhập môn thiết kế và phân tích giải thuật nâng cao'
@@ -60,7 +60,7 @@ function NextClassMock({ state, width, height }: { state: SampleState; width: nu
         : state === 'empty' ? 'Mở UStudy để nạp lịch' : 'Ngày mai · 07:30';
 
     return (
-        <div className="widget-mock-next-slot"><div className={`widget-mock widget-mock-next${side >= 180 ? ' is-expanded' : ''}`} style={{ width: side, height: side }} aria-label="Mô phỏng widget buổi học tiếp theo">
+        <div className="widget-mock-next-slot"><div className={`widget-mock widget-mock-next${expanded ? ' is-expanded' : ''}`} style={{ width: '100%', height: '100%' }} aria-label="Mô phỏng widget buổi học tiếp theo">
             <div className="widget-mock-next-header">
                 <span className="widget-mock-next-logo"><GraduationCap aria-hidden="true" /></span>
                 <span className="widget-mock-next-brand">UStudy</span>
@@ -152,7 +152,7 @@ export function WidgetPreviewPage() {
         if (!resizeStart.current) return;
         const start = resizeStart.current;
         setDimensions({
-            width: preset === '2x2' ? clamp(Math.round(start.width + (event.clientX - start.x) / zoom), 130, 420) : start.width,
+            width: clamp(Math.round(start.width + (event.clientX - start.x) / zoom), 130, 420),
             height: clamp(Math.round(start.height + (event.clientY - start.y) / zoom), 115, 320),
         });
     };
@@ -169,13 +169,13 @@ export function WidgetPreviewPage() {
         if (!delta) return;
         event.preventDefault();
         setDimensions((current) => ({
-            width: preset === '2x2' ? clamp(current.width + delta.width, 130, 420) : current.width,
+            width: clamp(current.width + delta.width, 130, 420),
             height: clamp(current.height + delta.height, 115, 320),
         }));
     };
 
     const isNextClass = preset === '2x2';
-    const compact = !isNextClass && dimensions.height < 160;
+    const compact = !isNextClass && (dimensions.width < 180 || dimensions.height < 130);
     const frameStyle: CSSProperties = { width: dimensions.width * zoom, height: dimensions.height * zoom };
     const widgetStyle: CSSProperties = { width: dimensions.width, height: dimensions.height, transform: `scale(${zoom})` };
 
@@ -222,7 +222,7 @@ export function WidgetPreviewPage() {
                     <Button type="button" variant="outline" size="sm" onClick={() => setDimensions(PRESETS[preset])}>
                         <RotateCcw aria-hidden="true" /> Đặt lại kích thước
                     </Button>
-                    <p className="widget-preview-hint">Widget nhỏ luôn vuông; vùng dư trong suốt. Widget lịch chỉ kéo đổi chiều cao, danh sách cuộn được. Thanh rộng mô phỏng vùng launcher cấp, không phải thao tác resize ngang.</p>
+                    <p className="widget-preview-hint">Cả hai widget lấp đầy vùng launcher cấp và kéo được hai chiều. Bố cục thích nghi theo kích thước dp; các mẫu số ô chỉ để tham khảo. Danh sách lịch cuộn được.</p>
                 </section>
 
                 <section className="widget-preview-workspace" aria-label="Vùng xem trước widget">

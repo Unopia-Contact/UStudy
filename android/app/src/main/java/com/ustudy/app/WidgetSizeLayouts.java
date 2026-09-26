@@ -35,6 +35,9 @@ final class WidgetSizeLayouts {
         float maxWidth = WidgetGeometry.positive(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH), minWidth);
         float minHeight = WidgetGeometry.positive(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT), defaultHeight);
         float maxHeight = WidgetGeometry.positive(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT), minHeight);
-        return new RemoteViews(factory.create(maxWidth, minHeight), factory.create(minWidth, maxHeight));
+        // Some hosts report inverted ranges. Estimates only choose density, never bounds.
+        return new RemoteViews(
+                factory.create(Math.max(minWidth, maxWidth), Math.min(minHeight, maxHeight)),
+                factory.create(Math.min(minWidth, maxWidth), Math.max(minHeight, maxHeight)));
     }
 }

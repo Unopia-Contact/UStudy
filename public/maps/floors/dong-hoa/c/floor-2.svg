@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" role="img" aria-label="Nhà C · Tầng 2">
+<title>Nhà C · Tầng 2</title>
+<style>.room{fill:#70c9e5;fill-opacity:.8;stroke:#9f5360;stroke-width:2.2}.service{fill:#b6dcea;stroke:#9f5360;stroke-width:2.2}.unlabeled{fill:#dbf0f5;stroke:#9f5360;stroke-width:2}.wall{fill:none;stroke:#9f5360;stroke-width:2.4;stroke-linejoin:miter}.detail{fill:none;stroke:#35546a;stroke-width:1.6}.code{font:600 11px Arial,sans-serif;fill:#164966;text-anchor:middle}.label{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.minor{font:9px Arial,sans-serif;fill:#164966;text-anchor:middle}.parking{font:16px Arial,sans-serif;fill:#164966;text-anchor:middle}.marker{fill:#9f5360}</style>
+<g id="room-p209"><title>P209 · PTN Thực vật</title>
+<rect class="room" x="25.0" y="21.0" width="206.6" height="158.8"/>
+<text class="code" x="128.4" y="97.3">P209</text>
+<text class="label" x="128.4" y="114.3">PTN Thực vật</text>
+</g>
+<g id="room-c208"><title>C208 · PTN Y sinh học tái tạo</title>
+<rect class="room" x="231.7" y="21.0" width="69.2" height="118.3"/>
+<text class="code" x="266.3" y="77.1">C208</text>
+<text class="label" x="266.3" y="94.1">PTN Y sinh</text>
+<text class="label" x="266.3" y="106.1">tái tạo</text>
+</g>
+<path class="detail" d="M 258.3 139.3 v 8 l 8 -7 M 274.3 139.3 v 8 l -8 -7"/>
+<g id="room-c207"><title>C207</title>
+<rect class="room" x="369.1" y="21.0" width="67.2" height="117.4"/>
+<text class="code" x="402.7" y="83.6">C207</text>
+</g>
+<path class="detail" d="M 394.7 138.3 v 8 l 8 -7 M 410.7 138.3 v 8 l -8 -7"/>
+<g id="room-c206"><title>C206</title>
+<rect class="room" x="436.2" y="21.0" width="133.3" height="117.4"/>
+<text class="code" x="502.9" y="83.6">C206</text>
+</g>
+<path class="detail" d="M 494.9 138.3 v 8 l 8 -7 M 510.9 138.3 v 8 l -8 -7"/>
+<g id="room-c205"><title>C205</title>
+<rect class="room" x="569.5" y="21.0" width="134.3" height="117.4"/>
+<text class="code" x="636.7" y="83.6">C205</text>
+</g>
+<path class="detail" d="M 628.7 138.3 v 8 l 8 -7 M 644.7 138.3 v 8 l -8 -7"/>
+<g id="room-c204"><title>C204</title>
+<rect class="room" x="703.8" y="21.0" width="68.2" height="90.7"/>
+<text class="code" x="737.9" y="70.3">C204</text>
+</g>
+<path class="detail" d="M 729.9 111.7 v 8 l 8 -7 M 745.9 111.7 v 8 l -8 -7"/>
+<g id="room-c203"><title>C203</title>
+<rect class="room" x="772.0" y="21.0" width="134.3" height="90.7"/>
+<text class="code" x="839.2" y="70.3">C203</text>
+</g>
+<path class="detail" d="M 831.2 111.7 v 8 l 8 -7 M 847.2 111.7 v 8 l -8 -7"/>
+<g id="room-c202"><title>C202</title>
+<rect class="room" x="906.3" y="21.0" width="133.3" height="90.7"/>
+<text class="code" x="973.0" y="70.3">C202</text>
+</g>
+<path class="detail" d="M 965.0 111.7 v 8 l 8 -7 M 981.0 111.7 v 8 l -8 -7"/>
+<g id="room-c201"><title>C201</title>
+<rect class="room" x="1039.6" y="21.0" width="134.3" height="155.8"/>
+<text class="code" x="1106.8" y="102.9">C201</text>
+</g>
+<g><title>WC</title><rect class="service" x="300.9" y="21.0" width="68.2" height="72.0"/>
+<text class="minor" x="335.0" y="60.0">WC</text></g>
+<g aria-label="Khu chưa xác định"><rect class="unlabeled" x="300.9" y="92.9" width="68.2" height="47.3"/></g>
+<g aria-label="Khu chưa xác định"><rect class="unlabeled" x="772.0" y="137.3" width="67.2" height="38.5"/></g>
+<g aria-label="Khu chưa xác định"><rect class="unlabeled" x="839.2" y="137.3" width="67.2" height="38.5"/></g>
+<g aria-label="Khu chưa xác định"><rect class="unlabeled" x="906.3" y="137.3" width="67.2" height="38.5"/></g>
+<g aria-label="Khu chưa xác định"><rect class="unlabeled" x="973.5" y="137.3" width="66.1" height="38.5"/></g>
+<g aria-label="Khu chưa xác định"><rect class="unlabeled" x="1039.6" y="137.3" width="67.2" height="38.5"/></g>
+<g id="stairs-1"><title>Thang bộ</title><path class="wall" d="M 300.9 174.8 V 228.1 H 370.1 V 174.8"/><path class="detail" d="M 305.9 223.1 L 365.1 179.8"/><text class="minor" x="335.5" y="240.1">Thang bộ</text></g>
+<g id="stairs-2"><title>Thang bộ</title><path class="wall" d="M 703.8 111.7 V 227.1 H 773.1 V 111.7"/><path class="detail" d="M 708.8 222.1 L 768.1 116.7"/><text class="minor" x="738.4" y="239.1">Thang bộ</text></g>
+<path class="wall" d="M 25.0 179.7 L 300.9 179.7"/>
+<path class="wall" d="M 370.1 175.8 L 703.8 175.8"/>
+<path class="wall" d="M 773.1 111.7 L 1039.6 111.7"/>
+</svg>

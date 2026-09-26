@@ -31,9 +31,20 @@ body:has(:is(
   [data-slot="alert-dialog-content"],
   [data-slot="sheet-content"],
   [data-slot="drawer-content"]
-)[data-state="open"]) [data-ustudy-mobile-navigation] {
+)[data-state="open"]:not([data-preserve-mobile-navigation="true"])) [data-ustudy-mobile-navigation] {
   visibility: hidden;
   pointer-events: none;
+}
+
+/* Room maps stay above the nav. Keep context visible, but modal focus owns input. */
+body:has([data-preserve-mobile-navigation="true"][data-state="open"]) [data-ustudy-mobile-navigation] {
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .ustudy-dialog-above-mobile-nav {
+    bottom: var(--ustudy-mobile-nav-height);
+  }
 }
 
 /* Menus/selects opened from inside a modal are portaled too. */
