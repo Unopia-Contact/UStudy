@@ -28,6 +28,134 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
             sortOrder: 1,
             rooms: [
               {
+                id: "1",
+                code: "1.1",
+                label: "Phòng 1.1",
+                kind: "classroom",
+                aliases: ["NĐH 1.1"],
+                status: "active",
+                verification: {
+                  status: "observed",
+                  sourceIds: ["user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH101 là phòng 1.1.",
+                },
+                map: {
+                  shapeId: "room-ndh1-1",
+                },
+              },
+              {
+                id: "2",
+                code: "1.2",
+                label: "Phòng 1.2",
+                kind: "classroom",
+                aliases: ["NĐH 1.2"],
+                status: "active",
+                verification: {
+                  status: "observed",
+                  sourceIds: ["user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH102 là phòng 1.2.",
+                },
+                map: {
+                  shapeId: "room-ndh1-2",
+                },
+              },
+              {
+                id: "3",
+                code: "1.3",
+                label: "Phòng 1.3",
+                kind: "classroom",
+                aliases: ["NĐH 1.3"],
+                status: "active",
+                verification: {
+                  status: "observed",
+                  sourceIds: ["user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH103 là phòng 1.3.",
+                },
+                map: {
+                  shapeId: "room-ndh1-3",
+                },
+              },
+              {
+                id: "4",
+                code: "1.4",
+                label: "Phòng 1.4",
+                kind: "classroom",
+                aliases: ["NĐH 1.4"],
+                status: "active",
+                verification: {
+                  status: "observed",
+                  sourceIds: ["user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH104 là phòng 1.4.",
+                },
+                map: {
+                  shapeId: "room-ndh1-4",
+                },
+              },
+              {
+                id: "5",
+                code: "1.5",
+                label: "Phòng 1.5",
+                kind: "classroom",
+                aliases: ["NĐH 1.5"],
+                status: "active",
+                verification: {
+                  status: "observed",
+                  sourceIds: ["user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH105 là phòng 1.5.",
+                },
+                map: {
+                  shapeId: "room-ndh1-5",
+                },
+              },
+              {
+                id: "6",
+                code: "1.6",
+                label: "Phòng 1.6",
+                kind: "classroom",
+                aliases: ["NĐH 1.6"],
+                status: "active",
+                verification: {
+                  status: "observed",
+                  sourceIds: ["user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH106 là phòng 1.6.",
+                },
+                map: {
+                  shapeId: "room-ndh1-6",
+                },
+              },
+              {
+                id: "7",
+                code: "1.7",
+                label: "Phòng 1.7",
+                kind: "classroom",
+                aliases: ["NĐH 1.7"],
+                status: "active",
+                verification: {
+                  status: "observed",
+                  sourceIds: ["user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH107 là phòng 1.7.",
+                },
+                map: {
+                  shapeId: "room-ndh1-7",
+                },
+              },
+              {
+                id: "8",
+                code: "1.8",
+                label: "Phòng 1.8",
+                kind: "classroom",
+                aliases: ["NĐH 1.8"],
+                status: "active",
+                verification: {
+                  status: "observed",
+                  sourceIds: ["user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH108 là phòng 1.8.",
+                },
+                map: {
+                  shapeId: "room-ndh1-8",
+                },
+              },
+              {
                 id: "9",
                 code: "1.9",
                 label: "Phòng 1.9",
@@ -36,7 +164,11 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
                 status: "active",
                 verification: {
                   status: "observed",
-                  sourceIds: ["user-confirmed-portal-code"],
+                  sourceIds: ["user-confirmed-portal-code", "user-confirmed-ndh-floor-1-room-codes"],
+                  note: "Người dùng xác nhận mã trên sơ đồ cũ NĐH109 là phòng 1.9.",
+                },
+                map: {
+                  shapeId: "room-ndh1-9",
                 },
               },
             ],

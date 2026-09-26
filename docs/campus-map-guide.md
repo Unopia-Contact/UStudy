@@ -83,6 +83,24 @@ Nguồn dữ liệu là `user-provided-building-c-floor-svg`, mức `observed`.
 
 Kiểm tra bằng `pnpm exec vitest run tests/unit/building-c-maps.test.ts`.
 
+### Sơ đồ NĐH cũ đã khôi phục
+
+`public/maps/floors/dong-hoa/ndh/floor-1.svg` được chuyển từ phần `NDH`, tầng 1 trong
+`src/features/campus-map/campus-data.ts` của nhánh `CampusMap`, commit `3b252a72997c134db1415f2d94d9018c840c8709`.
+Sơ đồ được đăng ký tại `dong-hoa/ndh/1` trong `floor-maps.ts`.
+Bản hiện tại dùng sơ đồ người dùng đã xoay trái 90°, giữ hình học, hành lang, thang bộ, thang máy và WC.
+Người dùng xác nhận NĐH101–109 là phòng **1.1–1.9**. Nhãn đã đổi thành NĐH 1.1–1.9, ID hình là `room-ndh1-1` đến `room-ndh1-9`.
+File đầu vào `nha-dieu-hanh-tang-1-xoay-trai.svg` đã chuẩn hóa thành `floor-1.svg`.
+`viewBox` chuẩn là `0 0 950 530`; nhóm `translate(-25 -450)` giữ đúng vùng cắt của bản đầu vào `25 450 950 530`.
+Không bỏ nhóm dịch tọa độ: renderer inline chỉ lấy nội dung bên trong SVG, không giữ `viewBox` của file gốc.
+Các ID trùng của WC/cầu thang được đổi thành ID riêng. Không khôi phục component/data cũ vào source chính.
+
+Inventory tầng 1 có đủ 9 phòng, ID `dong-hoa/ndh/1/1` đến `dong-hoa/ndh/1/9`; mỗi phòng có `room.map.shapeId` tương ứng để highlight.
+ID phòng 1.9 hiện có được giữ nguyên. Không tạo alias 101–109 để tránh tiếp tục dùng mã cũ.
+Mã chuẩn `P.cs2:NĐH1.9` được resolver nhận diện theo cấu trúc, không cần thêm binding trùng lặp.
+Mở tòa NĐH → tầng 1 → **Xem bản đồ tầng** hoặc tìm NĐH 1.9 để xem vị trí.
+Tầng 2 của bản cũ có `elements: []`, nên không đăng ký bản vẽ rỗng và không tự vẽ tầng 2.
+
 ### Tòa G — cơ sở Đông Hòa
 
 | Tầng | ID tầng runtime | File trong `public/maps/floors/dong-hoa/g/` | Phòng |

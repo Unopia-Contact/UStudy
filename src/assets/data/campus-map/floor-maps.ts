@@ -2,6 +2,12 @@ import type { FloorId, MapAsset } from '../../../domain/campus-map/types';
 
 // Single source for floor drawings. Keys use campus/building/floor IDs from campuses.ts.
 export const FLOOR_MAPS: Partial<Record<FloorId, MapAsset>> = {
+  // Restored floor drawing; room labels 1.1–1.9 confirmed by the user.
+  'dong-hoa/ndh/1': {
+    asset: '/maps/floors/dong-hoa/ndh/floor-1.svg',
+    viewBox: [0, 0, 950, 530],
+    shapeIds: ['ndh1-outline', 'ndh1-main-hallway', 'room-ndh1-1', 'room-ndh1-2', 'room-ndh1-3', 'room-ndh1-4', 'room-ndh1-5', 'nvs-f1-b', 'ndh1-top-hallway', 'ndh1-stair', 'room-ndh1-6', 'room-ndh1-7', 'nvs-f1-b-2', 'ndh1-elevator', 'ndh1-side-hallway', 'ndh1-stair-2', 'nvs-f1-b-3', 'room-ndh1-8', 'room-ndh1-9', 'ndh1-stair-3', 'ndh1-left-hallway', 'nvs-f1-b-4'],
+  },
   'dong-hoa/a/0': {
     asset: '/maps/floors/dong-hoa/a/basement.svg',
     viewBox: [0, 0, 1200, 250],
