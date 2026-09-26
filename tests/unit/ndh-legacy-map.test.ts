@@ -10,13 +10,15 @@ import { buildPortalRoomIndexes } from '../../src/integrations/hcmus-portal/room
 import { resolvePortalRoom } from '../../src/integrations/hcmus-portal/rooms/resolve-portal-room';
 
 const runtime = buildCampusMapRuntimeData(CAMPUS_MAP_CAMPUSES, FLOOR_MAPS);
-const map = runtime.floorsById['dong-hoa/ndh/1'].map!;
-const svg = readFileSync(resolve('public', map.asset.slice(1)), 'utf8');
+const svg = readFileSync(resolve('public/maps/floors/dong-hoa/ndh/floor-1.svg'), 'utf8');
 
 describe('Restored legacy NDH drawing', () => {
-  it('registers the first-floor drawing without inventing an empty second-floor map', () => {
-    expect(map.asset).toBe('/maps/floors/dong-hoa/ndh/floor-1.svg');
-    expect(map.viewBox).toEqual([0, 0, 950, 530]);
+  it('keeps B, B4.2 and NDH floor drawings unpublished', () => {
+    for (const buildingId of ['b', 'b4-2', 'ndh']) {
+      const floors = runtime.floorIdsByBuildingId[`dong-hoa/${buildingId}`];
+      expect(floors.length).toBeGreaterThan(0);
+      for (const floorId of floors) expect(runtime.floorsById[floorId].map).toBeUndefined();
+    }
     expect(svg).toContain('viewBox="0 0 950 530"');
     // InlineFloorSvg inserts only root.innerHTML: preserve the crop origin explicitly.
     expect(svg).toContain('transform="translate(-25 -450)"');
@@ -26,7 +28,6 @@ describe('Restored legacy NDH drawing', () => {
     const ids = Array.from(svg.matchAll(/\bid="([^"]+)"/g), match => match[1]);
     expect(ids).toHaveLength(22);
     expect(new Set(ids).size).toBe(ids.length);
-    expect([...ids].sort()).toEqual([...map.shapeIds!].sort());
     expect(ids.filter(id => /^room-ndh1-[1-9]$/.test(id))).toHaveLength(9);
     expect(svg).not.toMatch(/NĐH 10[1-9]/);
     expect(svg).toContain('M 40 960 V 540 H 380 V 490 H 620 V 540 H 960 V 960 Z');
@@ -39,16 +40,17 @@ describe('Restored legacy NDH drawing', () => {
     expect(floor.rooms).toHaveLength(9);
     for (let i = 1; i <= 9; i++) {
       const room = runtime.roomsById[`dong-hoa/ndh/1/${i}`];
-      expect(room).toMatchObject({ id: String(i), code: `1.${i}`, map: { shapeId: `room-ndh1-${i}` } });
-      expect(map.shapeIds).toContain(room.map!.shapeId);
-      expect(svg).toContain(`<g id="${room.map!.shapeId}"><title>NĐH 1.${i}</title>`);
+      expect(room).toMatchObject({ id: String(i), code: `1.${i}` });
+      expect(runtime.floorsById[room.floorId].map).toBeUndefined();
+      expect(room.map).toBeUndefined();
+      expect(svg).toContain(`<g id="room-ndh1-${i}"><title>NĐH 1.${i}</title>`);
     }
   });
-  it('resolves and searches standard NĐH 1.1–1.9 codes with highlight support', () => {
+  it('resolves and searches standard NĐH 1.1–1.9 codes without publishing the archived drawing', () => {
     const indexes = buildPortalRoomIndexes(PORTAL_ROOM_BINDINGS);
     for (let i = 1; i <= 9; i++) {
       const roomId = `dong-hoa/ndh/1/${i}`;
-      expect(searchCampusPlaces(`NĐH 1.${i}`, runtime, 'dong-hoa')[0]).toMatchObject({ roomId, hasRoomShape: true, hasFloorMap: true });
+      expect(searchCampusPlaces(`NĐH 1.${i}`, runtime, 'dong-hoa')[0]).toMatchObject({ roomId, hasRoomShape: false, hasFloorMap: false });
       expect(resolvePortalRoom(`P.cs2:NĐH1.${i}`, runtime, indexes)).toMatchObject({ status: 'matched', roomId });
     }
   });
