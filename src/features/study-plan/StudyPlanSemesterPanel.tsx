@@ -582,18 +582,17 @@ export function StudyPlanSemesterPanel({
                                                                 >
                                                                     <div className="flex items-start gap-2">
                                                                         <button type="button" onClick={() => onOpenMobilePlanner?.(course)} className="min-w-0 flex-1 text-left">
-                                                                            <p className="text-sm font-medium text-gray-900 lg:hidden">{course.course_name_vi}</p>
                                                                             <div className="flex items-center gap-2">
-                                                                                <span className="pt-1 text-xs font-medium text-gray-500 lg:font-bold lg:text-gray-900">{course.course_id}</span>
+                                                                                <span className="pt-1 text-xs font-bold text-gray-900">{course.course_id}</span>
                                                                                 <span className="text-[11px] font-semibold tabular-nums text-gray-500">{course.credits}<span className="ml-1 font-medium text-gray-400">TC</span></span>
                                                                             </div>
-                                                                            <p className="mt-1 hidden lg:block truncate text-xs font-medium text-gray-600">{course.course_name_vi}</p>
+                                                                            <p className="mt-1 truncate text-xs font-medium text-gray-600">{course.course_name_vi}</p>
                                                                         </button>
                                                                         {!semester.isHistorical && (
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => onRemoveCourseFromSemester(courseId, semester.id)}
-                                                                                className="flex h-11 w-11 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                                                                                className="rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
                                                                                 aria-label={`Bỏ ${course.course_name_vi} khỏi học kỳ`}
                                                                                 title="Xóa khỏi học kỳ"
                                                                             >
@@ -602,12 +601,12 @@ export function StudyPlanSemesterPanel({
                                                                         )}
                                                                     </div>
                                                                     {missingPrereqs.length > 0 && (
-                                                                        <details className="mt-2 text-xs text-amber-800"><summary className="min-h-8 cursor-pointer">Cần kiểm tra {missingPrereqs.length} môn tiên quyết</summary><div className="rounded-md bg-amber-50 px-2 py-1.5 leading-relaxed">
+                                                                        <div className="mt-2 rounded-md bg-amber-50 px-2 py-1.5 text-[11px] leading-relaxed text-amber-800">
                                                                             Chưa học môn tiên quyết: {missingPrereqs.map((prereqId) => {
                                                                                 const prereq = courseById.get(prereqId);
                                                                                 return prereq ? `${prereqId} - ${prereq.course_name_vi}` : prereqId;
                                                                             }).join(', ')}
-                                                                        </div></details>
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                             );

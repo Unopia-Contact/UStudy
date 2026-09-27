@@ -73,21 +73,19 @@ export function StudyPlanCourseRow({
                     setShowDetails((value) => !value);
                 }}
                 onDragStart={(event) => onDragStart(course.course_id, event)}
-                className={`study-plan-course-row flex items-center gap-1.5 md:gap-3 px-2 md:px-4 py-2 md:py-2.5 border rounded-lg ${getContainerStyle()} ${isLocked ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'} ${showDetails ? 'rounded-t-lg rounded-b-none' : 'rounded-lg'}`}
+                className={`flex items-center gap-1.5 md:gap-3 px-2 md:px-4 py-2 md:py-2.5 border rounded-lg ${getContainerStyle()} ${isLocked ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'} ${showDetails ? 'rounded-t-lg rounded-b-none' : 'rounded-lg'}`}
             >
-                <div className="study-plan-course-identity flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-0.5 md:gap-3">
+                <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-0.5 md:gap-3">
                     <div className="md:w-24 flex-shrink-0">
-                        <p className="text-xs md:text-sm text-gray-500 md:text-gray-900 md:font-semibold leading-tight md:leading-normal">
+                        <p className="text-[11px] md:text-sm font-semibold text-gray-900 leading-tight md:leading-normal">
                             {course.course_id}
-                            <span className="md:hidden"> · {course.credits} TC</span>
                         </p>
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 md:truncate font-medium leading-5">
+                        <p className="text-[10px] md:text-sm text-gray-500 md:text-gray-900 truncate font-medium leading-tight md:leading-normal">
                             {course.course_name_vi}
                         </p>
                     </div>
-                    <div className="md:hidden"><StatusBadge status={status} rootCompleted={rootCompleted} isPlanned={isPlanned} /></div>
                 </div>
 
                 <div className="hidden md:block w-16 flex-shrink-0 text-center">
@@ -118,7 +116,7 @@ export function StudyPlanCourseRow({
                                 event.stopPropagation();
                                 onOpenMobilePlanner(course, rootCompleted, 'semesters');
                             }}
-                            className="mr-0.5 inline-flex h-11 w-11 items-center justify-center rounded-lg text-[#004A98] transition-colors hover:bg-blue-50 md:hidden"
+                            className="mr-0.5 inline-flex items-center justify-center rounded-lg border border-blue-100 bg-blue-50 p-1.5 text-[#004A98] transition-colors hover:bg-blue-100 md:hidden"
                             aria-label={isPlanned ? 'Đổi học kỳ' : 'Thêm vào học kỳ'}
                             title={isPlanned ? 'Đổi học kỳ' : 'Lên lịch'}
                         >
@@ -132,7 +130,7 @@ export function StudyPlanCourseRow({
                                 event.stopPropagation();
                                 onRemoveFromPlan(course.course_id);
                             }}
-                            className="hidden md:inline-flex p-1.5 hover:bg-red-50 rounded transition-colors text-gray-500 hover:text-red-600"
+                            className="p-1 md:p-1.5 hover:bg-red-50 rounded transition-colors text-gray-500 hover:text-red-600"
                             title="Xóa khỏi kế hoạch"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -145,7 +143,7 @@ export function StudyPlanCourseRow({
                             if (onOpenMobilePlanner(course, rootCompleted)) return;
                             setShowDetails((value) => !value);
                         }}
-                        className="hidden md:inline-flex p-1.5 hover:bg-gray-200/60 rounded transition-colors"
+                        className="p-1 md:p-1.5 hover:bg-gray-200/60 rounded transition-colors"
                         title="Xem chi tiết"
                     >
                         
