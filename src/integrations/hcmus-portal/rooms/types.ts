@@ -21,5 +21,4 @@ export interface PortalRoomResolution {
 export interface PortalRoomIndexes {
   exact: Map<string, RoomId[]>;
   equivalent: Map<string, RoomId[]>;
-  knownPrefixes: Array<{ campusCode: string; prefix: string; buildingId: string }>;
 }

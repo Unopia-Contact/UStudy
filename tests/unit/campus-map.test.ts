@@ -84,7 +84,7 @@ describe('Campus Map / Portal integration', () => {
     expect(resolvePortalRoom('P.cs2:PM_B4-2_6.3', data, indexes).status).toBe('unresolved');
   });
 
-  it('resolves complete room codes after recognized teaching-unit prefixes', () => {
+  it('resolves complete room codes regardless of teaching-unit prefix', () => {
     for (const [code, id] of [
       ['TNHDC_A107', 'dong-hoa/a/1/107'],
       ['TNHDC_A108', 'dong-hoa/a/1/108'],
@@ -98,10 +98,33 @@ describe('Campus Map / Portal integration', () => {
         status: 'matched', roomId: id, matchedBy: 'structural', confidence: 'weak',
       });
     }
-    for (const code of ['TNL_A2110', 'UNKNOWN_A211', 'PMT_B4-2_6.', 'PMT_B4-2_5.', 'PMT_B4-2_5.1']) {
+    expect(resolvePortalRoom('P.cs2:UNKNOWN_A211', data, indexes)).toMatchObject({
+      status: 'matched', roomId: 'dong-hoa/a/2/211',
+    });
+    for (const code of ['TNL_A2110', 'PMT_B4-2_6.', 'PMT_B4-2_5.', 'PMT_B4-2_5.1']) {
       expect(resolvePortalRoom(`P.cs2:${code}`, data, indexes).status).toBe('unresolved');
     }
     expect(resolvePortalRoom('P.cs1:TNL_A211', data, indexes).status).toBe('unresolved');
+  });
+
+  it('discovers new building codes and duplicate room labels from inventory alone', () => {
+    const custom = buildCampusMapRuntimeData([{
+      ...CAMPUS_MAP_CAMPUSES[0], buildings: ['x9-8', 'z7-6'].map((id) => ({
+        id, code: id.toUpperCase(), name: id, kind: 'academic', status: 'active',
+        floors: [{ id: '12', label: 'Floor 12', sortOrder: 12, rooms: [
+          { id: '3', code: '12.3', label: '12.3', aliases: ['Q1203'], kind: 'classroom', status: 'active' },
+        ] }],
+      })),
+    }]);
+    const emptyBindings = buildPortalRoomIndexes([]);
+    expect(resolvePortalRoom('P.cs2:NEW_DEPARTMENT_X9-8_12.3', custom, emptyBindings))
+      .toMatchObject({ status: 'matched', roomId: 'dong-hoa/x9-8/12/3' });
+    expect(resolvePortalRoom('P.cs2:NEW_DEPARTMENT_12.3', custom, emptyBindings))
+      .toMatchObject({ status: 'ambiguous', candidates: ['dong-hoa/x9-8/12/3', 'dong-hoa/z7-6/12/3'] });
+    expect(resolvePortalRoom('P.cs2:NEW_Q1203', custom, emptyBindings).status).toBe('ambiguous');
+    expect(resolvePortalRoom('P.cs2:NEW_Q12030', custom, emptyBindings).status).toBe('unresolved');
+    expect(resolvePortalRoom('P.cs1:NEW_X9-8_12.3', custom, emptyBindings).status).toBe('unresolved');
+    expect(resolvePortalRoom('P.cs2:PMT_B9-8_6.2', data, emptyBindings).status).toBe('unresolved');
   });
 
   it('resolves a timetable room to its building, floor and highlighted map shape', () => {

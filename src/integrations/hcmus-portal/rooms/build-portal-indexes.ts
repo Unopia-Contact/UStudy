@@ -19,18 +19,10 @@ function add(index: Map<string, string[]>, key: string, roomId: string): void {
 export function buildPortalRoomIndexes(bindings: PortalRoomBinding[]): PortalRoomIndexes {
   const exact = new Map<string, string[]>();
   const equivalent = new Map<string, string[]>();
-  const prefixes = new Map<string, { campusCode: string; prefix: string; buildingId: string }>();
   for (const binding of bindings) {
     const code = compilePortalCode(binding);
     add(exact, code, binding.roomId);
     add(equivalent, createEquivalentPortalKey(code), binding.roomId);
-    const prefix = binding.components.buildingCode;
-    if (prefix && binding.roomId.split('/').length >= 2) {
-      const buildingId = binding.roomId.split('/').slice(0, 2).join('/');
-      prefixes.set(`${binding.components.campusCode}|${prefix}|${buildingId}`, {
-        campusCode: binding.components.campusCode, prefix, buildingId,
-      });
-    }
   }
-  return { exact, equivalent, knownPrefixes: [...prefixes.values()].sort((a, b) => b.prefix.length - a.prefix.length) };
+  return { exact, equivalent };
 }

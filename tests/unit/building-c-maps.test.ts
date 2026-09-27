@@ -38,7 +38,9 @@ describe('Building C inventory and floor drawings', () => {
   }
   it('preserves P209 and does not invent functions for unnamed rooms', () => {
     expect(runtime.roomsById['dong-hoa/c/2/p209']).toMatchObject({ code: 'P209', label: 'P209', map: { shapeId: 'room-p209' } });
-    expect(resolvePortalRoom('P.cs2:P209', runtime, indexes).status).toBe('unresolved');
+    expect(resolvePortalRoom('P.cs2:P209', runtime, indexes)).toMatchObject({
+      status: 'matched', roomId: 'dong-hoa/c/2/p209', matchedBy: 'structural',
+    });
     expect(resolvePortalRoom('P.cs2:C209', runtime, indexes).status).toBe('unresolved');
     for (let code = 201; code <= 207; code++) {
       const room = runtime.roomsById[`dong-hoa/c/2/${code}`];
