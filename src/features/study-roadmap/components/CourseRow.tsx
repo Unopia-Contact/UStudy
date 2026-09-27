@@ -199,7 +199,7 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
         aria-label={`Chi tiết ${course.nameVi}`}
         onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); handleDetailsToggle(); } }}
         onClick={handleDetailsToggle}
-      className={`roadmap-course-row flex items-center gap-1.5 md:gap-3 px-2 md:px-4 py-2 md:py-2.5 border transition-all ${showDescription ? 'rounded-t-lg' : 'rounded-lg'} ${
+      className={`roadmap-course-row flex items-center gap-1.5 md:gap-3 px-2 py-1 md:px-4 md:py-2.5 border transition-all ${showDescription ? 'rounded-t-lg' : 'rounded-lg'} ${
           isRegistered
             ? 'border-emerald-200 bg-emerald-50 cursor-default'
             : course.needsRetake
@@ -208,7 +208,7 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
                 ? 'border-[#004A98] bg-blue-100 shadow-sm'
                 : course.isAvailable
                   ? 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-gray-400'
-                  : 'border-gray-200 bg-gray-50'
+                  : 'border-gray-200 bg-gray-50 md:border-gray-300 md:bg-gray-100 md:opacity-60'
           }`}
       >
         {/* Checkbox / Registered badge */}
@@ -217,7 +217,7 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
             ✓ Đăng ký
           </span>
         ) : (
-          <label className="flex h-11 w-11 shrink-0 items-center justify-center" onClick={e => e.stopPropagation()}>
+          <label className="flex h-11 w-11 shrink-0 items-center justify-center md:h-4 md:w-4" onClick={e => e.stopPropagation()}>
           <input
             type="checkbox"
             checked={isSelected}

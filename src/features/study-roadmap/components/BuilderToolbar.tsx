@@ -1,5 +1,5 @@
 import { Cpu, List, Save, Settings, Trash2, MoreHorizontal } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../../../components/ui/overlays/dropdown-menu';
+import { AppSelect } from '../../../components/ui/form/app-select';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -31,17 +31,28 @@ export function BuilderToolbar({
   return (
     <>
     <div className="flex justify-end md:hidden">
-      <DropdownMenu><DropdownMenuTrigger asChild><button type="button" aria-label="Thao tác với lịch dự kiến" className="flex min-h-11 items-center gap-2 rounded-lg border border-gray-200 px-3 text-sm"><MoreHorizontal className="h-4 w-4" />Thao tác</button></DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={onOpenConfig}>Ưu tiên xếp lịch</DropdownMenuItem>
-          <DropdownMenuItem onSelect={onOpenSavedList}>Lịch đã lưu ({savedSchedulesCount})</DropdownMenuItem>
-          <DropdownMenuItem disabled={!hasSelections} onSelect={onSave}>Lưu phương án</DropdownMenuItem>
-          {onCreateImage && <DropdownMenuItem disabled={!hasSelections} onSelect={onCreateImage}>Tạo ảnh lịch</DropdownMenuItem>}
-          <DropdownMenuItem disabled={solving} onSelect={onFullSolve}>Xếp tự động lại từ đầu</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled={!hasSelections} onSelect={() => { if (window.confirm('Xóa các lựa chọn lớp trong phương án đang xếp? Giỏ môn vẫn được giữ.')) onClear(); }} className="text-red-600">Xóa lựa chọn lớp</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <AppSelect
+        value=""
+        ariaLabel="Thao tác với lịch dự kiến"
+        triggerContent={<><MoreHorizontal className="h-4 w-4" /><span>Thao tác</span></>}
+        className="mt-1.5" triggerClassName="px-3 py-2.5 text-sm font-medium" 
+        options={[
+          { id: 'config', name: 'Ưu tiên xếp lịch' },
+          { id: 'saved', name: `Lịch đã lưu (${savedSchedulesCount})` },
+          { id: 'save', name: 'Lưu phương án', disabled: !hasSelections },
+          ...(onCreateImage ? [{ id: 'image', name: 'Tạo ảnh lịch', disabled: !hasSelections }] : []),
+          { id: 'solve', name: 'Xếp tự động lại từ đầu', disabled: solving },
+          { id: 'clear', name: 'Xóa lựa chọn lớp', disabled: !hasSelections },
+        ]}
+        onChange={(action) => {
+          if (action === 'config') onOpenConfig();
+          else if (action === 'saved') onOpenSavedList();
+          else if (action === 'save') onSave();
+          else if (action === 'image') onCreateImage?.();
+          else if (action === 'solve') onFullSolve();
+          else if (action === 'clear' && window.confirm('Xóa các lựa chọn lớp trong phương án đang xếp? Giỏ môn vẫn được giữ.')) onClear();
+        }}
+      />
     </div>
     <div className="hidden md:flex flex-wrap items-center gap-2">
       <button

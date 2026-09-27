@@ -171,7 +171,7 @@ export function SelectionBasket({
                                 {(allowedClassesMap && setAllowedClassesMap) && (
                                     <button
                                         onClick={() => setFilterModalCourse(course)}
-                                        className="ustudy-action-icon ustudy-action-icon-primary h-11 w-11"
+                                        className="ustudy-action-icon ustudy-action-icon-primary h-11 w-11 md:h-7 md:w-7"
                                         aria-label={`Lớp được xét cho ${course.nameVi}`}
                                         title="Lọc lớp học"
                                     >
@@ -181,7 +181,7 @@ export function SelectionBasket({
                                 {onRemoveCourse && (
                                     <button
                                         onClick={() => onRemoveCourse(course.id)}
-                                        className="ustudy-action-icon ustudy-action-icon-danger h-11 w-11"
+                                        className="ustudy-action-icon ustudy-action-icon-danger h-11 w-11 md:h-7 md:w-7"
                                         aria-label={`Bỏ ${course.nameVi} khỏi giỏ`}
                                         title="Xóa khỏi giỏ"
                                     >

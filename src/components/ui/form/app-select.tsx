@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 
 export interface AppSelectOption {
   id: string;
@@ -19,6 +19,7 @@ interface AppSelectProps {
   triggerClassName?: string;
   menuClassName?: string;
   optionClassName?: string;
+  triggerContent?: ReactNode;
 }
 
 /** Dropdown custom chuẩn của UStudy, dùng cho form và toolbar. */
@@ -34,6 +35,7 @@ export function AppSelect({
   triggerClassName = '',
   menuClassName = '',
   optionClassName = '',
+  triggerContent,
 }: AppSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuId = useId();
@@ -126,8 +128,10 @@ export function AppSelect({
         aria-haspopup="listbox"
         aria-controls={isOpen ? menuId : undefined}
       >
-        <span className="min-w-0 flex-1 truncate">{selectedOption?.name ?? 'Chọn...'}</span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {triggerContent ?? <>
+          <span className="min-w-0 flex-1 truncate">{selectedOption?.name ?? 'Chọn...'}</span>
+          <ChevronDown className={`h-4 w-4 shrink-0 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </>}
       </button>
 
       {isOpen && (

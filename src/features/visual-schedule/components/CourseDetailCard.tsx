@@ -30,11 +30,22 @@ export function CourseDetailCard({ session, onOpenClassDetails }: { session: Sch
 
                         <RoomMapLink session={session} variant="campus" />
 
-                        {session.totalWeeks > 0 && (
-                            <div>
-                                • Học từ: {session.startDate} - {session.endDate} ({session.totalWeeks} tuần)
-                            </div>
-                        )}
+                        <div className="mobile-only">
+                            {session.totalWeeks > 0 && (
+                                <div>
+                                    • Học {session.totalWeeks} tuần
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="desktop-only">
+                            {session.totalWeeks > 0 && (
+                                <div>
+                                    • Học từ: {session.startDate} - {session.endDate} ({session.totalWeeks} tuần)
+                                </div>
+                            )}
+                        </div>
+
 
                         <div>
                             • Lớp: {session.classCode}
