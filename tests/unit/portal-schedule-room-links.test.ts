@@ -52,12 +52,11 @@ describe('Portal schedule fixture room links', () => {
     }
     process.stdout.write(JSON.stringify({ samples: portalScheduleSamples.length, entries, linked, maps, shapes, uniqueLinked: links.size, unmatched: Object.fromEntries(unmatched), links: Object.fromEntries(links) }, null, 2) + '\n');
     expect(entries).toBe(439);
-    expect(linked).toBe(375);
-    expect(links.size).toBe(71);
+    expect(linked).toBe(416);
+    expect(links.size).toBe(78);
     expect([...unmatched.keys()]).toEqual([
-      'P.cs2:D109', 'P.cs2:TT_TDTT1', 'P.cs2:TNSDC1_A306',
-      'P.cs2:TNHDC_A110', 'P.cs2:TNHDC_A107', 'P.cs2:TNHDC_A108', 'P.cs2:TNHDC_A109',
-      'P.cs2:PMT_B4-2_5.', 'P.cs2:PMT_B4-2_6.', 'P.cs2:TNL_A211', 'P.cs2:TNL_A213',
+      'P.cs2:D109', 'P.cs2:TT_TDTT1',
+      'P.cs2:PMT_B4-2_5.', 'P.cs2:PMT_B4-2_6.',
     ]);
   });
 });

@@ -41,10 +41,20 @@ function structuralCandidates(code: string, data: CampusMapRuntimeData, indexes:
   }
   if (candidates.size > 0) return [...candidates];
 
-  const standard = remainder.match(/^([A-G])(\d)(\d{2}[A-Z]?)$/i);
+  // Recognized Portal teaching-unit prefixes; match a complete terminal room code.
+  // Never strip arbitrary prefixes or search by substring across campuses.
+  const standard = remainder.match(/^(?:(?:TNHDC|TNSDC1|TNL)_)?([A-G])(\d)(\d{2}[A-Z]?)$/i);
   if (standard) {
     const floorId = `${campusId}/${standard[1].toLowerCase()}/${standard[2]}`;
     findRoomsOnFloor(data, floorId, [remainder, `${standard[2]}${standard[3]}`, standard[3]])
+      .forEach((roomId) => candidates.add(roomId));
+  }
+  // PM and PMT are Portal variants for the B4-2 computer-room location.
+  // Keep the building context: 6.2 also exists in other buildings.
+  const computerRoom = remainder.match(/^PMT?_B4-2_(\d+)\.(\d+[A-Z]?)$/i);
+  if (computerRoom) {
+    findRoomsOnFloor(data, `${campusId}/b4-2/${computerRoom[1]}`,
+      [`${computerRoom[1]}.${computerRoom[2]}`, computerRoom[2]])
       .forEach((roomId) => candidates.add(roomId));
   }
   const ndh = remainder.match(/^(?:NĐH|NDH)\.?\s*(\d+)\.(\d+[A-Z]?)$/i);

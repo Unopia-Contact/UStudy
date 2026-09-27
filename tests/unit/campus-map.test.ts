@@ -54,7 +54,9 @@ describe('Campus Map / Portal integration', () => {
     expect(resolvePortalRoom('P.cs2:PM_B4-2_6.2', data, indexes)).toMatchObject({
       status: 'matched', roomId: 'dong-hoa/b4-2/6/2', matchedBy: 'exact', confidence: 'exact',
     });
-    expect(resolvePortalRoom('P.cs2:PMT_B4-2_6.2', data, indexes).status).toBe('unresolved');
+    expect(resolvePortalRoom('P.cs2:PMT_B4-2_6.2', data, indexes)).toMatchObject({
+      status: 'matched', roomId: 'dong-hoa/b4-2/6/2', matchedBy: 'structural',
+    });
   });
 
   it('maps every NTĐ_KHTN Portal code to the one physical sports-hall room', () => {
@@ -78,8 +80,28 @@ describe('Campus Map / Portal integration', () => {
 
   it('never invents a room absent from physical inventory', () => {
     expect(resolvePortalRoom('P.cs2:D299', data, indexes).status).toBe('unresolved');
-    expect(resolvePortalRoom('P.cs2:TNHDC_A107', data, indexes).status).toBe('unresolved');
+    expect(resolvePortalRoom('P.cs2:TNHDC_A199', data, indexes).status).toBe('unresolved');
     expect(resolvePortalRoom('P.cs2:PM_B4-2_6.3', data, indexes).status).toBe('unresolved');
+  });
+
+  it('resolves complete room codes after recognized teaching-unit prefixes', () => {
+    for (const [code, id] of [
+      ['TNHDC_A107', 'dong-hoa/a/1/107'],
+      ['TNHDC_A108', 'dong-hoa/a/1/108'],
+      ['TNHDC_A109', 'dong-hoa/a/1/109'],
+      ['TNHDC_A110', 'dong-hoa/a/1/110'],
+      ['TNL_A211', 'dong-hoa/a/2/211'],
+      ['TNL_A213', 'dong-hoa/a/2/213'],
+      ['TNSDC1_A306', 'dong-hoa/a/3/306'],
+    ]) {
+      expect(resolvePortalRoom(`P.cs2:${code}`, data, indexes)).toMatchObject({
+        status: 'matched', roomId: id, matchedBy: 'structural', confidence: 'weak',
+      });
+    }
+    for (const code of ['TNL_A2110', 'UNKNOWN_A211', 'PMT_B4-2_6.', 'PMT_B4-2_5.', 'PMT_B4-2_5.1']) {
+      expect(resolvePortalRoom(`P.cs2:${code}`, data, indexes).status).toBe('unresolved');
+    }
+    expect(resolvePortalRoom('P.cs1:TNL_A211', data, indexes).status).toBe('unresolved');
   });
 
   it('resolves a timetable room to its building, floor and highlighted map shape', () => {
