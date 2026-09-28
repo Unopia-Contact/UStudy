@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { resolveDirectoryMapLink } from '../directory-map-link';
 import { ArrowLeft, ChevronDown, ChevronRight, Clock3, ExternalLink, Info, ListChecks, Mail, MapPin, Phone, FileText, TriangleAlert, Building2 } from 'lucide-react'; import type { CampusUnit, CampusUnitLocation, CampusUnitServiceDetail, CampusUnitType } from '../../../assets/data/campus-directory';
 
 const typeLabels: Record<CampusUnitType, string> = {
@@ -86,7 +87,6 @@ export function CampusDirectoryDetail({ unit, allUnits = [], onOpenMap, onSelect
     className?: string;
     scrollContent?: boolean;
 }) {
-    const primaryLocation = unit.locations[0];
     const hasContacts = (unit.phones?.length ?? 0) + (unit.emails?.length ?? 0) + (unit.websites?.length ?? 0) > 0;
     const [openServiceId, setOpenServiceId] = useState<string | null>(null);
 
@@ -96,22 +96,23 @@ export function CampusDirectoryDetail({ unit, allUnits = [], onOpenMap, onSelect
 
     return (
         <article className={`flex min-h-0 min-w-0 flex-col bg-white ${className}`}>
-            <header className="shrink-0 flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-5 sm:px-6">
+            <header className="shrink-0 flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-5 sm:px-6 bg-gradient-to-br from-[#004A98] to-[#0066CC] text-white">
                 <div className="min-w-0">
                     {onBack && (
-                        <button type="button" onClick={onBack} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-[#004A98]">
+                        <button type="button" onClick={onBack} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-white">
                             <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
                         </button>
                     )}
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#004A98]">{typeLabels[unit.type]}</p>
-                    <h2 className="mt-1 text-xl font-bold text-gray-900">{unit.name}</h2>
+                    <div className="flex items-center gap-3">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                            <Building2 className="h-6 w-6 text-white" aria-hidden="true" />
+                        </span>
+                        <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-white">{typeLabels[unit.type]}</p>
+                            <h2 className="mt-1 text-xl font-bold text-white">{unit.name}</h2>
+                        </div>
+                    </div>
                 </div>
-                {primaryLocation && (
-                    <button type="button" onClick={() => onOpenMap(primaryLocation)} className="ustudy-button-outline shrink-0 gap-2 px-3 py-2 text-sm">
-                        <MapPin className="h-4 w-4" />
-                        <span className="hidden sm:inline">Xem trên bản đồ</span>
-                    </button>
-                )}
             </header>
 
             <div className={`px-5 py-6 sm:px-6 ${scrollContent ? 'min-h-0 flex-1 overflow-y-auto scrollbar-hide' : ''}`}>
@@ -136,6 +137,38 @@ export function CampusDirectoryDetail({ unit, allUnits = [], onOpenMap, onSelect
                     </DetailSection>
                 )}
 
+                {unit.locations.length > 0 && (
+                    <DetailSection title="Địa điểm">
+                        <div className="space-y-2">
+                            {unit.locations.map((location) => {
+                                const link = resolveDirectoryMapLink(location);
+                                const key = `${location.buildingId}-${location.floor}-${location.roomCode}`;
+                                return link ? (
+                                    <button key={key} type="button" title={link.label} onClick={() => onOpenMap(location)} className="flex w-full items-start gap-2 text-left text-[#004A98] hover:underline">
+                                        <MapPin className="mt-1 h-4 w-4 shrink-0" />
+                                        <span>{formatLocation(location)}<span className="block text-xs text-gray-500">{link.label}</span></span>
+                                    </button>
+                                ) : (
+                                    <div key={key} className="flex items-start gap-2 text-gray-700">
+                                        <MapPin className="mt-1 h-4 w-4 shrink-0 text-gray-400" />
+                                        <span>{formatLocation(location)}<span className="block text-xs text-gray-500">Chưa có vị trí trong dữ liệu bản đồ</span></span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </DetailSection>
+                )}
+
+                {hasContacts && (
+                    <DetailSection title="Liên hệ">
+                        <div className="space-y-2.5">
+                            {unit.phones?.map((phone) => <a key={phone} href={`tel:${phone.replace(/[^+\d]/g, '')}`} className="flex items-center gap-2 text-gray-900 hover:text-[#004A98]"><Phone className="h-4 w-4 text-gray-400" />{phone}</a>)}
+                            {unit.emails?.map((email) => <a key={email} href={`mailto:${email}`} className="flex items-center gap-2 text-gray-900 hover:text-[#004A98]"><Mail className="h-4 w-4 text-gray-400" />{email}</a>)}
+                            {unit.websites?.map((website) => <a key={website} href={website} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-gray-900 hover:text-[#004A98]"><ExternalLink className="h-4 w-4 text-gray-400" /><span className="truncate">{website}</span></a>)}
+                        </div>
+                    </DetailSection>
+                )}
+
                 {/* XUẤT HIỆN Ở KHOA: Danh sách các Bộ môn/Phòng thí nghiệm trực thuộc */}
                 {childUnits.length > 0 && (
                     <DetailSection title="Đơn vị trực thuộc">
@@ -153,29 +186,6 @@ export function CampusDirectoryDetail({ unit, allUnits = [], onOpenMap, onSelect
                                     </span>
                                 </button>
                             ))}
-                        </div>
-                    </DetailSection>
-                )}
-
-                {unit.locations.length > 0 && (
-                    <DetailSection title="Địa điểm">
-                        <div className="space-y-2">
-                            {unit.locations.map((location) => (
-                                <button key={`${location.buildingId}-${location.floor}-${location.roomCode}`} type="button" onClick={() => onOpenMap(location)} className="flex w-full items-start gap-2 text-left text-[#004A98] hover:underline">
-                                    <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                                    <span>{formatLocation(location)}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </DetailSection>
-                )}
-
-                {hasContacts && (
-                    <DetailSection title="Liên hệ">
-                        <div className="space-y-2.5">
-                            {unit.phones?.map((phone) => <a key={phone} href={`tel:${phone.replace(/[^+\d]/g, '')}`} className="flex items-center gap-2 text-gray-900 hover:text-[#004A98]"><Phone className="h-4 w-4 text-gray-400" />{phone}</a>)}
-                            {unit.emails?.map((email) => <a key={email} href={`mailto:${email}`} className="flex items-center gap-2 text-gray-900 hover:text-[#004A98]"><Mail className="h-4 w-4 text-gray-400" />{email}</a>)}
-                            {unit.websites?.map((website) => <a key={website} href={website} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-gray-900 hover:text-[#004A98]"><ExternalLink className="h-4 w-4 text-gray-400" /><span className="truncate">{website}</span></a>)}
                         </div>
                     </DetailSection>
                 )}
