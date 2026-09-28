@@ -6,6 +6,7 @@ import { APP_ROUTES } from '../../app/routes';
 import { searchCampusUnits } from './campus-directory-search';
 import { CampusDirectoryDetail } from './components/CampusDirectoryDetail';
 import { CampusDirectoryListItem } from './components/CampusDirectoryListItem';
+import { resolveDirectoryMapLink } from './directory-map-link';
 
 const UNIT_TYPE_ORDER: CampusUnitType[] = [
     'faculty', 
@@ -77,10 +78,8 @@ export function CampusDirectoryFeature() {
     }, [query]);
 
     const openMap = (location: CampusUnitLocation) => {
-        const params = new URLSearchParams({ building: location.buildingId, from: 'directory' });
-        if (location.floor) params.set('floor', String(location.floor));
-        if (location.roomCode) params.set('room', location.roomCode);
-        navigate(`${APP_ROUTES.campusMap}?${params.toString()}`);
+        const link = resolveDirectoryMapLink(location);
+        if (link) navigate(`${APP_ROUTES.campusMap}?${link.params.toString()}`);
     };
 
     const selectUnit = (unit: CampusUnit) => {
@@ -99,18 +98,17 @@ export function CampusDirectoryFeature() {
     };
 
     return (
-        <section className="mt-5">
-            <div className="grid min-h-[420px] overflow-hidden rounded-xl border border-gray-200 bg-white lg:h-[min(900px,calc(100dvh-6rem))] lg:min-h-0 lg:grid-cols-[380px_minmax(0,1fr)] ustudy-card">
-                <aside className="flex min-h-0 min-w-0 flex-col border-b border-gray-200 bg-slate-50/50 lg:border-b-0 lg:border-r">
-                    <div className="shrink-0 border-b border-gray-200 bg-slate-50/50 p-4">                        <label className="relative block">
+        <section className="mt-5 space-y-4">
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <label className="relative block">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm đơn vị, thủ tục, dịch vụ..." className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-9 text-sm text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-[#004A98] focus:ring-2 focus:ring-blue-100" />
                         {query && <button type="button" onClick={() => setQuery('')} aria-label="Xóa tìm kiếm" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X className="h-4 w-4" /></button>}
-                    </label>
-                    </div>
+                </label>
+            </div>
 
-
-
+            <div className="grid min-h-[420px] gap-4 lg:h-[min(900px,calc(100dvh-6rem))] lg:min-h-0 lg:grid-cols-[340px_minmax(0,1fr)]">
+                <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-slate-50/50 ustudy-card">
                     <div className="min-h-0 flex-1 overflow-y-auto pb-2 scrollbar-hide">
                         {unitGroups.map((group) => (
                             <DirectoryGroup
@@ -134,7 +132,7 @@ export function CampusDirectoryFeature() {
                     </div>
                 </aside>
 
-                <div className="hidden min-h-0 min-w-0 overflow-hidden lg:block">
+                <div className="hidden min-h-0 min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white lg:block ustudy-card">
                     {selectedUnit ? (
                         <CampusDirectoryDetail
                             unit={selectedUnit}
