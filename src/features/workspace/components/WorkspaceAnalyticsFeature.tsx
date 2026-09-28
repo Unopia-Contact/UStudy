@@ -8,7 +8,7 @@ type Column = { name: string; type: string; required: boolean; primaryKey: boole
 type Table = { name: string; columns: Column[]; foreignKeys: Array<{ from: string; to: string; table: string }> };
 type Snapshot = { source: Exclude<Source, 'both'>; available: boolean; updatedAt: string | null; bytes: number; schema: Table[]; error?: string };
 type QueryRow = Record<string, string | number | null>;
-type QueryResult = { source: Source; columns?: string[]; rows?: QueryRow[]; truncated?: boolean; elapsedMs?: number; error?: string };
+type QueryResult = { source: Source; columns?: string[]; rows?: QueryRow[]; elapsedMs?: number; error?: string };
 type Completion = { label: string; kind: 'table' | 'column' | 'keyword'; detail?: string };
 
 const draftKey = 'ustudy_workspace_analytics_sql_draft_v1';
@@ -184,8 +184,17 @@ function caretPosition(editor: HTMLTextAreaElement, cursor: number) {
 
 function ResultTable({ result }: { result: QueryResult }) {
   const [copyStatus, setCopyStatus] = useState('');
+  const [page, setPage] = useState(0);
+  const pageSize = 100;
   const rows = result.rows ?? [];
   const columns = result.columns ?? [];
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const currentPage = Math.min(page, pageCount - 1);
+  const visibleRows = rows.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+  useEffect(() => {
+    setPage(0);
+    setCopyStatus('');
+  }, [result]);
   const copyTable = async () => {
     try {
       await navigator.clipboard.writeText([columns.join('\t'), ...rows.map((row) => columns.map((column) => displayValue(row[column] ?? null)).join('\t'))].join('\n'));
@@ -200,7 +209,7 @@ function ResultTable({ result }: { result: QueryResult }) {
         <div className="flex min-w-0 items-center gap-2">
           <Table2 className="h-4 w-4 shrink-0 text-[#004A98]" aria-hidden="true" />
           <h3 className="text-sm font-semibold text-gray-900">{sourceLabel(result.source)}</h3>
-          {!result.error && <span className="text-xs text-gray-500">{rows.length}{result.truncated ? '+' : ''} dòng</span>}
+          {!result.error && <span className="text-xs text-gray-500">{rows.length} dòng</span>}
         </div>
         {!result.error && <div className="flex items-center gap-2">
           <span className="text-xs tabular-nums text-gray-500">{result.elapsedMs} ms</span>
@@ -215,7 +224,7 @@ function ResultTable({ result }: { result: QueryResult }) {
               <tr>{columns.map((column, index) => <th key={`${column}-${index}`} scope="col">{column}</th>)}</tr>
             </thead>
             <tbody>
-              {rows.map((row, rowIndex) => (
+              {visibleRows.map((row, rowIndex) => (
                 <tr key={rowIndex}>
                   {columns.map((column, index) => (
                     <td key={`${column}-${index}`} title={displayValue(row[column] ?? null)} className={typeof row[column] === 'number' ? 'workspace-analytics-numeric' : undefined}>{displayValue(row[column] ?? null)}</td>
@@ -227,7 +236,16 @@ function ResultTable({ result }: { result: QueryResult }) {
         </div>
       ) : <p className="px-4 py-6 text-center text-sm text-gray-500">Truy vấn chạy thành công nhưng không có dòng dữ liệu.</p>}
       {copyStatus && <p className="workspace-analytics-copy-status" role="status">{copyStatus}</p>}
-      {result.truncated && <p className="border-t border-amber-100 bg-amber-50 px-4 py-2 text-xs text-amber-900">Đang hiện 500 dòng đầu. Thêm LIMIT hoặc điều kiện WHERE để xem phần cần tìm.</p>}
+      {!result.error && pageCount > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 px-4 py-2 text-xs text-gray-600">
+          <span>{currentPage * pageSize + 1}–{Math.min((currentPage + 1) * pageSize, rows.length)} / {rows.length} dòng</span>
+          <div className="flex items-center gap-2">
+            <button type="button" className="min-h-11 rounded-lg border border-gray-200 px-3 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Trước</button>
+            <span aria-live="polite">{currentPage + 1} / {pageCount}</span>
+            <button type="button" className="min-h-11 rounded-lg border border-gray-200 px-3 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50" disabled={currentPage === pageCount - 1} onClick={() => setPage(currentPage + 1)}>Sau</button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

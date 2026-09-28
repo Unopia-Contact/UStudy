@@ -3,7 +3,6 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
-const MAX_ROWS = 500;
 const MAX_CELL_CHARS = 20_000;
 const sourceNames = ['hakhoi', 'unopia'];
 const tables = [
@@ -80,11 +79,8 @@ async function main() {
     const rows = [];
     for (const rawRow of statement.iterate()) {
       rows.push(Object.fromEntries(Object.entries(rawRow).map(([key, value]) => [key, safeValue(value)])));
-      if (rows.length > MAX_ROWS) break;
     }
-    const truncated = rows.length > MAX_ROWS;
-    if (truncated) rows.pop();
-    parentPort.postMessage({ source, columns, rows, truncated, elapsedMs: Math.round(performance.now() - startedAt) });
+    parentPort.postMessage({ source, columns, rows, elapsedMs: Math.round(performance.now() - startedAt) });
   } finally {
     for (const input of inputs) input.database.close();
     database.close();
