@@ -3,6 +3,7 @@ import { DndContext, KeyboardSensor, PointerSensor, TouchSensor, useDraggable, u
 import { GripVertical, Plus, Trash2, Users } from 'lucide-react';
 
 import { AppSelect } from '../../../components/ui/form';
+import { RoadmapDialog } from '../../study-roadmap/components/RoadmapDialog';
 import type { CourseSharingMode, CourseSharingRule, GroupMemberToken } from '../types';
 
 interface CourseSharingEditorProps {
@@ -104,23 +105,22 @@ export function CourseSharingEditor({ courseId, subscribers, members, value, onC
   const soloMembers = subscribers.filter((memberIndex) => !groups.some((group) => group.includes(memberIndex)));
 
   return (
-    <div data-guide="group-course-sharing" className="border-t border-gray-100 pt-3">
+    <div data-guide="group-course-sharing" className="min-w-0 rounded-lg bg-gray-50 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
           <Users className="h-4 w-4 text-[#004A98]" /> Ai cần học cùng nhau?
         </div>
-        <button type="button" onClick={() => setIsExpanded(!isExpanded)} className="text-xs font-medium text-[#004A98] hover:underline">
-          {isExpanded ? 'Thu gọn' : 'Thiết lập nhóm'}
+        <button type="button" aria-haspopup="dialog" onClick={() => setIsExpanded(true)} className="min-h-11 text-xs font-medium text-[#004A98] hover:underline">
+          Thiết lập nhóm
         </button>
       </div>
 
-      {!isExpanded && (
         <p className="mt-1.5 text-xs text-gray-500">
           {rule.mode === 'independent' ? 'Ai cũng được (Mỗi người tự xếp riêng)' : rule.mode === 'required' ? `Bắt buộc cùng lớp (${isCustomGrouping ? `Đã chia ${groups.length} nhóm` : 'Tất cả học chung'})` : `Ưu tiên cùng lớp (${isCustomGrouping ? `Đã chia ${groups.length} nhóm` : 'Tất cả học chung'})`}
         </p>
-      )}
 
       {isExpanded && (
+        <RoadmapDialog title="Thiết lập nhóm" description={courseId} onClose={() => setIsExpanded(false)} footer={<button type="button" onClick={() => setIsExpanded(false)} className="ustudy-button-primary min-h-11 w-full justify-center">Xong</button>}>
         <div className="mt-3 space-y-3">
           <div>
             <div data-guide="group-course-sharing-modes" className="grid gap-1 rounded-lg bg-gray-100 p-1 sm:grid-cols-3">
@@ -156,6 +156,7 @@ export function CourseSharingEditor({ courseId, subscribers, members, value, onC
             </div>
           ) : null}
         </div>
+        </RoadmapDialog>
       )}
     </div>
   );

@@ -6,6 +6,7 @@ import { buildSavedGroupSchedule, GroupScheduleCalendarPreview } from './compone
 import { GroupScheduleResult, type GroupScheduleResultViewMode } from './components/GroupScheduleResult';
 import { GroupScheduleResultViewTabs } from './components/GroupScheduleResultViewTabs';
 import { CourseSharingEditor } from './components/CourseSharingEditor';
+import { GroupCourseMemberNames } from './components/GroupCourseMemberNames';
 import { GroupScheduleComparison } from './components/GroupScheduleComparison';
 import { SavedSchedulesModal } from './components/SavedSchedulesModal';
 import { CourseClassFilterModal } from '../study-roadmap';
@@ -24,7 +25,7 @@ import { STORAGE_KEYS } from '../../config';
 import type { Course, SavedSchedule } from '../../types';
 import type { SolverPreferences } from '../study-roadmap';
 import courseDbJson from '../../logic/scheduler/Course_db.json';
-import { formatDaysOff } from '../../utils/dayOffPreferences';
+import { cycleDayOffSession, formatDayOffSession, formatDaysOff, getDayOffSession } from '../../utils/dayOffPreferences';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../components/course';
 import { ScheduleOptionSelector } from '../schedule';
 import { useCampus } from '../../context/CampusContext';
@@ -196,7 +197,7 @@ export function GroupSchedulePage({
         if (importedShareConfig.courseSharing) setCourseSharing(importedShareConfig.courseSharing);
         if (importedShareConfig.groupPreferences) setGroupPrefs((current) => ({ ...current, ...importedShareConfig.groupPreferences }));
     }, [importedShareConfig]);
-    
+
     useEffect(() => {
         saveToStorage(STORAGE_KEYS.GROUP_SCHEDULER_CLASS_PREFERENCES, groupPreferredClasses);
     }, [groupPreferredClasses]);
@@ -814,7 +815,7 @@ export function GroupSchedulePage({
                             {formatDaysOff(draft.personalConfig?.daysOff)}
                         </span>
                     </div>
-                    <details><summary className="min-h-11 cursor-pointer text-sm text-[#004A98]">Chỉnh ngày muốn nghỉ</summary><DayOffFields label="Thành viên muốn nghỉ" value={draft.personalConfig?.daysOff} onChange={daysOff => setDraft(current => ({ ...current, personalConfig: { ...current.personalConfig, daysOff } }))} /></details>
+                    <DayOffFields label="Thành viên muốn nghỉ" value={draft.personalConfig?.daysOff} onChange={daysOff => setDraft(current => ({ ...current, personalConfig: { ...current.personalConfig, daysOff } }))} />
                 </div>
 
                 {/* Footer: notice + submit */}
@@ -862,7 +863,7 @@ export function GroupSchedulePage({
 
     const renderGroupConfigStep = () => (
         <section className="space-y-4">
-            
+
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <h2 className="text-lg font-semibold text-gray-900">Ưu tiên tùy chọn</h2>
@@ -884,19 +885,19 @@ export function GroupSchedulePage({
                             </p>
                         </div>
                     </div>
-                    
+
                     {/* Button tự động bị đẩy sang phải nhờ justify-between */}
-                    <Button 
-                        type="button" 
-                        disabled={members.length < 2 || solving} 
-                        onClick={runGroupSolve} 
+                    <Button
+                        type="button"
+                        disabled={members.length < 2 || solving}
+                        onClick={runGroupSolve}
                         className="w-full shrink-0 bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto"
                     >
                         <Calendar className="h-4 w-4" />
                         {solving ? 'Đang xếp lịch...' : result?.solutions.length ? 'Tạo phương án mới' : 'Xếp lịch nhóm'}
                     </Button>
                 </div>
-                
+
                 {/* Mobile: 1 cột - Laptop: 2 cột */}
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                     {/* Buổi ưu tiên */}
@@ -925,8 +926,8 @@ export function GroupSchedulePage({
                                         }))
                                     }
                                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium transition-all ${groupPrefs.session === item.id
-                                            ? "bg-white text-[#004A98] shadow-sm"
-                                            : "text-gray-500 hover:text-gray-700"
+                                        ? "bg-white text-[#004A98] shadow-sm"
+                                        : "text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     <item.icon className="h-4 w-4 shrink-0" />
@@ -962,8 +963,8 @@ export function GroupSchedulePage({
                                         }))
                                     }
                                     className={`flex-1 rounded-md px-2 py-2 text-sm font-medium transition-all ${groupPrefs.strategy === item.id
-                                            ? "bg-white text-[#004A98] shadow-sm"
-                                            : "text-gray-500 hover:text-gray-700"
+                                        ? "bg-white text-[#004A98] shadow-sm"
+                                        : "text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     {item.label}
@@ -992,8 +993,8 @@ export function GroupSchedulePage({
                                         }))
                                     }
                                     className={`w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${groupPrefs.noGaps
-                                            ? "border-blue-200 bg-blue-50 text-[#004A98]"
-                                            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                                        ? "border-blue-200 bg-blue-50 text-[#004A98]"
+                                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                                         }`}
                                 >
                                     {groupPrefs.noGaps
@@ -1008,7 +1009,31 @@ export function GroupSchedulePage({
                                     Ngày nhóm muốn nghỉ
                                 </label>
 
-                                <details><summary className="min-h-11 cursor-pointer text-sm text-[#004A98]">{formatDaysOff(groupPrefs.daysOff)} · Chỉnh ngày nghỉ</summary><DayOffFields label="Nhóm muốn nghỉ" value={groupPrefs.daysOff} onChange={daysOff => setGroupPrefs(current => ({ ...current, daysOff }))} /></details>
+                                <div className="flex flex-wrap gap-2">
+                                    {[0, 1, 2, 3, 4, 5, 6].map((day) => {
+                                        const offSession = getDayOffSession(groupPrefs.daysOff, day);
+                                        return (
+                                            <button
+                                                key={day}
+                                                type="button"
+                                                onClick={() => setGroupPrefs((current) => ({ ...current, daysOff: cycleDayOffSession(current.daysOff, day) }))}
+                                                className={`flex h-12 w-12 flex-col items-center justify-center rounded-lg border text-xs font-bold transition-colors ${offSession === 'all'
+                                                    ? 'border-red-500 bg-red-500 text-white'
+                                                    : offSession === 'morning'
+                                                        ? 'border-amber-300 bg-amber-50 text-amber-700'
+                                                        : offSession === 'afternoon'
+                                                            ? 'border-orange-300 bg-orange-50 text-orange-700'
+                                                            : 'border-gray-200 bg-white text-gray-400 hover:border-red-300'
+                                                    }`}
+                                                title="Bấm lần lượt: nghỉ cả ngày, nghỉ sáng, nghỉ chiều, bỏ chọn"
+                                                aria-label={`${day === 6 ? 'Chủ nhật' : `Thứ ${day + 2}`}: ${offSession ? formatDayOffSession(offSession) : 'Không hạn chế'}`}
+                                            >
+                                                <span>{day === 6 ? 'CN' : `T${day + 2}`}</span>
+                                                {offSession && <span className="mt-0.5 text-[9px] font-medium leading-none">{formatDayOffSession(offSession)}</span>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1029,178 +1054,148 @@ export function GroupSchedulePage({
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900"><Settings className="h-4 w-4 text-[#004A98]" />Ưu tiên theo môn</h3>
                     <p className="mt-1 text-xs text-gray-500">Đặt lớp ưu tiên hoặc bắt buộc, sau đó chọn các thành viên cần học cùng nhau.</p>
                 </div>
-                {groupCourses.length === 0 ? (
-                    <div className="ustudy-muted-panel text-sm text-gray-500">Chưa có môn nào trong nhóm.</div>
-                ) : (
-                    groupCourses.map((course) => {
-                        const targetSelection = getTargetSelection(course.courseId);
-                        const preferenceTargets = getClassPreferenceTargets(course.courseId, course.subscribers);
-                        return (
-                        <details key={course.courseId} className="rounded-lg border border-gray-200">
-                        <summary className="min-h-11 cursor-pointer px-3 py-3 text-sm font-medium text-gray-900">{getGroupCourseName(course.courseId)}<span className="ml-2 text-xs text-gray-500">{course.courseId} · {course.subscribers.length} người</span></summary>
-                        <div className="grid gap-3 border-t border-gray-200 p-3 lg:grid-cols-[320px_minmax(0,1fr)]">
-                            <div>
-                                <div className="font-mono text-sm font-semibold text-gray-900">{course.courseId}</div>
-                                <div className="mt-0.5 text-sm font-medium text-gray-800">{getGroupCourseName(course.courseId)}</div>
-                                <div className="mt-1 space-y-1.5 text-xs text-gray-500">
-                                    {(() => {
-                                        const rule = courseSharing[course.courseId];
-                                        const isCustomGrouping = rule?.mode !== 'independent' && rule?.groups !== undefined;
-                                        if (!isCustomGrouping) {
-                                            return <div>Cùng đăng ký: {course.subscribers.map((memberIndex) => members[memberIndex]?.nickname || `Thành viên ${memberIndex + 1}`).join(', ')}</div>;
-                                        }
-
-                                        const groups = rule.groups ?? [];
-                                        const soloMembers = course.subscribers.filter((memberIndex) => !groups.some((group) => group.includes(memberIndex)));
-
-                                        return (
-                                            <>
-                                                {groups.map((group, groupIndex) => {
-                                                    if (!group.length) return null;
-                                                    const prefs = rule.groupClassPreferences?.[`group-${groupIndex}`];
-                                                    return (
-                                                        <div key={groupIndex}>
-                                                            <div className="font-medium text-gray-700">Nhóm {groupIndex + 1}: <span className="font-normal text-gray-500">{group.map((memberIndex) => members[memberIndex]?.nickname || `Thành viên ${memberIndex + 1}`).join(', ')}</span></div>
-                                                            {prefs?.excluded?.length ? <div className="text-[11px] text-rose-600">+ Cấm: {prefs.excluded.map(c => c.replace(/_/g, ' ')).join(', ')}</div> : null}
-                                                            {prefs?.required?.length ? <div className="text-[11px] text-red-600">+ Bắt buộc: {prefs.required.map(c => c.replace(/_/g, ' ')).join(', ')}</div> : null}
-                                                            {prefs?.preferred?.length ? <div className="text-[11px] text-[#004A98]">+ Ưu tiên: {prefs.preferred.map(c => c.replace(/_/g, ' ')).join(', ')}</div> : null}
-                                                        </div>
-                                                    );
-                                                })}
-                                                {soloMembers.length > 0 && (
-                                                    <div>
-                                                        <div className="font-medium text-gray-700">Học riêng: <span className="font-normal text-gray-500">{soloMembers.map((memberIndex) => members[memberIndex]?.nickname || `Thành viên ${memberIndex + 1}`).join(', ')}</span></div>
-                                                    </div>
-                                                )}
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex flex-col gap-2 rounded-lg bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <div className="flex flex-wrap gap-1.5 text-xs">
-                                        {(targetSelection?.excluded?.length ?? 0) > 0 && <span className="rounded-full bg-rose-100 px-2 py-1 font-medium text-rose-700">{targetSelection?.excluded?.length} cấm</span>}
-                                        {(targetSelection?.preferred?.length ?? 0) > 0 && <span className="rounded-full bg-blue-100 px-2 py-1 font-medium text-[#004A98]">{targetSelection?.preferred?.length} ưu tiên</span>}
-                                        {(targetSelection?.required?.length ?? 0) > 0 && <span className="rounded-full bg-red-100 px-2 py-1 font-medium text-red-700">{targetSelection?.required?.length} bắt buộc</span>}
-                                        {((targetSelection?.excluded?.length ?? 0) + (targetSelection?.preferred?.length ?? 0) + (targetSelection?.required?.length ?? 0)) === 0 && <span className="text-gray-500">Chưa chọn lớp ưu tiên</span>}
-                                    </div>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setExpandedClassCourseId((current) => current === course.courseId ? null : course.courseId)}
-                                        disabled={(classOptionsByCourse[course.courseId] ?? []).length === 0}
-                                    >
-                                        {expandedClassCourseId === course.courseId ? 'Ẩn lớp' : 'Chọn lớp ưu tiên'}
-                                    </Button>
-                                </div>
-
-                                {expandedClassCourseId === course.courseId && (
-                                    <div className="gap-2 max-h-80 space-y-2 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 pr-1">
-                                        <div className="sticky top-0 z-10 flex items-center justify-between gap-2 bg-white pb-1">
-                                            <span className="text-xs font-medium text-gray-500">Áp dụng cho</span>
-                                            <AppSelect value={classPreferenceTargetByCourse[course.courseId] ?? 'global'} onChange={(value) => setClassPreferenceTargetByCourse((current) => ({ ...current, [course.courseId]: value }))} options={preferenceTargets} ariaLabel={`Chọn nhóm áp dụng ưu tiên lớp cho ${course.courseId}`} className="w-44" triggerClassName="h-8 px-2.5 text-xs" menuClassName="right-0 left-auto w-48" />
-                                        </div>
-                                        {(classOptionsByCourse[course.courseId] ?? []).length === 0 ? (
-                                            <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-500">
-                                                Chưa có dữ liệu lớp cho môn này.
+                <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+                    {groupCourses.length === 0 ? (
+                        <div className="ustudy-muted-panel text-sm text-gray-500">Chưa có môn nào trong nhóm.</div>
+                    ) : (
+                        groupCourses.map((course) => {
+                            const targetSelection = getTargetSelection(course.courseId);
+                            const preferenceTargets = getClassPreferenceTargets(course.courseId, course.subscribers);
+                            return (
+                                <details key={course.courseId} className="min-w-0 rounded-lg border border-gray-200">
+                                    <summary className="min-h-11 cursor-pointer px-3 py-3 text-sm font-medium text-gray-900">{getGroupCourseName(course.courseId)}<span className="ml-2 text-xs text-gray-500">{course.courseId} · {course.subscribers.length} người</span></summary>
+                                    <div className="min-w-0 space-y-3 border-t border-gray-200 p-3">
+                                        <GroupCourseMemberNames names={course.subscribers.map((index) => members[index]?.nickname || `Thành viên ${index + 1}`)} />
+                                        <div className="grid min-w-0 grid-cols-2 items-stretch gap-3">
+                                            <div className="flex min-w-0 flex-col items-start justify-between gap-2 rounded-lg bg-gray-50 p-3">
+                                                <div className="flex flex-wrap gap-1.5 text-xs">
+                                                    {(targetSelection?.excluded?.length ?? 0) > 0 && <span className="rounded-full bg-rose-100 px-2 py-1 font-medium text-rose-700">{targetSelection?.excluded?.length} cấm</span>}
+                                                    {(targetSelection?.preferred?.length ?? 0) > 0 && <span className="rounded-full bg-blue-100 px-2 py-1 font-medium text-[#004A98]">{targetSelection?.preferred?.length} ưu tiên</span>}
+                                                    {(targetSelection?.required?.length ?? 0) > 0 && <span className="rounded-full bg-red-100 px-2 py-1 font-medium text-red-700">{targetSelection?.required?.length} bắt buộc</span>}
+                                                    {((targetSelection?.excluded?.length ?? 0) + (targetSelection?.preferred?.length ?? 0) + (targetSelection?.required?.length ?? 0)) === 0 && <span className="text-gray-500">Chưa chọn lớp ưu tiên</span>}
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-auto min-h-11 w-full min-w-0 whitespace-normal px-2 text-xs"
+                                                    onClick={() => setExpandedClassCourseId(course.courseId)}
+                                                    disabled={(classOptionsByCourse[course.courseId] ?? []).length === 0}
+                                                >
+                                                    Chọn lớp ưu tiên
+                                                </Button>
                                             </div>
-                                        ) : (
-                                            (classOptionsByCourse[course.courseId] ?? []).map((classOption) => {
-                                                const selectedLevel = getGroupClassPreferenceLevel(course.courseId, classOption.id);
 
-                                                return (
-                                                    <div
-                                                        key={classOption.id}
-                                                        className={`flex w-full flex-col gap-3 rounded-lg border p-2 text-left transition-colors sm:flex-row sm:items-start sm:justify-between ${selectedLevel === 'excluded' ? 'border-rose-300 bg-rose-50 text-rose-950' : selectedLevel === 'required' ? 'border-red-300 bg-red-50 text-red-950' : selectedLevel === 'preferred' ? 'border-[#004A98] bg-blue-50 text-blue-950' : 'border-gray-200 bg-white text-gray-700'}`}
-                                                    >
-                                                        <span className="min-w-0 flex-1">
-                                                            <span className="block font-mono text-sm font-semibold">{classOption.id.replace(/_/g, ' ')}</span>
-                                                            <span className={`mt-1 block text-xs leading-relaxed ${selectedLevel === 'excluded' ? 'text-rose-700' : selectedLevel === 'required' ? 'text-red-700' : selectedLevel === 'preferred' ? 'text-blue-700' : 'text-gray-500'}`}>
-                                                                {classOption.schedule.length > 0 ? classOption.schedule.join(', ') : 'Chưa có lịch học'}
-                                                            </span>
-                                                        </span>
-                                                        <span className="grid grid-cols-2 gap-1 rounded-lg bg-white p-1 sm:w-[300px] sm:grid-cols-4">
-                                                            {[
-                                                                { value: 'excluded' as const, label: 'Cấm' },
-                                                                { value: null, label: 'Chọn' },
-                                                                { value: 'preferred' as const, label: 'Ưu tiên' },
-                                                                { value: 'required' as const, label: 'Bắt buộc' },
-                                                            ].map((item) => (
-                                                                <button
-                                                                    key={item.label}
-                                                                    type="button"
-                                                                    onClick={() => setGroupClassPreferenceLevel(course.courseId, classOption.id, item.value)}
-                                                                    className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${selectedLevel === item.value ? item.value === 'excluded' ? 'bg-rose-600 text-white' : item.value === 'required' ? 'bg-red-600 text-white' : item.value === 'preferred' ? 'bg-[#004A98] text-white' : 'bg-gray-700 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
-                                                                >
-                                                                    {item.label}
-                                                                </button>
-                                                            ))}
-                                                        </span>
+                                            {expandedClassCourseId === course.courseId && (
+                                                <RoadmapDialog title="Chọn lớp ưu tiên" description={`${course.courseId} · ${getGroupCourseName(course.courseId)}`} onClose={() => setExpandedClassCourseId(null)} footer={<button type="button" onClick={() => setExpandedClassCourseId(null)} className="ustudy-button-primary min-h-11 w-full justify-center">Xong</button>}>
+                                                    <div className="space-y-2">
+                                                        <div className="flex flex-wrap items-center justify-between gap-2 bg-white pb-1">
+                                                            <span className="text-xs font-medium text-gray-500">Áp dụng cho</span>
+                                                            <AppSelect value={classPreferenceTargetByCourse[course.courseId] ?? 'global'} onChange={(value) => setClassPreferenceTargetByCourse((current) => ({ ...current, [course.courseId]: value }))} options={preferenceTargets} ariaLabel={`Chọn nhóm áp dụng ưu tiên lớp cho ${course.courseId}`} className="w-44" triggerClassName="h-8 px-2.5 text-xs" menuClassName="right-0 left-auto w-48" />
+                                                        </div>
+                                                        {(classOptionsByCourse[course.courseId] ?? []).length === 0 ? (
+                                                            <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-500">
+                                                                Chưa có dữ liệu lớp cho môn này.
+                                                            </div>
+                                                        ) : (
+                                                            (classOptionsByCourse[course.courseId] ?? []).map((classOption) => {
+                                                                const selectedLevel = getGroupClassPreferenceLevel(course.courseId, classOption.id);
+
+                                                                return (
+                                                                    <div
+                                                                        key={classOption.id}
+                                                                        className={`flex w-full flex-col gap-3 rounded-lg border p-2 text-left transition-colors sm:flex-row sm:items-start sm:justify-between ${selectedLevel === 'excluded' ? 'border-rose-300 bg-rose-50 text-rose-950' : selectedLevel === 'required' ? 'border-red-300 bg-red-50 text-red-950' : selectedLevel === 'preferred' ? 'border-[#004A98] bg-blue-50 text-blue-950' : 'border-gray-200 bg-white text-gray-700'}`}
+                                                                    >
+                                                                        <span className="min-w-0 flex-1">
+                                                                            <span className="block font-mono text-sm font-semibold">{classOption.id.replace(/_/g, ' ')}</span>
+                                                                            <span className={`mt-1 block text-xs leading-relaxed ${selectedLevel === 'excluded' ? 'text-rose-700' : selectedLevel === 'required' ? 'text-red-700' : selectedLevel === 'preferred' ? 'text-blue-700' : 'text-gray-500'}`}>
+                                                                                {classOption.schedule.length > 0 ? classOption.schedule.join(', ') : 'Chưa có lịch học'}
+                                                                            </span>
+                                                                        </span>
+                                                                        <span className="grid grid-cols-2 gap-1 rounded-lg bg-white p-1 sm:w-[300px] sm:grid-cols-4">
+                                                                            {[
+                                                                                { value: 'excluded' as const, label: 'Cấm' },
+                                                                                { value: null, label: 'Chọn' },
+                                                                                { value: 'preferred' as const, label: 'Ưu tiên' },
+                                                                                { value: 'required' as const, label: 'Bắt buộc' },
+                                                                            ].map((item) => (
+                                                                                <button
+                                                                                    key={item.label}
+                                                                                    type="button"
+                                                                                    onClick={() => setGroupClassPreferenceLevel(course.courseId, classOption.id, item.value)}
+                                                                                    className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${selectedLevel === item.value ? item.value === 'excluded' ? 'bg-rose-600 text-white' : item.value === 'required' ? 'bg-red-600 text-white' : item.value === 'preferred' ? 'bg-[#004A98] text-white' : 'bg-gray-700 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                                                                                >
+                                                                                    {item.label}
+                                                                                </button>
+                                                                            ))}
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })
+                                                        )}
+                                                        {((targetSelection?.excluded?.length ?? 0) + (targetSelection?.preferred?.length ?? 0) + (targetSelection?.required?.length ?? 0)) > 0 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => clearGroupClassPreference(course.courseId)}
+                                                                className="text-xs font-medium text-gray-500 hover:text-red-600"
+                                                            >
+                                                                Bỏ ưu tiên lớp
+                                                            </button>
+                                                        )}
                                                     </div>
-                                                );
-                                            })
-                                        )}
-                                        {((targetSelection?.excluded?.length ?? 0) + (targetSelection?.preferred?.length ?? 0) + (targetSelection?.required?.length ?? 0)) > 0 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => clearGroupClassPreference(course.courseId)}
-                                                className="text-xs font-medium text-gray-500 hover:text-red-600"
-                                            >
-                                                Bỏ ưu tiên lớp
-                                            </button>
-                                        )}
+                                                </RoadmapDialog>
+                                            )}
+                                            {course.subscribers.length >= 2 ? (
+                                                <CourseSharingEditor
+                                                    courseId={course.courseId}
+                                                    subscribers={course.subscribers}
+                                                    members={members}
+                                                    value={courseSharing[course.courseId]}
+                                                    onChange={(nextRule) => {
+                                                        setCourseSharing((current) => ({ ...current, [course.courseId]: nextRule }));
+                                                        setClassPreferenceTargetByCourse((current) => ({ ...current, [course.courseId]: 'global' }));
+                                                    }}
+                                                />
+                                            ) : null}
+                                        </div>
                                     </div>
-                                )}
-                                {course.subscribers.length >= 2 ? (
-                                    <CourseSharingEditor
-                                        courseId={course.courseId}
-                                        subscribers={course.subscribers}
-                                        members={members}
-                                        value={courseSharing[course.courseId]}
-                                        onChange={(nextRule) => {
-                                            setCourseSharing((current) => ({ ...current, [course.courseId]: nextRule }));
-                                            setClassPreferenceTargetByCourse((current) => ({ ...current, [course.courseId]: 'global' }));
-                                        }}
-                                    />
-                                ) : null}
-                            </div>
-                        </div>
-                        </details>
-                    );})
-                )}
+                                </details>
+                            );
+                        })
+                    )}
+                </div>
+
             </div>
         </section>
     );
 
     const renderResultToolbar = (imageActions?: React.ReactNode) => (
-            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Kết quả xếp lịch nhóm</h2>
-                    <p className="mt-1 text-sm text-gray-500">{result?.solutions.length || 0} phương án khả dụng.</p>
-                </div>
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                    {imageActions}
-                    <AppSelect
-                        value=""
-                        ariaLabel="Lưu và mở lịch nhóm"
-                        triggerContent={<><Save className="h-4 w-4" /><span>Lưu & mở lịch</span></>}
-                        triggerClassName="min-h-11 gap-2 px-3 text-sm font-medium"
-                        options={[
-                            { id: 'save', name: 'Lưu lịch', disabled: !selectedOption },
-                            { id: 'saved', name: `Lịch đã lưu (${savedSchedules.length})` },
-                        ]}
-                        onChange={(action) => {
-                            if (action === 'save' && selectedOption) setShowSaveGroupScheduleModal(true);
-                            if (action === 'saved') {
-                                setSavedSchedules(readFromStorage<SavedSchedule[]>(STORAGE_KEYS.SAVED_SCHEDULES, []));
-                                setShowListModal(true);
-                            }
-                        }}
-                    />
-                </div>
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+                <h2 className="text-lg font-semibold text-gray-900">Kết quả xếp lịch nhóm</h2>
+                <p className="mt-1 text-sm text-gray-500">{result?.solutions.length || 0} phương án khả dụng.</p>
             </div>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+                {imageActions}
+                <AppSelect
+                    value=""
+                    ariaLabel="Lưu và mở lịch nhóm"
+                    triggerContent={<><Save className="h-4 w-4" /><span>Lưu & mở lịch</span></>}
+                    triggerClassName="min-h-11 gap-2 px-3 text-sm font-medium"
+                    options={[
+                        { id: 'save', name: 'Lưu lịch', disabled: !selectedOption },
+                        { id: 'saved', name: `Lịch đã lưu (${savedSchedules.length})` },
+                    ]}
+                    onChange={(action) => {
+                        if (action === 'save' && selectedOption) setShowSaveGroupScheduleModal(true);
+                        if (action === 'saved') {
+                            setSavedSchedules(readFromStorage<SavedSchedule[]>(STORAGE_KEYS.SAVED_SCHEDULES, []));
+                            setShowListModal(true);
+                        }
+                    }}
+                />
+            </div>
+        </div>
     );
 
     const renderResultViewControls = () => (

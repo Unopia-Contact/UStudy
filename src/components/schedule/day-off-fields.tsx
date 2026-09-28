@@ -1,16 +1,23 @@
-import { getDayOffSession, type DayOffPreference } from '../../utils/dayOffPreferences';
+import { cycleDayOffSession, formatDayOffSession, getDayOffSession, type DayOffPreference } from '../../utils/dayOffPreferences';
 
 export function DayOffFields({ value, onChange, label = 'Thời gian muốn nghỉ' }: {
     value?: DayOffPreference[]; onChange: (next: DayOffPreference[]) => void; label?: string;
 }) {
-    return <div className="space-y-2">{[0, 1, 2, 3, 4, 5, 6].map(day => {
+    return <div className="flex flex-wrap gap-2">{[0, 1, 2, 3, 4, 5, 6].map(day => {
         const dayLabel = day === 6 ? 'Chủ nhật' : `Thứ ${day + 2}`;
-        return <label key={day} className="flex min-h-11 items-center justify-between gap-3 text-sm"><span>{dayLabel}</span>
-            <select aria-label={`${label} ${dayLabel}`} value={getDayOffSession(value, day) ?? 'none'} className="min-h-11 rounded-lg border border-gray-200 bg-white px-3 text-base" onChange={event => {
-                const selection = event.target.value;
-                const otherDays = (value ?? []).filter(item => Number(String(item).split(':')[0]) !== day);
-                onChange([...otherDays, ...(selection === 'none' ? [] : [selection === 'all' ? day : `${day}:${selection}` as DayOffPreference])]);
-            }}><option value="none">Không hạn chế</option><option value="morning">Nghỉ sáng</option><option value="afternoon">Nghỉ chiều</option><option value="all">Nghỉ cả ngày</option></select>
-        </label>;
+        const session = getDayOffSession(value, day);
+        return <button key={day} type="button" onClick={() => onChange(cycleDayOffSession(value, day))}
+            aria-label={`${label} ${dayLabel}: ${session ? formatDayOffSession(session) : 'Không hạn chế'}`}
+            title="Bấm lần lượt: nghỉ cả ngày, nghỉ sáng, nghỉ chiều, bỏ chọn"
+            className={`flex h-12 w-12 flex-col items-center justify-center rounded-lg border text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 ${session === 'all'
+                ? 'border-red-500 bg-red-500 text-white'
+                : session === 'morning'
+                    ? 'border-amber-300 bg-amber-50 text-amber-700'
+                    : session === 'afternoon'
+                        ? 'border-orange-300 bg-orange-50 text-orange-700'
+                        : 'border-gray-200 bg-white text-gray-400 hover:border-red-300'}`}>
+            <span>{day === 6 ? 'CN' : `T${day + 2}`}</span>
+            {session && <span className="mt-0.5 text-[9px] font-medium leading-none">{formatDayOffSession(session)}</span>}
+        </button>;
     })}</div>;
 }
