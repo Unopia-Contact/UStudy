@@ -157,10 +157,10 @@ export function GroupScheduleResult({ option, viewMode, onOpenClassDetails, onAn
                     key={`${course.courseId}-${item.classId}-${entries.map((entry) => entry.memberIndex).join('-')}`}
                     type="button"
                     onClick={() => onOpenClassDetails({ courseCode: item.courseId, courseName: item.courseName, classId: item.classId, schedule: item.schedule })}
-                    className="grid w-full gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-blue-50 md:grid-cols-[160px_180px_minmax(0,1fr)]"
+                    className="grid w-full gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-blue-50 md:grid-cols-[minmax(0,2fr)_120px_minmax(0,1fr)]"
                     title="Xem chi tiết lớp mở"
                   >
-                    <div className="font-medium text-gray-900">{nicknames.join(', ')}</div>
+                    <div className="min-w-0 break-words font-medium text-gray-900">{nicknames.join(', ')}</div>
                     <div className="font-mono text-xs text-gray-700">{item.classId}</div>
                     <div className="text-gray-600">{formatSchedule(item.schedule)}</div>
                   </button>
