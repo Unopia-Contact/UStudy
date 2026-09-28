@@ -1,6 +1,6 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useMemo, useState, useRef } from 'react';
-import { AlertTriangle, Calendar, Clock, Camera, Download, Loader2, ImagePlus } from 'lucide-react';
+import { AlertTriangle, Calendar, Clock, Camera, Loader2 } from 'lucide-react';
 import { UI_COLORS } from '../../../config';
 import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { maskToSections } from '../../../logic/scheduler/ScheduleDecoder';
@@ -12,7 +12,6 @@ import { ScheduleOptionSelector } from '../../schedule';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { captureElementAsDataURL, slugify, downloadImage } from '../../../utils/export';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../../../components/ui/overlays/dropdown-menu';
 import { getScheduleConflictLabel, ScheduleConflictHoverCard } from '../../../components/schedule/schedule-conflict-hover-card';
 import { getCompactCampusLabel } from '../../../components/schedule/campus-label';
 import { useCampus } from '../../../context/CampusContext';
@@ -40,6 +39,8 @@ interface GroupScheduleCalendarPreviewProps {
   setActiveOptionIndex: (index: number) => void;
   setActiveMemberIndex: (index: number) => void;
   onOpenClassDetails: (target: OpenClassDetailTarget) => void;
+  renderToolbar?: (imageActions: ReactNode) => ReactNode;
+  beforeControls?: ReactNode;
 }
 
 const PALETTE = UI_COLORS.SCHEDULE_PALETTE;
@@ -158,6 +159,8 @@ export function GroupScheduleCalendarPreview({
   setActiveOptionIndex,
   setActiveMemberIndex,
   onOpenClassDetails,
+  renderToolbar,
+  beforeControls,
 }: GroupScheduleCalendarPreviewProps) {
   const { defaultCampusId } = useCampus();
   const option = options[activeOptionIndex] ?? options[0];
@@ -255,16 +258,42 @@ export function GroupScheduleCalendarPreview({
     }
   };
 
+  const imageActions = (
+    <AppSelect
+      value=""
+      ariaLabel="Tạo và xuất ảnh lịch nhóm"
+      triggerContent={<>{isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}<span>{isExporting ? `Đang xuất (${exportProgress}/${exportTotal})` : 'Ảnh lịch'}</span></>}
+      triggerClassName="min-h-11 gap-2 px-3 text-sm font-medium"
+      disabled={isExporting}
+      options={[
+        { id: 'create', name: 'Tạo ảnh tùy chỉnh', disabled: sections.length === 0 },
+        { id: 'current', name: 'Xuất hiện tại (1 ảnh)', disabled: sections.length === 0 },
+        { id: 'all', name: 'Xuất toàn bộ (ZIP)', disabled: options.length === 0 },
+      ]}
+      onChange={(action) => {
+        if (action === 'create') setIsImageDialogOpen(true);
+        else if (action === 'current') void handleExportCurrent();
+        else if (action === 'all') void handleExportAllZip();
+      }}
+    />
+  );
+
   if (!option || !member) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
-        Chưa có phương án lịch để xem.
+      <div className="space-y-4">
+        {renderToolbar?.(imageActions)}
+        {beforeControls}
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+          Chưa có phương án lịch để xem.
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4 rounded-lg">
+      {renderToolbar ? renderToolbar(imageActions) : imageActions}
+      {beforeControls}
       <div className="flex flex-col gap-3 border-b border-gray-200 pb-3 lg:flex-row lg:items-center lg:justify-between">
         <ScheduleOptionSelector
           options={options.map((item) => ({ id: item.option, label: `PA ${item.option}` }))}
@@ -273,7 +302,6 @@ export function GroupScheduleCalendarPreview({
         />
 
         <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:border-l lg:border-gray-200 lg:pl-3">
-          <button type="button" className="schedule-image-secondary" onClick={() => setIsImageDialogOpen(true)} disabled={sections.length === 0}><ImagePlus className="h-4 w-4" /><span>Tạo ảnh</span></button>
           <span className="text-xs font-medium text-gray-500">Thành viên</span>
           <AppSelect
             value={String(effectiveMemberIndex)}
@@ -288,26 +316,6 @@ export function GroupScheduleCalendarPreview({
             disabled={isExporting}
           />
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button 
-                type="button" 
-                disabled={isExporting}
-                className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-                <span className="hidden sm:inline">{isExporting && exportTotal > 0 ? `Đang xuất... (${exportProgress}/${exportTotal})` : 'Xuất ảnh'}</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-white z-50">
-              <DropdownMenuItem onClick={handleExportCurrent} className="cursor-pointer hover:bg-gray-100">
-                <Camera className="mr-2 h-4 w-4" /> Xuất hiện tại (1 ảnh)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportAllZip} className="cursor-pointer hover:bg-gray-100">
-                <Download className="mr-2 h-4 w-4" /> Xuất toàn bộ (ZIP)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
       {isImageDialogOpen && <ScheduleImageDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen} lessons={fromClassSections(sections)} title={`Lịch của ${member.nickname}`} subtitle={`Phương án ${option.option}`} filename={`lich-nhom-${slugify(member.nickname || 'thanh-vien')}-pa${option.option}`} />}

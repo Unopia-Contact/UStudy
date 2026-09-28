@@ -95,6 +95,7 @@ body:has(:is(
 
   .ustudy-main-scroll {
     @apply relative flex-1 overflow-y-auto overflow-x-hidden;
+    scrollbar-gutter: stable;
     padding-bottom: calc(var(--ustudy-mobile-nav-height) + 1rem);
   }
 

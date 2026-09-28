@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from 'react';
-import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap, List } from 'lucide-react';
+import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap } from 'lucide-react';
 
 import { GroupMemberCard } from './components/GroupMemberCard';
 import { buildSavedGroupSchedule, GroupScheduleCalendarPreview } from './components/GroupScheduleCalendarPreview';
@@ -1174,58 +1174,37 @@ export function GroupSchedulePage({
         </section>
     );
 
-    const renderResultStep = () => (
-        <section className="ustudy-card p-4 sm:p-5">
+    const renderResultToolbar = (imageActions?: React.ReactNode) => (
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                     <h2 className="text-lg font-semibold text-gray-900">Kết quả xếp lịch nhóm</h2>
                     <p className="mt-1 text-sm text-gray-500">{result?.solutions.length || 0} phương án khả dụng.</p>
                 </div>
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                    <button type="button" onClick={() => setActiveStep(2)} className="ustudy-button-normal min-h-11"><Settings className="h-4 w-4" /><span>Cấu hình</span></button>
-                    {selectedOption && (
-                        <button
-                            type="button"
-                            onClick={() => setShowSaveGroupScheduleModal(true)}
-                            className="ustudy-button-normal"
-                        >
-                            <Save className="h-4 w-4" />
-                            <span>Lưu lịch</span>
-                        </button>
-                    )}
-
-                    <button
-                        onClick={() => {
-                            setSavedSchedules(readFromStorage<SavedSchedule[]>(STORAGE_KEYS.SAVED_SCHEDULES, []));
-                            setShowListModal(true);
+                    {imageActions}
+                    <AppSelect
+                        value=""
+                        ariaLabel="Lưu và mở lịch nhóm"
+                        triggerContent={<><Save className="h-4 w-4" /><span>Lưu & mở lịch</span></>}
+                        triggerClassName="min-h-11 gap-2 px-3 text-sm font-medium"
+                        options={[
+                            { id: 'save', name: 'Lưu lịch', disabled: !selectedOption },
+                            { id: 'saved', name: `Lịch đã lưu (${savedSchedules.length})` },
+                        ]}
+                        onChange={(action) => {
+                            if (action === 'save' && selectedOption) setShowSaveGroupScheduleModal(true);
+                            if (action === 'saved') {
+                                setSavedSchedules(readFromStorage<SavedSchedule[]>(STORAGE_KEYS.SAVED_SCHEDULES, []));
+                                setShowListModal(true);
+                            }
                         }}
-                        className="ustudy-button-normal"
-                    >
-                        <List className="w-3.5 h-3.5" />
-                        <span>Lịch đã lưu</span>
-                        {savedSchedules.length > 0 && (
-                            <span className="ustudy-badge-count text-[10px] font-bold">
-                                {savedSchedules.length}
-                            </span>
-                        )}
-                    </button>
-
-                    {/* <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button type="button" className="ustudy-action-icon h-9 w-9 shrink-0 border border-gray-200 bg-white shadow-sm">
-                                <MoreHorizontal className="h-5 w-5 text-gray-600" />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="z-[100] w-52 bg-white">
-                            <DropdownMenuItem onClick={() => setActiveStep(2)}>
-                                <Settings className="mr-2 h-4 w-4" />
-                                <span>Chỉnh ưu tiên</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu> */}
+                    />
                 </div>
             </div>
+    );
 
+    const renderResultViewControls = () => (
+        <>
             <GroupScheduleResultViewTabs
                 value={showGroupCalendarPreview ? 'calendar' : resultViewMode}
                 onChange={(view) => {
@@ -1246,12 +1225,17 @@ export function GroupSchedulePage({
                     ))}
                 </div>
             ) : null}
+        </>
+    );
 
-
-
+    const renderResultStep = () => (
+        <section className="ustudy-card p-4 sm:p-5">
+            {(!showGroupCalendarPreview || !result?.solutions.length) && <>{renderResultToolbar()}{renderResultViewControls()}</>}
             {result?.solutions.length ? (
                 showGroupCalendarPreview ? (
                     <GroupScheduleCalendarPreview
+                        renderToolbar={renderResultToolbar}
+                        beforeControls={renderResultViewControls()}
                         options={result.solutions}
                         activeOptionIndex={activeResultIndex}
                         activeMemberIndex={activePreviewMemberIndex}
