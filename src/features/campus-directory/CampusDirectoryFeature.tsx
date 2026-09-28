@@ -109,6 +109,13 @@ export function CampusDirectoryFeature() {
 
             <div className="grid min-h-[420px] gap-4 lg:h-[min(900px,calc(100dvh-6rem))] lg:min-h-0 lg:grid-cols-[340px_minmax(0,1fr)]">
                 <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-slate-50/50 ustudy-card">
+                    <header className="flex min-h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-4 py-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
+                            <Building2 className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <h2 className="min-w-0 flex-1 text-sm font-semibold text-gray-900">Danh sách đơn vị</h2>
+                        <span className="text-xs tabular-nums text-gray-500" aria-label={`${filteredUnits.length} đơn vị`}>{filteredUnits.length}</span>
+                    </header>
                     <div className="min-h-0 flex-1 overflow-y-auto pb-2 scrollbar-hide">
                         {unitGroups.map((group) => (
                             <DirectoryGroup
