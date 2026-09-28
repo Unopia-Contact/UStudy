@@ -2,6 +2,7 @@ import { ArrowLeft, Building2, ChevronRight, Layers3, MapPinned } from 'lucide-r
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MobileBottomSheet } from '../../components/ui/overlays/mobile-bottom-sheet';
+import { AppSelect } from '../../components/ui/form/app-select';
 import { APP_ROUTES } from '../../app/routes';
 import { CAMPUS_MAP_DATA, type CampusId, type CampusPlaceSearchResult } from '../../domain/campus-map';
 import { CampusMapSearch } from './CampusMapSearch';
@@ -44,7 +45,15 @@ export default function CampusMap() {
   const visibleFloor = isFloorView ? roomFloor ?? (mapFloorId && floorIds.includes(mapFloorId) ? data.floorsById[mapFloorId] : floor) : undefined;
 
   function select(next: Record<string, string>) { setNotice(''); if (params.get('from') === 'schedule') next.from = 'schedule'; setParams(next); setShowBuildings(false); setShowRooms(false); }
-  function selectFloor(id: string) { if (building) select({ campusId, buildingId: building.fullId, floorId: id, ...(isFloorView && visibleFloor ? { view: 'floor', mapFloor: visibleFloor.fullId } : {}) }); }
+  function selectFloor(id: string) {
+    if (!building || !floorIds.includes(id)) return;
+    select({
+      campusId,
+      buildingId: building.fullId,
+      floorId: id,
+      ...(isFloorView ? { view: 'floor', mapFloor: id } : {}),
+    });
+  }
   function openFloor() { if (building && floor?.map) { setSheetOpen(false); select({ campusId, buildingId: building.fullId, floorId: floor.fullId, view: 'floor', mapFloor: floor.fullId }); } }
   function selectSearchResult(result: CampusPlaceSearchResult) {
     setSheetOpen(true);
@@ -72,7 +81,17 @@ export default function CampusMap() {
 
   return <section className="space-y-3 lg:mt-5 lg:space-y-4" aria-label="Bản đồ khuôn viên">
     <div className="flex flex-wrap items-center justify-between gap-3"><div className="hidden lg:block"><h2 className="text-lg font-semibold text-slate-900">Bản đồ {campus?.shortName ?? 'khuôn viên'}</h2><p className="mt-1 text-sm text-slate-500">Tìm phòng hoặc chọn tòa để xem sơ đồ tầng.</p>{params.get('from') === 'schedule' && <Link to={APP_ROUTES.schedule} className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden="true" />Quay lại thời khóa biểu</Link>}</div>
-      <label className="flex items-center gap-2 text-sm text-slate-600">Cơ sở<select value={campusId} onChange={(event) => { select({ campusId: event.target.value }); setSheetOpen(false); }} className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300">{campusIds.map((id) => <option key={id} value={id}>{data.campusesById[id]?.name ?? id}</option>)}</select></label></div>
+      <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
+        <span>Cơ sở</span>
+        <AppSelect
+          value={campusId}
+          ariaLabel="Chọn cơ sở"
+          options={campusIds.map(id => ({ id, name: data.campusesById[id]?.name ?? id }))}
+          onChange={id => { select({ campusId: id }); setSheetOpen(false); }}
+          className="min-w-0 w-52 max-w-full"
+          triggerClassName="min-h-11 px-3"
+        />
+      </div></div>
     <CampusMapSearch campusId={campusId} onSelect={selectSearchResult} maxResults={compact ? 5 : 10} />
     <div className="grid grid-cols-[minmax(0,7fr)_minmax(0,3fr)] gap-2 lg:hidden">
       <button type="button" aria-label="Chọn tòa" onClick={() => { setShowRooms(false); setShowBuildings(true); setSheetOpen(true); }} className="flex min-h-11 min-w-0 items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 text-left text-sm text-[#004A98]"><span className="truncate">{building ? `${building.name}${visibleFloor ? ` · ${visibleFloor.label}` : ''}` : 'Chọn tòa'}</span><ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" /></button>
