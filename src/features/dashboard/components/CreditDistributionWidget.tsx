@@ -62,7 +62,7 @@ export function CreditDistributionWidget() {
     <section className="ustudy-card ustudy-panel-padding">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="ustudy-icon-badge ustudy-icon-success">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-white md:h-10 md:w-10">
             <ChartPie className="h-5 w-5" />
           </div>
           <div className="min-w-0">

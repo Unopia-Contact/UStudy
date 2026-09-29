@@ -1,6 +1,5 @@
 import React from 'react';
-import { LogOut, ShieldCheck, AlertTriangle } from 'lucide-react';
-import { CloseButton } from '../ui/close-button';
+import { LogOut, X, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 interface LogoutConfirmModalProps {
     onClose: () => void;
@@ -18,9 +17,12 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({ onClose,
                         <LogOut className="w-5 h-5 text-red-600" />
                         <span className="font-bold text-slate-800">Đăng xuất</span>
                     </div>
-                    <CloseButton
+                    <button
                         onClick={onClose}
-                    />
+                        className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
                 {/* Warning */}

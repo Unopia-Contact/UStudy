@@ -191,13 +191,13 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     >
 
       {/* Quick Stats Cards */}
-      <div className="mb-4 grid grid-cols-3 items-stretch gap-2 md:mb-6 md:gap-4">
+      <div className="mb-4 grid min-w-0 grid-cols-3 gap-2 md:mb-6 md:gap-3">
         <QuickStatsCard
           icon={BookOpen}
           title="Tổng môn"
           value={`${stats.totalCourses}/${schedule.totalCourses}`}
           subtitle={`${stats.totalCredits} TC`}
-          tone="blue"
+          bgColor="bg-[#004A98]"
           trend={trends.coursesTrend}
         />
         <QuickStatsCard
@@ -205,7 +205,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           title="Tiết/tuần"
           value={`${stats.totalPeriods}`}
           subtitle={stats.formattedHours}
-          tone="green"
+          bgColor="bg-green-600"
           trend={trends.periodsTrend}
         />
         <QuickStatsCard
@@ -213,7 +213,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           title="Tuần"
           value={`${currentWeek}/${totalWeeks}`}
           subtitle={weekRangeStr}
-          tone="orange"
+          bgColor="bg-orange-600"
         />
       </div>
 

@@ -72,16 +72,6 @@ export function AnonymousAnalyticsSettings() {
           </p>
         </div>
 
-        <label htmlFor="anonymous-analytics-switch" className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2">
-          <span className="sr-only">Cho phép thống kê sử dụng ẩn danh</span>
-          <Switch
-            id="anonymous-analytics-switch"
-            checked={enabled}
-            disabled={updating || pendingDeactivation}
-            onCheckedChange={(checked) => { void handleEnabledChange(checked); }}
-            aria-label="Cho phép thống kê sử dụng ẩn danh"
-          />
-        </label>
       </div>
     </section>
   );

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Send, Info, Book, FileText, Presentation, FileCode, ClipboardList, Plus } from 'lucide-react';
-import { CloseButton } from '../ui/close-button';
+import { X, Send, Info, Book, FileText, Presentation, FileCode, ClipboardList, Plus } from 'lucide-react';
 import { APP_CONFIG } from '../../config';
 
 interface DocumentContributionModalProps {
@@ -84,10 +83,12 @@ export function DocumentContributionModal({
                                 <span>{courseName}</span>
                             </div>
                         </div>
-                        <CloseButton
+                        <button
                             onClick={onClose}
-                            tone="inverse"
-                        />
+                            className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
                     </div>
                 </div>
 

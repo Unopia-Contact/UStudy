@@ -234,7 +234,9 @@ export function DashboardCalendarSettingsDialog({
                 aria-pressed={isSelected}
                 className={`flex w-full items-center gap-3 py-3 text-left ${cannotDisable ? 'cursor-default' : ''}`}
               >
-                <Icon className={`h-5 w-5 shrink-0 ${isSelected ? 'text-[#004A98]' : 'text-gray-400'}`} />
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isSelected ? 'bg-blue-50 text-[#004A98]' : 'bg-gray-100 text-gray-400'}`}>
+                  <Icon className="h-4 w-4" />
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-gray-900">{source.label}</span>
                   <span className="mt-0.5 block text-xs text-gray-500">{source.description}</span>
@@ -282,9 +284,9 @@ export function DashboardCalendarSettingsDialog({
               onClick={() => setDraftNotificationsEnabled((current) => !current)}
               className="flex w-full items-center gap-3 text-left"
             >
-              {draftNotificationsEnabled
-                ? <Bell className="h-5 w-5 shrink-0 text-[#004A98]" />
-                : <BellOff className="h-5 w-5 shrink-0 text-gray-400" />}
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${draftNotificationsEnabled ? 'bg-blue-50 text-[#004A98]' : 'bg-gray-100 text-gray-400'}`}>
+                {draftNotificationsEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold text-gray-900">Thông báo trên điện thoại</span>
                 <span className="mt-0.5 block text-xs text-gray-500">Nhắc cả khi UStudy đang đóng.</span>

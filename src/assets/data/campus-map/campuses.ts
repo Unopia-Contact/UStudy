@@ -970,7 +970,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
         floors: [
           {
             id: "0",
-            label: "Tầng hầm",
+            label: "Tầng Hầm",
             level: -1,
             sortOrder: 0,
             rooms: [
@@ -1722,7 +1722,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
         floors: [
           {
             id: "0",
-            label: "Tầng hầm",
+            label: "Tầng Hầm",
             level: -1,
             sortOrder: 0,
             rooms: [
@@ -2881,7 +2881,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
         floors: [
           {
             id: "basement",
-            label: "Tầng hầm",
+            label: "Tầng Hầm",
             level: -1,
             sortOrder: -1,
             rooms: [],
@@ -3120,7 +3120,7 @@ export const CAMPUS_MAP_CAMPUSES: Campus[] = [
         floors: [
           {
             id: "0",
-            label: "Tầng hầm",
+            label: "Tầng Hầm",
             level: -1,
             sortOrder: 0,
             rooms: [

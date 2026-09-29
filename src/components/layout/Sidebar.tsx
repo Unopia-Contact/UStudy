@@ -1,5 +1,4 @@
-import { Home, Map, Bot, Info, BarChart3, DollarSign, Calendar, Settings, ChevronLeft, ChevronRight, Subtitles, Menu, Shield } from 'lucide-react';
-import { CloseButton } from '../ui/close-button';
+import { Home, Map, Bot, Info, BarChart3, DollarSign, Calendar, Settings, ChevronLeft, ChevronRight, Subtitles, Menu, X, Shield } from 'lucide-react';
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { getPathForPage } from '../../app/routes';
@@ -232,13 +231,15 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <span style={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>Menu</span>
-          <CloseButton
+          <button
             ref={drawerCloseRef}
-            label="Đóng menu điều hướng"
+            type="button"
+            aria-label="Đóng menu điều hướng"
             onClick={closeDrawer}
-            tone="inverse"
-            className="size-11"
-          />
+            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer' }}
+          >
+            <X style={{ width: '16px', height: '16px', color: 'white' }} />
+          </button>
         </div>
 
         {/* Nav groups */}

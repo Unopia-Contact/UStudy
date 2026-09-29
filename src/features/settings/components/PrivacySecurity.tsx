@@ -117,7 +117,7 @@ export function PrivacySecurity() {
                         ))}
                     </div>
 
-                    <AnonymousAnalyticsSettings />
+                    
 
                     {/* Sections */}
                     {sections.map((section) => (
