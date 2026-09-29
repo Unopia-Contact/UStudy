@@ -4,9 +4,7 @@ export function Payment({ paymentLink, handleCopyLink, handleOpenLink, copiedLin
     return (
         <div className="bg-white rounded-lg p-4 md:p-5 shadow-sm border border-gray-200">
             <div className="flex items-start gap-3 mb-3 md:mb-4">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-green-500 flex items-center justify-center flex-shrink-0 shadow-md">
-                    <ExternalLink className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
+                <ExternalLink className="h-6 w-6 shrink-0 text-emerald-600" />
                 <div className="flex-1">
                     <p className="text-sm md:text-base font-bold text-gray-900 mb-0.5 md:mb-1">Thanh toán online</p>
                     <p className="text-xs md:text-sm text-gray-600">Thanh toán nhanh chóng và an toàn qua cổng trường</p>

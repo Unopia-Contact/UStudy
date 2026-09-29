@@ -51,6 +51,7 @@ export function DashboardWidgets() {
   const { exams } = useStudentDb();
   const {
     currentGPA,
+    currentGPA4,
     accumulatedCredits,
     totalCredits,
     estimatedTuition,
@@ -145,7 +146,14 @@ export function DashboardWidgets() {
   const renderWidget = (id: DashboardWidgetId) => {
     switch (id) {
       case 'gpa':
-        return <GpaWidget currentGPA={currentGPA} classification={gpaStatus} />;
+        return (
+          <GpaWidget
+            currentGPA={currentGPA}
+            currentGPA4={currentGPA4}
+            classification={gpaStatus}
+            letterGrade={GPACalculator.gradeToLetter(currentGPA4)}
+          />
+        );
       case 'credits':
         return <CreditsWidget accumulatedCredits={accumulatedCredits} totalCredits={totalCredits} />;
       case 'tuition':

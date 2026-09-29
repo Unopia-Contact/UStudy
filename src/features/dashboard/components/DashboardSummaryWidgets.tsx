@@ -1,36 +1,67 @@
-import { BookOpen, DollarSign, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import { BookOpen, DollarSign, RotateCw, TrendingUp } from 'lucide-react';
 import { ACADEMIC_RULES } from '../../../constants';
 
 interface GpaWidgetProps {
   currentGPA: number;
+  currentGPA4: number;
   classification: string;
+  letterGrade: string;
 }
 
-export function GpaWidget({ currentGPA, classification }: GpaWidgetProps) {
-  const percentage = (currentGPA / ACADEMIC_RULES.MAX_GPA) * 100;
+interface GpaFaceProps {
+  value: number;
+  maximum: number;
+  subtitle: string;
+  footerLabel: string;
+  footerValue: string;
+  accentColor: string;
+  badgeClassName: string;
+  hint: string;
+  className?: string;
+}
+
+function GpaFace({
+  value,
+  maximum,
+  subtitle,
+  footerLabel,
+  footerValue,
+  accentColor,
+  badgeClassName,
+  hint,
+  className = '',
+}: GpaFaceProps) {
+  const percentage = Math.min(Math.max((value / maximum) * 100, 0), 100);
   const circumference = 2 * Math.PI * 70;
 
   return (
-    <section className="ustudy-card ustudy-card-padding h-full">
-      <div className="ustudy-card-header">
-        <div className="ustudy-icon-badge ustudy-icon-primary">
-          <TrendingUp className="h-4 w-4 text-white md:h-5 md:w-5" />
-        </div>
-        <div>
-          <h3 className="ustudy-card-title">GPA hiện tại</h3>
-          <p className="ustudy-card-subtitle">Thang điểm 10</p>
-        </div>
-      </div>
+    <span className={`ustudy-card ustudy-card-padding absolute inset-0 block h-full overflow-hidden [backface-visibility:hidden] ${className}`}>
+      <span className="ustudy-card-header justify-between">
+        <span className="flex min-w-0 items-center gap-2 md:gap-3">
+          <span className={`ustudy-icon-badge ${badgeClassName}`}>
+            <TrendingUp className="h-4 w-4 text-white md:h-5 md:w-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="ustudy-card-title block">GPA hiện tại</span>
+            <span className="ustudy-card-subtitle block">{subtitle}</span>
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1 rounded-full bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-500">
+          <RotateCw className="h-3 w-3" aria-hidden="true" />
+          {hint}
+        </span>
+      </span>
 
-      <div className="mb-2 flex items-center justify-center md:mb-4">
-        <div className="relative h-40 w-40 scale-75 md:scale-100">
+      <span className="mb-2 flex items-center justify-center md:mb-4">
+        <span className="relative block h-40 w-40 scale-75 md:scale-100">
           <svg className="h-full w-full -rotate-90 transform" aria-hidden="true">
             <circle cx="80" cy="80" r="70" stroke="#E5E7EB" strokeWidth="12" fill="none" />
             <circle
               cx="80"
               cy="80"
               r="70"
-              stroke="#004A98"
+              stroke={accentColor}
               strokeWidth="12"
               fill="none"
               strokeDasharray={circumference}
@@ -39,23 +70,73 @@ export function GpaWidget({ currentGPA, classification }: GpaWidgetProps) {
               className="transition-all duration-1000 ease-out"
             />
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-[#004A98] md:text-3xl">
-              {currentGPA.toFixed(ACADEMIC_RULES.GPA_POINT_DECIMAL)}
-            </span>
+          <span className="absolute inset-0 flex flex-col items-center justify-center">
+            <strong className="text-2xl font-bold tabular-nums md:text-3xl" style={{ color: accentColor }}>
+              {value.toFixed(ACADEMIC_RULES.GPA_POINT_DECIMAL)}
+            </strong>
             <span className="text-xs text-gray-500 md:text-sm">
-              / {ACADEMIC_RULES.MAX_GPA.toFixed(ACADEMIC_RULES.GPA_POINT_DECIMAL)}
+              / {maximum.toFixed(ACADEMIC_RULES.GPA_POINT_DECIMAL)}
             </span>
-          </div>
-        </div>
-      </div>
+          </span>
+        </span>
+      </span>
 
-      <div className="min-w-0 border-t border-gray-100 pt-3 md:pt-4">
-        <div className="ustudy-stat-row">
-          <span className="ustudy-stat-label">Xếp loại</span>
-          <span className="font-semibold text-[#004A98]">{classification}</span>
-        </div>
-      </div>
+      <span className="block min-w-0 border-t border-gray-100 pt-3 md:pt-4">
+        <span className="ustudy-stat-row">
+          <span className="ustudy-stat-label">{footerLabel}</span>
+          <strong className="font-semibold" style={{ color: accentColor }}>{footerValue}</strong>
+        </span>
+      </span>
+    </span>
+  );
+}
+
+export function GpaWidget({ currentGPA, currentGPA4, classification, letterGrade }: GpaWidgetProps) {
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  return (
+    <section className="group relative h-full min-h-[300px] [perspective:1200px] md:min-h-[328px]">
+      <button
+        type="button"
+        className="block h-full w-full rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#004A98] focus-visible:ring-offset-2"
+        aria-label={`GPA hiện tại, ${isFlipped ? 'thang điểm 4' : 'thang điểm 10'}. Nhấn để đổi thang điểm.`}
+        aria-pressed={isFlipped}
+        onClick={(event) => {
+          const isKeyboardAction = event.detail === 0;
+          const isTouchDevice = !window.matchMedia('(hover: hover)').matches;
+          if (isKeyboardAction || isTouchDevice) {
+            setIsFlipped((current) => !current);
+          }
+        }}
+      >
+        <span
+          className={`relative block h-full w-full transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none group-hover:[transform:rotateY(180deg)] ${
+            isFlipped ? '[transform:rotateY(180deg)]' : ''
+          }`}
+        >
+          <GpaFace
+            value={currentGPA}
+            maximum={ACADEMIC_RULES.MAX_GPA}
+            subtitle="Thang điểm 10"
+            footerLabel="Xếp loại"
+            footerValue={classification}
+            accentColor="#004A98"
+            badgeClassName="ustudy-icon-primary"
+            hint="Xem hệ 4"
+          />
+          <GpaFace
+            value={currentGPA4}
+            maximum={4}
+            subtitle="Thang điểm 4"
+            footerLabel="Điểm chữ"
+            footerValue={letterGrade}
+            accentColor="#4F46E5"
+            badgeClassName="text-indigo-600"
+            hint="Xem hệ 10"
+            className="[transform:rotateY(180deg)]"
+          />
+        </span>
+      </button>
     </section>
   );
 }
@@ -123,7 +204,7 @@ export function TuitionWidget({ amountLabel, dueDate }: TuitionWidgetProps) {
         </div>
         <div>
           <h3 className="text-sm font-semibold text-white md:text-base">Học phí học kỳ</h3>
-          <p className="text-xs text-blue-100 md:text-sm">Dự kiến phải đóng</p>
+          <p className="text-xs text-blue-100 md:text-sm">Dự kiến</p>
         </div>
       </div>
 

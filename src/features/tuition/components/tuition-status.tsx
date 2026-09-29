@@ -6,17 +6,17 @@ export default function TuitionStatus({ currentSemesterSummary, getStatusBadge }
     return (
         <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200">
             <div className="flex items-start gap-3">
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg ${currentSemesterSummary.status === 'paid' ? 'bg-green-500' :
-                    currentSemesterSummary.status === 'partial' ? 'bg-yellow-500' :
-                        'bg-red-500'
-                    } flex items-center justify-center flex-shrink-0 shadow-md ${currentSemesterSummary.status === 'unpaid' ? 'animate-pulse' : ''
+                <div className={`flex shrink-0 items-center justify-center ${currentSemesterSummary.status === 'paid' ? 'text-green-600' :
+                    currentSemesterSummary.status === 'partial' ? 'text-amber-600' :
+                        'text-red-600'
+                    } ${currentSemesterSummary.status === 'unpaid' ? 'animate-pulse' : ''
                     }`}>
                     {currentSemesterSummary.status === 'paid' ? (
-                        <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                        <CheckCircle2 className="h-6 w-6" />
                     ) : currentSemesterSummary.status === 'partial' ? (
-                        <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                        <BarChart3 className="h-6 w-6" />
                     ) : (
-                        <AlertTriangle className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                        <AlertTriangle className="h-6 w-6" />
                     )}
                 </div>
                 <div>

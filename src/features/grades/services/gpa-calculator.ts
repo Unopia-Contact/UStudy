@@ -81,7 +81,7 @@ export const GPACalculator = {
         return totalCredits > 0 ? totalPoints / totalCredits : 0;
     },
 
-    /** GPA he 4 du kien, quy doi tung mon truoc khi nhan trong so tin chi. */
+    /** GPA hệ 4 dự kiến, quy đổi từng môn trước khi nhân trọng số tín chỉ. */
     calculateProjectedFourPointGPA: (
         gradesHistory: StudentCourseGrade[],
         projectedCourses: { code: string; credits: number; projectedGrade: number }[],

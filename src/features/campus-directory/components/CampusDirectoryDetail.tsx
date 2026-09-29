@@ -127,9 +127,7 @@ export function CampusDirectoryDetail({ unit, allUnits = [], onOpenMap, onSelect
                             onClick={() => onSelectUnit?.(parentUnit.id)}
                             className="group flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm"
                         >
-                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-500 group-hover:bg-blue-50 group-hover:text-[#004A98]">
-                                <Building2 className="h-5 w-5" />
-                            </span>
+                            <Building2 className="h-6 w-6 shrink-0 text-[#004A98]" />
                             <span className="font-medium text-slate-700 group-hover:text-[#004A98]">
                                 {parentUnit.name}
                             </span>
@@ -214,12 +212,7 @@ export function CampusDirectoryDetail({ unit, allUnits = [], onOpenMap, onSelect
                                             onClick={() => setOpenServiceId(isOpen ? null : service.id)}
                                             className="group flex w-full items-center gap-3.5 px-4 py-3.5 text-left"
                                         >
-                                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors ${isOpen
-                                                ? 'border-transparent bg-[#004A98] text-white shadow-sm'
-                                                : 'border-slate-200 bg-slate-50 text-slate-500 group-hover:bg-blue-50 group-hover:text-[#004A98]'
-                                                }`}>
-                                                <FileText className="h-5 w-5" />
-                                            </span>
+                                            <FileText className={`h-6 w-6 shrink-0 transition-colors ${isOpen ? 'text-[#004A98]' : 'text-slate-500 group-hover:text-[#004A98]'}`} />
                                             <span className={`min-w-0 flex-1 text-[15px] font-semibold transition-colors ${isOpen ? 'text-[#004A98]' : 'text-slate-800'
                                                 }`}>
                                                 {service.name}

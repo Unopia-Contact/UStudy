@@ -1,7 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
-import basicSsl from '@vitejs/plugin-basic-ssl';
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from "node:url";
@@ -21,7 +20,6 @@ export default defineConfig(({ mode }) => {
       minifiedBookmarkletSource(),
       react(),
       tailwindcss(),
-      basicSsl(),
       {
         name: 'local-analytics-workspace',
         configureServer(server) {

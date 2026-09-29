@@ -255,7 +255,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                 </div>
             }
             <h2 className="ustudy-settings-title"><GraduationCap className="ustudy-settings-title-icon" />Chương trình đào tạo</h2>
-            <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành và Năm học để hiển thị đúng dữ liệu của bạn.</p>
+            <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành để hiển thị đúng dữ liệu của bạn.</p>
 
 
             <div className="grid grid-cols-1 gap-4 md:gap-6">
@@ -361,9 +361,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                             onClick={(e) => { e.preventDefault(); onPageChange('privacy'); }}
                             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors group"
                         >
-                            <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
-                                <Shield className="w-5 h-5 text-blue-600" />
-                            </div>
+                            <Shield className="h-6 w-6 shrink-0 text-blue-600" />
                             <div className="text-left">
                                 <p className="text-sm font-semibold">Bảo mật & Quyền dữ liệu</p>
                                 <p className="text-xs text-blue-500">Tìm hiểu cách chúng tôi bảo vệ dữ liệu của bạn</p>

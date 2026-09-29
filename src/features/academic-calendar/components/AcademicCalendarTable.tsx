@@ -41,7 +41,7 @@ export function AcademicCalendarTable({
 }: AcademicCalendarTableProps) {
     return (
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white scrollbar-hide ustudy-card">
-            <table className="min-w-[1200px] w-full table-fixed border-collapse text-left text-sm ">
+            <table className="min-w-[1200px] w-full table-fixed border-collapse text-center text-sm [&_td]:align-middle [&_th]:align-middle">
                 <colgroup>
                     <col className="w-16" />
                     <col className="w-28" />
@@ -81,8 +81,8 @@ export function AcademicCalendarTable({
                                 <td className={`border-r border-gray-200 px-3 py-4 text-center font-semibold tabular-nums ${isCurrentWeek ? 'text-[#004A98]' : 'text-gray-800'}`}>
                                     {week.index}
                                 </td>
-                                <td className="border-r border-gray-200 px-3 py-4 text-xs font-medium text-gray-600">{formatCalendarDate(week.startDate)}</td>
-                                <td className="border-r border-gray-200 px-3 py-4 text-xs font-medium text-gray-600">{formatCalendarDate(week.endDate)}</td>
+                                <td className="border-r border-gray-200 px-3 py-4 text-center text-xs font-medium text-gray-600">{formatCalendarDate(week.startDate)}</td>
+                                <td className="border-r border-gray-200 px-3 py-4 text-center text-xs font-medium text-gray-600">{formatCalendarDate(week.endDate)}</td>
                                 {calendar.cohorts.map((cohort) => (
                                     <td
                                         key={cohort.id}
@@ -91,7 +91,7 @@ export function AcademicCalendarTable({
                                         <CohortCell plan={getCohortPlan(week, cohort.id)} isCurrentCohort={cohort.id === currentCohortId} />
                                     </td>
                                 ))}
-                                <td className="px-4 py-4 align-top text-sm leading-5 text-gray-600">
+                                <td className="px-4 py-4 text-center text-sm leading-5 text-gray-600">
                                     {week.institutionEvents.length > 0 ? (
                                         <div className="space-y-1.5">
                                             {week.institutionEvents.map((event, index) => <p key={`${event.label}-${index}`}>{event.label}</p>)}

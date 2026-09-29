@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, FileDown, RotateCcw } from 'lucide-react';
+import { CalendarPlus, RotateCcw } from 'lucide-react';
 import { AppSelect, Checkbox, Input, Textarea } from '../../../components/ui/form';
 import { AppDialog } from '../../../components/ui/overlays';
 import {
@@ -193,9 +193,8 @@ export function ExamCalendarExportDialog({
               type="button"
               onClick={handleExport}
               disabled={scopedExams.length === 0}
-              className="ustudy-button-dialog ustudy-button-dialog-confirm flex-1 gap-2 sm:flex-none"
+              className="ustudy-button-dialog ustudy-button-dialog-confirm flex-1 whitespace-nowrap sm:flex-none"
             >
-              <FileDown className="h-4 w-4" />
               Xuất {exportPreview.exportedCount} sự kiện
             </button>
           </div>

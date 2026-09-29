@@ -271,7 +271,7 @@ export const categories = {
             {
                 "type": "SEMINAR_AND_ELECTIVES",
                 "credits": 10,
-                "note": "Phương án 2: Seminar tốt nghiệp (06 tín chỉ) và học phần tự chọn (04 tín chỉ thuộc khối kiến thức chuyên ngành)",
+                "note": "Phương án 2: Seminar tốt nghiệp (06 tín chỉ) và học phần tự chọn (04 tín chỉ thuộc khối Kiến thức chuyên ngành)",
                 "courses": [
                     "ENE10190"
                 ]

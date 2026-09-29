@@ -1,4 +1,5 @@
-import { Home, Map, Bot, Info, BarChart3, DollarSign, Calendar, Settings, ChevronLeft, ChevronRight, Subtitles, Menu, X, Shield } from 'lucide-react';
+import { Home, Map, Bot, Info, BarChart3, DollarSign, Calendar, Settings, ChevronLeft, ChevronRight, Subtitles, Menu, Shield } from 'lucide-react';
+import { CloseButton } from '../ui/close-button';
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { getPathForPage } from '../../app/routes';
@@ -9,16 +10,16 @@ const navGroups = [
   {
     title: 'Chính',
     items: [
-      { icon: Home, label: 'Tổng quan', subtitle: "Điểm & tín chỉ tích lũy", page: 'dashboard' },
-      { icon: Map, label: 'Lộ trình học tập', subtitle: 'Chọn môn & Lịch', page: 'courses' },
-      { icon: BarChart3, label: 'Quản lý điểm', subtitle: 'GPA & Môn học lại', page: 'grades' },
-      { icon: Subtitles, label: 'Lịch thi', subtitle: 'Lịch thi học kỳ', page: 'examSchedule' },
+      { icon: Home, label: 'Tổng quan', subtitle: "GPA & tín chỉ tích lũy", page: 'dashboard' },
+      { icon: Map, label: 'Lộ trình học tập', subtitle: 'CTĐT & Xếp lịch', page: 'courses' },
+      { icon: BarChart3, label: 'Quản lý điểm', subtitle: 'Điểm & Kế hoạch', page: 'grades' },
+      { icon: Subtitles, label: 'Lịch thi', subtitle: 'Lịch thi các kỳ', page: 'examSchedule' },
     ],
   },
   {
     title: 'Tài chính',
     items: [
-      { icon: DollarSign, label: 'Học phí', subtitle: "Học phí năm học", page: 'tuition' },
+      { icon: DollarSign, label: 'Học phí', subtitle: "Học phí các kỳ", page: 'tuition' },
     ],
   },
   {
@@ -28,7 +29,7 @@ const navGroups = [
         ? [{ icon: Bot, label: 'Trợ lý', subtitle: 'Hỏi & Đáp', page: 'chatbot' }]
         : []),
       { icon: Calendar, label: 'Thời khóa biểu', subtitle: 'Lịch đã chốt', page: 'schedule' },
-      { icon: Info, label: 'Thông tin trường', subtitle: 'Bản đồ và kế hoạch năm học', page: 'campusInfo' },
+      { icon: Info, label: 'Thông tin trường', subtitle: 'Bản đồ & kế hoạch năm học', page: 'campusInfo' },
       { icon: Settings, label: 'Cài đặt', subtitle: "Thiết lập cá nhân", page: 'settings' },
       { icon: Shield, label: 'Bảo mật & Quyền', subtitle: 'Quyền riêng tư dữ liệu', page: 'privacy' },
     ],
@@ -99,14 +100,14 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
   // ---- Desktop Sidebar (ẩn trên mobile) ----
   const DesktopSidebar = (
     <aside
-      className={`hidden md:flex bg-[#004A98] text-white flex-col flex-shrink-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'}`}
+      className={`hidden md:flex bg-primary text-white flex-col shrink-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'}`}
       style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
     >
       {/* Logo */}
       <div className={`p-6 relative ${isCollapsed ? 'px-4' : ''}`}>
         <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''}`}>
-          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-[#004A98]" style={{ fontWeight: 600 }}>UNP</span>
+          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shrink-0">
+            <span className="text-primary" style={{ fontWeight: 600 }}>UNP</span>
           </div>
           {!isCollapsed && (
             <div className="min-w-0">
@@ -121,9 +122,9 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
           aria-label={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
         >
           {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-[#004A98]" />
+            <ChevronRight className="w-4 h-4 text-primary" />
           ) : (
-            <ChevronLeft className="w-4 h-4 text-[#004A98]" />
+            <ChevronLeft className="w-4 h-4 text-primary" />
           )}
         </button>
       </div>
@@ -152,7 +153,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
                       {isActive && (
                         <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 ${isCollapsed ? 'h-10' : 'h-8'} bg-white rounded-r`}></div>
                       )}
-                      <item.icon className={`w-5 h-5 flex-shrink-0 ${isCollapsed ? '' : 'mt-0.5'}`} strokeWidth={1.5} />
+                      <item.icon className={`w-5 h-5 shrink-0 ${isCollapsed ? '' : 'mt-0.5'}`} strokeWidth={1.5} />
                       {!isCollapsed && (
                         <div className="flex-1 min-w-0">
                           <p className={`truncate ${isActive ? 'text-white' : 'text-blue-100 group-hover:text-white'}`} style={{ fontWeight: isActive ? 500 : 400 }}>
@@ -231,15 +232,13 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <span style={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>Menu</span>
-          <button
+          <CloseButton
             ref={drawerCloseRef}
-            type="button"
-            aria-label="Đóng menu điều hướng"
+            label="Đóng menu điều hướng"
             onClick={closeDrawer}
-            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer' }}
-          >
-            <X style={{ width: '16px', height: '16px', color: 'white' }} />
-          </button>
+            tone="inverse"
+            className="size-11"
+          />
         </div>
 
         {/* Nav groups */}

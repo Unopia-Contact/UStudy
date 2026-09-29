@@ -123,9 +123,7 @@ function BrowserPortalSyncTools() {
         <div className={`${showOtherMethods ? 'grid' : 'hidden'} gap-2 md:grid md:grid-cols-2`}>
           <section className="flex min-w-0 flex-col gap-2 rounded-lg bg-white px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#004A98] text-white">
-                <Puzzle className="h-4 w-4" />
-              </span>
+              <Puzzle className="h-5 w-5 shrink-0 text-[#004A98]" />
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
                 <h3 className="text-sm font-semibold text-gray-900">Extension</h3>
                 {isUpdateAvailable ? (
@@ -156,9 +154,7 @@ function BrowserPortalSyncTools() {
 
           <section className="flex min-w-0 flex-col gap-2 rounded-lg bg-white px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
-                <Bookmark className="h-4 w-4" />
-              </span>
+              <Bookmark className="h-5 w-5 shrink-0 text-[#004A98]" />
               <h3 className="text-sm font-semibold text-gray-900">Bookmarklet</h3>
             </div>
             <div className="pl-10 sm:pl-0">

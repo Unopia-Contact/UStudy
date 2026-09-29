@@ -16,7 +16,7 @@ export function exportCalendar(schedule: WeeklySchedule) {
         'BEGIN:VCALENDAR', 'VERSION:2.0',
         'PRODID:-//HCMUS Portal Tool//Visual Schedule//VI',
         'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
-        `X-WR-CALNAME:${esc(`Thoi khoa bieu - ${schedule.semesterName}`)}`,
+        `X-WR-CALNAME:${esc(`Thời khóa biểu - ${schedule.semesterName}`)}`,
         'X-WR-TIMEZONE:Asia/Ho_Chi_Minh',
     ];
 
@@ -41,14 +41,14 @@ export function exportCalendar(schedule: WeeklySchedule) {
         const dtStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate(), sh, sm, 0);
         const dtEnd = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate(), eh, em, 0);
         const weeks = Math.max(1, session.totalWeeks || 1);
-        const typeLabel = session.type === 'LT' ? 'Ly thuyet' : session.type === 'TH' ? 'Thuc hanh' : 'Bai tap';
+        const typeLabel = session.type === 'LT' ? 'Lý thuyết' : session.type === 'TH' ? 'Thực hành' : 'Bài tập';
         const description = [
-            `Mon: ${session.courseName} (${session.courseCode})`,
-            `Lop: ${session.classCode}`, `Loai: ${typeLabel}`,
-            `Giang vien: ${session.instructor || 'Dang cap nhat'}`,
-            `Tin chi: ${session.credits}`,
-            `Bat dau: ${session.startTime} - Tuan 1`,
-            `Ket thuc du kien: +${weeks} tuan`,
+            `Môn: ${session.courseName} (${session.courseCode})`,
+            `Lớp: ${session.classCode}`, `Loại: ${typeLabel}`,
+            `Giảng viên: ${session.instructor || 'Đang cập nhật'}`,
+            `Tín chỉ: ${session.credits}`,
+            `Bắt đầu: ${session.startTime} - Tuần 1`,
+            `Kết thúc dự kiến: +${weeks} tuần`,
         ].join('\\n');
 
         lines.push(
@@ -59,7 +59,7 @@ export function exportCalendar(schedule: WeeklySchedule) {
             `DTEND;TZID=Asia/Ho_Chi_Minh:${toIcsDateTime(dtEnd)}`,
             `RRULE:FREQ=WEEKLY;COUNT=${weeks}`,
             `SUMMARY:${esc(`${session.courseCode} - ${session.courseName}`)}`,
-            `LOCATION:${esc(session.room || 'Chua co phong')}`,
+            `LOCATION:${esc(session.room || 'Chưa có phòng')}`,
             `DESCRIPTION:${esc(description)}`,
             'STATUS:CONFIRMED', 'TRANSP:OPAQUE', 'END:VEVENT'
         );

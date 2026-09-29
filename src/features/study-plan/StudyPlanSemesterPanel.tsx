@@ -277,9 +277,9 @@ export function StudyPlanSemesterPanel({
 
     return (
         <aside className={`${mobileVisible ? 'block' : 'hidden'} lg:sticky lg:top-0 lg:block lg:max-h-[calc(100vh-8rem)] lg:pl-3`}>
-            <div className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div className="flex h-full flex-col overflow-visible rounded-xl border border-gray-200 bg-white shadow-sm">
                 {/* Header */}
-                <div className="border-b border-gray-200 bg-white p-3 lg:bg-[#004A98] lg:p-4">
+                <div className="rounded-t-xl border-b border-white/10 bg-gradient-to-br from-[#0058B2] to-[#0066CC] p-3 shadow-sm lg:p-4">
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                             <h2 className="flex items-center text-base font-semibold text-gray-900 lg:text-white">
@@ -353,7 +353,7 @@ export function StudyPlanSemesterPanel({
                                 {isMoreMenuOpen && (
                                     <div
                                         role="menu"
-                                        className="absolute right-0 top-full z-50 mt-2 w-52 max-w-[calc(100vw-2rem)] overflow-visible rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                                        className="absolute right-0 top-full z-50 mt-2 w-60 max-w-[calc(100vw-2rem)] overflow-visible rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
                                     >
                                         <FlyoutMenu
                                             open={isAddSemesterMenuOpen}

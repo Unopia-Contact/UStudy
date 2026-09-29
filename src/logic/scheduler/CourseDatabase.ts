@@ -65,7 +65,7 @@ export default class CourseDatabase {
     this.mapIdToIndex = {};
 
     if (!Array.isArray(rawData)) {
-      console.error('Du lieu nap vao CourseDatabase khong phai la mang:', rawData);
+      console.error('Dữ liệu nạp vào CourseDatabase không phải là mảng:', rawData);
       return;
     }
 

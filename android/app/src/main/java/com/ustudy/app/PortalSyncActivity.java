@@ -296,10 +296,10 @@ public class PortalSyncActivity extends AppCompatActivity {
         String script = "(function(){" +
             "var old=document.getElementById('ustudy-mobile-sync');if(old)old.remove();" +
             "var root=document.createElement('div');root.id='ustudy-mobile-sync';" +
-            "root.style.cssText='position:fixed;right:14px;bottom:18px;z-index:2147483647;font-family:Inter,Arial,sans-serif;';" +
+            "root.style.cssText='position:fixed;right:18px;bottom:22px;z-index:2147483647;font-family:Inter,Arial,sans-serif;';" +
             "var btn=document.createElement('button');btn.type='button';btn.textContent='Đồng bộ với UStudy';" +
-            "btn.style.cssText='width:min(280px,calc(100vw - 28px));min-height:72px;border:2px solid rgba(255,255,255,.8);border-radius:14px;padding:0 24px;background:#004A98;color:#fff;font-size:18px;line-height:1.25;font-weight:700;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,46,96,.36);';" +
-            "var note=document.createElement('div');note.style.cssText='display:none;margin-top:8px;width:min(280px,calc(100vw - 28px));border:1px solid #dbe5ef;border-radius:10px;padding:10px 12px;background:#fff;color:#334155;font-size:13px;line-height:1.45;box-sizing:border-box;box-shadow:0 8px 24px rgba(15,23,42,.18);';" +
+            "btn.style.cssText='width:min(360px,calc(100vw - 36px));min-height:88px;border:3px solid rgba(255,255,255,.8);border-radius:18px;padding:0 30px;background:#004A98;color:#fff;font-size:22px;line-height:1.25;font-weight:700;box-sizing:border-box;box-shadow:0 14px 36px rgba(0,46,96,.4);';" +
+            "var note=document.createElement('div');note.style.cssText='display:none;margin-top:10px;width:min(360px,calc(100vw - 36px));border:1px solid #dbe5ef;border-radius:12px;padding:12px 14px;background:#fff;color:#334155;font-size:15px;line-height:1.45;box-sizing:border-box;box-shadow:0 8px 24px rgba(15,23,42,.18);';" +
             "root.appendChild(btn);root.appendChild(note);document.body.appendChild(root);" +
             "window.__USTUDY_MOBILE_SET_STATUS__=function(message,isError){note.style.display='block';note.textContent=message;note.style.color=isError?'#b91c1c':'#334155';btn.disabled=!isError;btn.style.opacity=isError?'1':'.75';if(isError)btn.textContent='Thử lại đồng bộ';};" +
             "btn.onclick=function(){btn.disabled=true;btn.style.opacity='.75';btn.textContent='Đang đồng bộ...';note.style.display='block';note.textContent='Đang thu thập dữ liệu từ Portal';UStudyAndroid.startSync(" + token + ");};" +

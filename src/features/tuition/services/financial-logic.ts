@@ -1,5 +1,6 @@
 import type { TuitionRates, CourseMeta, CourseFeeResult, TuitionCourse, TuitionSummary } from '../types';
 import { getTuitionDeadline } from '../../../config/tuitionDeadlines';
+import type { ImportMetadata, PortalDataSource } from '../../../logic/import-metadata';
 /**
  * FinancialLogic.ts
  *
@@ -8,6 +9,23 @@ import { getTuitionDeadline } from '../../../config/tuitionDeadlines';
  */
 
 export const FinancialLogic = {
+
+    /**
+     * Hiển thị thời điểm dữ liệu của từng nguồn được đồng bộ về UStudy.
+     * Với metadata cũ chưa có mốc theo từng nguồn, scrapedAt là fallback duy nhất
+     * đáng tin cậy. Không dùng thời gian render vì nó làm "Ngày cập nhật"
+     * thay đổi mỗi lần người dùng mở trang.
+     */
+    formatSourceUpdatedAt: (importMeta: ImportMetadata | null | undefined, source: PortalDataSource): string => {
+        const sourceTimestamps = importMeta?.sourceUpdatedAt;
+        const hasSourceTimestamps = Boolean(sourceTimestamps && typeof sourceTimestamps === 'object');
+        const timestamp = hasSourceTimestamps ? sourceTimestamps?.[source] : importMeta?.scrapedAt;
+
+        if (typeof timestamp !== 'string' || !timestamp.trim()) return 'Chưa xác định';
+
+        const date = new Date(timestamp);
+        return Number.isNaN(date.getTime()) ? 'Chưa xác định' : date.toLocaleString('vi-VN');
+    },
 
     /**
      * Tra cứu đơn giá 1 tín chỉ theo mã môn (longest prefix match).
@@ -273,7 +291,7 @@ export const FinancialLogic = {
             amountDue: 0,
             dueDate: getTuitionDeadline(targetSemester, campusId),
             status: 'unpaid',
-            lastUpdated: new Date().toLocaleString('vi-VN'),
+            lastUpdated: FinancialLogic.formatSourceUpdatedAt(importMeta, 'tuition'),
             hasAdvancePayment: false,
         };
 
@@ -308,7 +326,7 @@ export const FinancialLogic = {
                 totalPeriods: portalCourses.reduce((sum, c) => sum + c.periods, 0),
                 totalTuitionCredits: portalCourses.reduce((sum, c) => sum + c.tuitionCredits, 0),
                 totalFee: parseFloat(String(tuitionInDb.fee || "0").replace(/,/g, '')) || portalCourses.reduce((sum, c) => sum + c.tuitionFee, 0),
-                lastUpdated: tuitionInDb.updatedDate || new Date().toLocaleString('vi-VN'),
+                lastUpdated: FinancialLogic.formatSourceUpdatedAt(importMeta, 'tuition'),
             };
 
             const paymentStatus = FinancialLogic.detectPaymentStatus(studentDb, portalSummary.totalFee, false, targetSemester, true);
@@ -363,6 +381,8 @@ export const FinancialLogic = {
                 source: 'none'
             };
         }
+
+        emptySummary.lastUpdated = FinancialLogic.formatSourceUpdatedAt(importMeta, source === 'registration' ? 'registrations' : 'grades');
 
         const uniqueCourses = new Map<string, any>();
         matchingCourses.forEach((r: any) => {
@@ -433,8 +453,6 @@ export const FinancialLogic = {
         emptySummary.totalPeriods = totalPeriods;
         emptySummary.totalTuitionCredits = totalTuitionCredits;
         emptySummary.totalFee = totalFee;
-        emptySummary.lastUpdated = new Date().toLocaleString('vi-VN');
-
         const paymentStatus = FinancialLogic.detectPaymentStatus(studentDb, totalFee, isFromHistory, targetSemester, !isCurrentRegMatch);
         emptySummary.amountDue = paymentStatus.amountDue;
         emptySummary.advancePayment = paymentStatus.advancePayment;
