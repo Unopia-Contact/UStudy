@@ -18,7 +18,7 @@ describe('Building A floor drawings and inventory', () => {
   it('declares exactly four mapped floors and forty physical rooms', () => {
     expect(runtime.floorIdsByBuildingId['dong-hoa/a']).toEqual(floors.map(id => `dong-hoa/a/${id}`));
     expect(floors.map(id => runtime.roomIdsByFloorId[`dong-hoa/a/${id}`].length)).toEqual([4, 11, 14, 11]);
-    expect(runtime.floorsById['dong-hoa/a/0'].label).toBe('Tầng hầm');
+    expect(runtime.floorsById['dong-hoa/a/0'].label).toBe('Tầng Hầm');
     expect(runtime.floorsById['dong-hoa/a/0'].level).toBe(-1);
   });
 

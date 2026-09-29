@@ -95,22 +95,16 @@ export function GpaWidget({ currentGPA, currentGPA4, classification, letterGrade
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (
-    <section className="group relative h-full min-h-[300px] [perspective:1200px] md:min-h-[328px]">
+    <section className="relative h-full min-h-[300px] [perspective:1200px] md:min-h-[328px]">
       <button
         type="button"
         className="block h-full w-full rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#004A98] focus-visible:ring-offset-2"
         aria-label={`GPA hiện tại, ${isFlipped ? 'thang điểm 4' : 'thang điểm 10'}. Nhấn để đổi thang điểm.`}
         aria-pressed={isFlipped}
-        onClick={(event) => {
-          const isKeyboardAction = event.detail === 0;
-          const isTouchDevice = !window.matchMedia('(hover: hover)').matches;
-          if (isKeyboardAction || isTouchDevice) {
-            setIsFlipped((current) => !current);
-          }
-        }}
+        onClick={() => setIsFlipped((current) => !current)}
       >
         <span
-          className={`relative block h-full w-full transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none group-hover:[transform:rotateY(180deg)] ${
+          className={`relative block h-full w-full transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none ${
             isFlipped ? '[transform:rotateY(180deg)]' : ''
           }`}
         >
@@ -130,8 +124,8 @@ export function GpaWidget({ currentGPA, currentGPA4, classification, letterGrade
             subtitle="Thang điểm 4"
             footerLabel="Điểm chữ"
             footerValue={letterGrade}
-            accentColor="#4F46E5"
-            badgeClassName="bg-indigo-600 text-white"
+            accentColor="#004A98"
+            badgeClassName="bg-[#004A98] text-white"
             hint="Xem hệ 10"
             className="[transform:rotateY(180deg)]"
           />

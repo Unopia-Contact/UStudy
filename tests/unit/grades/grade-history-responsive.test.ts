@@ -31,7 +31,7 @@ describe('GradeHistoryTable responsive views', () => {
       },
     }));
 
-    expect(html).toContain('divide-y divide-gray-100 md:hidden');
-    expect(html).toContain('hidden overflow-x-auto md:block');
+    expect(html).toContain('divide-y divide-gray-100 lg:hidden');
+    expect(html).toContain('hidden overflow-x-auto lg:block');
   });
 });

@@ -282,7 +282,7 @@ export function StudyPlanSemesterPanel({
                 <div className="rounded-t-xl border-b border-white/10 bg-gradient-to-br from-[#0058B2] to-[#0066CC] p-3 shadow-sm lg:p-4">
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                            <h2 className="flex items-center text-base font-semibold text-gray-900 lg:text-white">
+                            <h2 className="flex items-center text-base font-semibold text-white">
                                 <span className="pr-1">Khung học kỳ</span>
                                 <div className="group relative">
                                     <button
@@ -315,7 +315,7 @@ export function StudyPlanSemesterPanel({
                                 </div>
                             </h2>
 
-                            <p className="mt-1 text-xs text-gray-500 lg:text-blue-100 lg:text-sm">
+                            <p className="mt-1 text-xs text-blue-100 lg:text-sm">
                                 {plannedStats.courses} môn
                                 <span className="mx-1.5">·</span>
                                 {plannedStats.credits} TC trong kế hoạch
@@ -326,7 +326,7 @@ export function StudyPlanSemesterPanel({
                             <button
                                 type="button"
                                 onClick={onOpenPreview}
-                                className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 lg:text-white lg:hover:bg-white/10"
+                                className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10"
                                 aria-label="Xem trực quan kế hoạch"
                                 title="Xem trực quan kế hoạch"
                             >
@@ -341,7 +341,7 @@ export function StudyPlanSemesterPanel({
                                         setIsAddSemesterMenuOpen(false);
                                         setIsExportMenuOpen(false);
                                     }}
-                                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 lg:text-white lg:hover:bg-white/10"
+                                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10"
                                     aria-label="Tùy chọn kế hoạch"
                                     title="Thêm tùy chọn"
                                     aria-expanded={isMoreMenuOpen}
