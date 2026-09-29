@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/favicon.svg" width="104" height="104" alt="UStudy logo" />
+  <img src="public/assets/images/ustudy-logo.svg" width="104" height="104" alt="UStudy logo" />
 
   <h1>UStudy</h1>
 

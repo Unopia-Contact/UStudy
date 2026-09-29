@@ -165,9 +165,7 @@ export const ChangePinModal: React.FC<ChangePinModalProps> = ({ onClose }) => {
                     {/* Success State */}
                     {step === 'success' ? (
                         <>
-                            <div className="p-4 mb-5 bg-green-50 text-green-600 rounded-2xl ring-8 ring-green-50/50">
-                                <CheckCircle2 className="w-12 h-12" />
-                            </div>
+                            <CheckCircle2 className="mb-5 h-14 w-14 text-green-600" />
                             <h2 className="text-xl font-extrabold text-slate-900 mb-2">{current.title}</h2>
                             <p className="text-slate-500 text-sm mb-8">{current.subtitle}</p>
                             <Button
@@ -181,9 +179,7 @@ export const ChangePinModal: React.FC<ChangePinModalProps> = ({ onClose }) => {
                     ) : isProcessing && step === 'confirm-password' ? (
                         /* Processing State */
                         <>
-                            <div className="p-4 mb-5 bg-blue-50 text-blue-600 rounded-2xl ring-8 ring-blue-50/50">
-                                <Loader2 className="w-12 h-12 animate-spin" />
-                            </div>
+                            <Loader2 className="mb-5 h-14 w-14 animate-spin text-blue-600" />
                             <h2 className="text-xl font-extrabold text-slate-900 mb-2">Đang xử lý...</h2>
                             <p className="text-slate-500 text-sm mb-2">{progress}</p>
                             <p className="text-xs text-slate-400">Quá trình này có thể mất vài giây.</p>

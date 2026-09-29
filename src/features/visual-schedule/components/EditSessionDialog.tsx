@@ -365,7 +365,6 @@ function EditSessionDialog({ open, onOpenChange, session, weekNumber, overrides,
                                 id="schedule-week-visible"
                                 checked={isCurrentWeekVisible}
                                 onCheckedChange={setIsCurrentWeekVisible}
-                                className="h-6 w-11 data-[state=checked]:bg-[#004A98] data-[state=unchecked]:bg-slate-300 [&_[data-slot=switch-thumb]]:size-5"
                             />
                         </div>
                         {scope === 'semester' && (

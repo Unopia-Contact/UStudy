@@ -27,9 +27,7 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({ onClose,
 
                 {/* Warning */}
                 <div className="flex flex-col items-center text-center">
-                    <div className="p-4 mb-5 bg-red-50 text-red-500 rounded-2xl ring-8 ring-red-50/50">
-                        <AlertTriangle className="w-12 h-12" />
-                    </div>
+                    <AlertTriangle className="mb-5 h-14 w-14 text-red-500" />
 
                     <h2 className="text-xl font-extrabold text-slate-900 mb-2">
                         Bạn có chắc chắn muốn đăng xuất?

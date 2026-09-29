@@ -706,9 +706,7 @@ export function StudyPlanPreview({
                                 {/* Empty state */}
                                 {!activeRow || activeRow.courseIds.length === 0 ? (
                                     <div className="flex flex-col items-center px-5 py-10 text-center">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
-                                            <BookOpen className="h-5 w-5 text-gray-400" />
-                                        </div>
+                                        <BookOpen className="h-6 w-6 text-[#004A98]" />
 
                                         <p className="mt-3 text-sm font-medium text-gray-700">
                                             Học kỳ này chưa có môn nào

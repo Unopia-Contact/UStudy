@@ -163,34 +163,34 @@ export const GROUP_SCHEDULER_CONFIG: GROUP_SCHEDULER_CONFIG = {
 };
 
 export const GROUP_SCHEDULER_WEIGHTS: GROUP_SCHEDULER_WEIGHTS = {
-    // Phat do lech diem giua cac thanh vien. So cang cao thi solver cang uu tien can bang lich trong nhom.
+    // Phạt độ lệch điểm giữa các thành viên. Số càng cao thì solver càng ưu tiên cân bằng lịch trong nhóm.
     FAIRNESS: 0.8,
 
-    // Thuong nhe cho moi mon chung duoc xep cung lop, giup giu lop chung khi co the.
+    // Thưởng nhẹ cho mỗi môn chung được xếp cùng lớp, giúp giữ lớp chung khi có thể.
     SHARED_SLOT_BONUS: 12,
 
-    // Thuong khi lich chon dung lop uu tien/bat buoc cua tung ca nhan.
+    // Thưởng khi lịch chọn đúng lớp ưu tiên/bắt buộc của từng cá nhân.
     PERSONAL_PREFERRED_BONUS: 8,
     PERSONAL_REQUIRED_BONUS: 24,
 
-    // Thuong khi lich chon dung lop uu tien/bat buoc cua nhom. Nhom cao hon ca nhan.
+    // Thưởng khi lịch chọn đúng lớp ưu tiên/bắt buộc của nhóm. Nhóm cao hơn cá nhân.
     GROUP_PREFERRED_BONUS: 18,
     GROUP_REQUIRED_BONUS: 48,
 
-    // Phat khi KHONG chon duoc lop uu tien. Uu tien ca nhan phat thap hon uu tien nhom.
+    // Phạt khi KHÔNG chọn được lớp ưu tiên. Ưu tiên cá nhân phạt thấp hơn ưu tiên nhóm.
     PERSONAL_PREFERRED_MISS_PENALTY: 2500,
     GROUP_PREFERRED_MISS_PENALTY: 8500,
 
-    // Phat rat nang khi KHONG chon duoc lop bat buoc. Nhom cao hon ca nhan.
+    // Phạt rất nặng khi KHÔNG chọn được lớp bắt buộc. Nhóm cao hơn cá nhân.
     PERSONAL_REQUIRED_MISS_PENALTY: 100000,
     GROUP_REQUIRED_MISS_PENALTY: 250000,
 
-    // Phat rat nang khi bi xep vao lop da danh dau "Cam". Nhom cao hon ca nhan.
+    // Phạt rất nặng khi bị xếp vào lớp đã đánh dấu "Cấm". Nhóm cao hơn cá nhân.
     PERSONAL_EXCLUDED_MISS_PENALTY: 100000,
     GROUP_EXCLUDED_MISS_PENALTY: 250000,
 
-    // Diem dung de sap xep thu tu thu lop truoc khi search. Khong cong truc tiep vao diem ket qua.
-    // So cang cao thi lop do cang duoc thu som hon, giup solver tim nghiem tot nhanh hon.
+    // Điểm dùng để sắp xếp thứ tự thử lớp trước khi search. Không cộng trực tiếp vào điểm kết quả.
+    // Số càng cao thì lớp đó càng được thử sớm hơn, giúp solver tìm nghiệm tốt nhanh hơn.
     CLASS_ORDER_GROUP_REQUIRED: 400,
     CLASS_ORDER_GROUP_PREFERRED: 180,
     CLASS_ORDER_GROUP_EXCLUDED: 450,

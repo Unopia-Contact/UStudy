@@ -8,6 +8,7 @@ import { CampusDirectoryDetail } from './components/CampusDirectoryDetail';
 import { CampusDirectoryListItem } from './components/CampusDirectoryListItem';
 import { resolveDirectoryMapLink } from './directory-map-link';
 
+// Thêm 'laboratory' vào danh sách hiển thị option (nếu có dùng)
 const UNIT_TYPE_ORDER: CampusUnitType[] = [
     'faculty', 
     'department', 

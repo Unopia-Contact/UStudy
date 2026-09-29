@@ -5,9 +5,7 @@ export function NoDataCard() {
         <div className="flex h-[calc(100vh-100px)] items-center justify-center p-4">
             <div className="w-full max-w-lg p-8 bg-white border border-gray-100 rounded-2xl shadow-xl shadow-gray-200/50">
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 text-[#004A98]">
-                        <Database className="w-8 h-8" />
-                    </div>
+                    <Database className="mb-4 h-10 w-10 text-[#004A98]" />
                     <h2 className="text-2xl font-bold text-gray-900">Chưa có dữ liệu</h2>
                     <p className="text-gray-500 mt-2 text-center">Hoàn thành các bước sau để lấy dữ liệu môn học từ cổng thông tin</p>
                 </div>

@@ -171,7 +171,7 @@ export const categories = {
     ]
   },
   "MASTER_TRANSITION": {
-    "name": "Danh mục các học phần được đăng ký học trước của chương trình đào tạo thạc sĩ",
+    "name": "Các học phần được đăng ký học trước của chương trình đào tạo thạc sĩ",
     "courses": [
       "CHE10105", "CHE10106", "CHE10501", "CHE10601", "CHE10608", "CHE10408",
       "CHE10402", "CHE10203", "CHE10202", "CHE10303", "CHE10301", "CHE10101",

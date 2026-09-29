@@ -62,11 +62,11 @@ export function GradeHistoryRow({ course }: GradeHistoryRowProps) {
                 course.needsRetake ? "bg-red-50/30" : ""
             }`}
         >
-            <td className="px-4 py-3 text-sm text-gray-900">
+            <td className="px-4 py-3 text-center text-sm text-gray-900">
                 {course.code}
             </td>
 
-            <td className="px-4 py-3 text-sm font-medium text-gray-900">
+            <td className="px-4 py-3 text-left text-sm font-medium text-gray-900">
                 {course.nameVi}
             </td>
 
@@ -100,8 +100,8 @@ export function GradeHistoryRow({ course }: GradeHistoryRowProps) {
                 <span className="font-semibold text-gray-700">{letterGrade}</span>
             </td>
 
-            <td className="px-4 py-3 text-center">
-                <div className="inline-flex items-center gap-2">
+            <td className="whitespace-nowrap px-2 py-3 text-center">
+                <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
                     <span
                         className={`h-4 w-1 rounded-full ${statusConfig.barClass}`}
                     />

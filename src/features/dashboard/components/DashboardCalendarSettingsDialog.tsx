@@ -263,6 +263,7 @@ export function DashboardCalendarSettingsDialog({
             step={1}
             value={draftDays}
             onChange={(event) => setDraftDays(event.target.value)}
+            onWheel={(event) => event.currentTarget.blur()}
             className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold tabular-nums text-gray-900 outline-none"
             aria-describedby="dashboard-calendar-days-help"
           />
@@ -273,8 +274,8 @@ export function DashboardCalendarSettingsDialog({
         </p>
       </div>
 
-      <div className="mt-5 border-t border-gray-200 pt-4">
-        {isNativeApp && (
+      {isNativeApp && (
+        <div className="mt-5 border-t border-gray-200 pt-4">
           <>
             <button
               type="button"
@@ -310,6 +311,7 @@ export function DashboardCalendarSettingsDialog({
                         min={1}
                         value={reminder.value}
                         onChange={(event) => updateReminder(reminder.id, { value: event.target.value })}
+                        onWheel={(event) => event.currentTarget.blur()}
                         aria-label="Thời gian nhắc trước"
                         className="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 px-3 text-sm font-semibold tabular-nums outline-none focus:border-[#004A98] focus:ring-2 focus:ring-[#004A98]/15"
                       />
@@ -379,8 +381,8 @@ export function DashboardCalendarSettingsDialog({
               </div>
             )}
           </>
-        )}
-      </div>
+        </div>
+      )}
 
     </AppDialog>
   );

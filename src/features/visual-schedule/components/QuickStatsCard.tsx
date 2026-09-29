@@ -13,10 +13,11 @@ interface QuickStatsCardProps {
 
 export function QuickStatsCard({ icon: Icon, title, value, subtitle, bgColor, trend }: QuickStatsCardProps) {
     return (
-        <Card className="min-w-0 border-gray-200 shadow-sm">
-            <CardContent className="min-w-0 p-2.5 sm:p-3 lg:p-4">
+        <Card className="group relative min-w-0 cursor-pointer overflow-hidden border-gray-200 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className={`absolute inset-0 ${bgColor} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />
+            <CardContent className="relative z-10 min-w-0 p-2.5 sm:p-3 lg:p-4">
                 <div className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-start lg:gap-3">
-                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${bgColor} lg:h-9 lg:w-9`}>
+                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${bgColor} transition-transform duration-300 group-hover:scale-110 lg:h-9 lg:w-9`}>
                         <Icon className="h-4 w-4 text-white lg:h-5 lg:w-5" />
                     </div>
                     <div className="flex-1 min-w-0">

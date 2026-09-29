@@ -561,9 +561,7 @@ Bạn cần hỗ trợ gì, hãy nhắn cho mình nhé!`,
                         }}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center border border-white/20 shrink-0">
-                                <Bot className={`w-5.5 h-5.5 fill-current text-white ${isLoading ? 'ustudy-bot-loading' : 'animate-pulse'}`} />
-                            </div>
+                            <Bot className={`h-6 w-6 shrink-0 fill-current text-white ${isLoading ? 'ustudy-bot-loading' : 'animate-pulse'}`} />
                             <div>
                                 <p className="text-xs font-bold text-white flex items-center gap-1.5">
                                     Trợ lý UStudy

@@ -1,14 +1,14 @@
 /**
- * Cau hinh han dong hoc phi.
+ * Cấu hình hạn đóng học phí.
  *
  * Format key: "yy-yy/s"
- * - "25-26/1" = hoc ky 1, nam hoc 2025-2026
- * - "25-26/2" = hoc ky 2, nam hoc 2025-2026
- * - "25-26/3" = hoc ky 3, nam hoc 2025-2026
+ * - "25-26/1" = học kỳ 1, năm học 2025-2026
+ * - "25-26/2" = học kỳ 2, năm học 2025-2026
+ * - "25-26/3" = học kỳ 3, năm học 2025-2026
  *
  * Format date: "YYYY-MM-DD"
  *
- * Khi nha truong thong bao han moi, chi can sua/thêm trong object nay.
+ * Khi nhà trường thông báo hạn mới, chỉ cần sửa/thêm trong object này.
  */
 export const TUITION_DEADLINES_BY_CAMPUS: Record<import('../domain/campus').CampusId, Record<string, string>> = {
     'cho-quan': {},
@@ -49,7 +49,7 @@ export function buildTuitionSemesterKey(academicYear: string, semesterNumber: nu
     return `${year}/${semester}`;
 }
 
-/** Chi tra ve han da duoc nha truong cong bo trong bang cau hinh. */
+/** Chỉ trả về hạn đã được nhà trường công bố trong bảng cấu hình. */
 export function getTuitionDeadline(
     semester: string | undefined | null,
     campusId: import('../domain/campus').CampusId = 'dong-hoa',
@@ -59,7 +59,7 @@ export function getTuitionDeadline(
 }
 
 export function formatTuitionDeadline(dateString: string | null | undefined): string {
-    if (!dateString) return 'Chua cong bo';
+    if (!dateString) return 'Chưa công bố';
 
     const date = new Date(`${dateString}T00:00:00`);
     if (Number.isNaN(date.getTime())) return dateString;

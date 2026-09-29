@@ -40,15 +40,6 @@ export function NotificationMenu() {
         }
     };
 
-    const getIconBackground = (type: AppNotification['type']) => {
-        switch (type) {
-            case 'success': return 'bg-emerald-50';
-            case 'warning': return 'bg-amber-50';
-            case 'error': return 'bg-red-50';
-            default: return 'bg-blue-50';
-        }
-    };
-
     const formatTime = (date: Date) => {
         const now = new Date();
         const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -63,9 +54,7 @@ export function NotificationMenu() {
         if (notifications.length === 0) {
             return (
                 <div className={`flex flex-col items-center justify-center px-6 text-center ${mobile ? 'min-h-72 py-12' : 'py-12'}`}>
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
-                        <Bell className="h-6 w-6 text-gray-400" />
-                    </div>
+                    <Bell className="h-7 w-7 text-[#004A98]" />
                     <p className="mt-4 text-sm font-semibold text-gray-900">Không có thông báo</p>
                     <p className="mt-1 text-xs leading-5 text-gray-500">Các cập nhật mới sẽ xuất hiện tại đây.</p>
                 </div>
@@ -85,7 +74,7 @@ export function NotificationMenu() {
                             notification.isRead ? 'bg-white' : 'bg-[#F4F8FF]'
                         }`}
                     >
-                        <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${getIconBackground(notification.type)}`}>
+                        <span className="mt-0.5 shrink-0">
                             {getIcon(notification.type)}
                         </span>
                         <span className="min-w-0 flex-1">

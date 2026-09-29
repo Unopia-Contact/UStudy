@@ -190,7 +190,7 @@ export const categories = {
             {
                 "type": "PROJECT",
                 "credits": 10,
-                "note": "Đồ án tốt nghiệp (6 TC) và Chọn tối thiểu 4 TC trong mục Khối kiến thức chuyên ngành",
+                "note": "Đồ án tốt nghiệp (6 TC) và Chọn tối thiểu 4 TC trong mục Khối Kiến thức chuyên ngành",
                 "courses": [
                     "SEM10991"
                 ]

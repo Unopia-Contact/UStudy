@@ -6,6 +6,7 @@ import courseDbJson from '../../../logic/scheduler/Course_db.json';
 import { useEffect } from 'react';
 import { STORAGE_KEYS } from '../../../config';
 import { readFromStorage } from '../../../helpers/localStorage/save';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/ui/overlays/tooltip';
 
 // định nghĩa props cho CourseRow
 interface CourseRowProps {
@@ -238,7 +239,14 @@ export function CourseRow({ course, isSelected, onToggle, onShowFlowchart, onOpe
           </div>
           {/* Course Name */}
           <div className="flex-1 min-w-0">
-            <p title={course.nameVi} className="truncate text-xs md:text-sm text-gray-900 font-medium leading-tight md:leading-5">{course.nameVi}</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="text-[10px] md:text-sm text-gray-500 md:text-gray-900 truncate font-medium md:font-medium leading-tight md:leading-normal">{course.nameVi}</p>
+              </TooltipTrigger>
+              <TooltipContent hideArrow side="top" sideOffset={6} className="max-w-72 border border-gray-200 bg-white text-pretty text-gray-900 shadow-lg">
+                {course.nameVi}
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 

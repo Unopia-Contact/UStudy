@@ -47,7 +47,7 @@ export function GPAInformation({
             {cards.map((card) => (
                 <div
                     key={card.title}
-                    className={`p-4 rounded-2xl bg-white border ${card.borderColor} shadow-sm hover:shadow-md transition-shadow`}
+                    className={`p-4 rounded-lg border ${card.borderColor} bg-white shadow-sm`}
                 >
                     <div className="flex items-center gap-3 mb-2">
                         <div className={`p-2 rounded-lg ${card.bg}`}>

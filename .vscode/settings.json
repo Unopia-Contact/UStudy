@@ -1,0 +1,6 @@
+{
+  "workbench.statusBar.visible": true,
+  "typescript.validate.enable": true,
+  "typescript.tsserver.enableProjectDiagnostics": true,
+  "npm.enableScriptExplorer": true
+}

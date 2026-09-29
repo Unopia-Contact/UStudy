@@ -31,9 +31,7 @@ export function SavedSchedulesModal({
     >
       {savedSchedules.length === 0 ? (
         <div className="flex min-h-56 flex-col items-center justify-center px-5 py-12 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-            <CalendarClock className="h-5 w-5" />
-          </span>
+          <CalendarClock className="h-7 w-7 text-[#004A98]" />
           <p className="mt-4 text-sm font-semibold text-slate-800">Chưa có lịch nào được lưu</p>
           <p className="mt-1 max-w-sm text-sm leading-5 text-slate-500">
             Chọn một phương án phù hợp, rồi dùng nút Lưu lịch để xem lại sau.
@@ -43,9 +41,7 @@ export function SavedSchedulesModal({
         <div className="divide-y divide-slate-100">
           {savedSchedules.map((saved) => (
             <div key={saved.id} className="flex items-center gap-3 px-4 py-4 transition-colors hover:bg-slate-50 sm:px-5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
-                <CalendarClock className="h-4 w-4" />
-              </span>
+              <CalendarClock className="h-5 w-5 shrink-0 text-[#004A98]" />
               <div className="min-w-0 flex-1">
                 <h4 className="truncate text-sm font-semibold text-slate-900">{saved.name}</h4>
                 <p className="mt-1 text-xs text-slate-500">

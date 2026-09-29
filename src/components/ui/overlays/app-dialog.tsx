@@ -61,9 +61,7 @@ export function AppDialog({
         )}>
           <div className="flex items-start gap-3.5">
             {Icon && (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-inset ring-white/20">
-                <Icon className="h-5 w-5" />
-              </div>
+              <Icon className="h-6 w-6 shrink-0 text-white" />
             )}
 
             <div className="min-w-0 pt-0.5">

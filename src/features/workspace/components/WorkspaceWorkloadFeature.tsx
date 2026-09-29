@@ -126,9 +126,7 @@ export function WorkspaceWorkloadFeature() {
       <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-100 px-4 py-4 sm:px-5">
           <div className="flex items-start gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]">
-              <Calculator className="h-5 w-5" />
-            </span>
+            <Calculator className="h-6 w-6 shrink-0 text-[#004A98]" />
             <div className="min-w-0">
               <h2 className="text-base font-bold text-gray-900">Cách tính môn trong DSLM hiện tại</h2>
               <p className="mt-1 text-sm leading-6 text-gray-600">

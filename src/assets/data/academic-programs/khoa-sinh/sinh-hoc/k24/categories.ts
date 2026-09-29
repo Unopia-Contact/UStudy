@@ -371,7 +371,7 @@ export const categories = {
         ]
     },
     "MASTER_PRE_ENROLLMENT": {
-        "name": "Danh mục các học phần được đăng ký học trước của chương trình đào tạo thạc sĩ (Phụ lục 2)",
+        "name": "Các học phần được đăng ký học trước của chương trình đào tạo thạc sĩ",
         "credits": 0,
         "note": "Được công nhận kết quả học tập và chuyển đổi tín chỉ thay thế cho các học phần trình độ đại học",
         "courses": [

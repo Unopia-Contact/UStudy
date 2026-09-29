@@ -67,6 +67,7 @@ export function StudyPlanCategoryNode({
                 )}
                 <div className="min-w-0 flex-1">
                     <h3
+                        title={category.name || 'Danh mục chưa tên'}
                         className={`flex items-center gap-1.5 ${
                             depth === 0
                                 ? isCompleted
@@ -77,7 +78,7 @@ export function StudyPlanCategoryNode({
                                     : 'text-sm font-semibold text-gray-800'
                         }`}
                     >
-                        {category.name || 'Danh mục chưa tên'}
+                        <span className="min-w-0 break-words">{category.name || 'Danh mục chưa tên'}</span>
 
                         {isCompleted && (
                             <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500" />
