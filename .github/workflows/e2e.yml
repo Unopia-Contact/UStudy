@@ -1,4 +1,4 @@
-name: Web and core tests
+name: Browser smoke tests
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     branches: [main, HK/deploy]
 
 concurrency:
-  group: web-ci-${{ github.workflow }}-${{ github.ref }}
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -16,7 +16,7 @@ env:
   NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
-  verify:
+  chromium:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -38,29 +38,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type-check tests and imported core modules
-        run: pnpm run typecheck:test
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run core tests with coverage
-        run: pnpm run test:coverage
+      - name: Build web
+        run: pnpm run build:web
 
-      - name: Build web and extension
-        run: pnpm run build
+      - name: Run desktop and mobile smoke tests
+        run: pnpm exec playwright test
 
-      - name: Upload coverage report
+      - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: core-coverage
-          path: coverage/
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Upload extension package
-        uses: actions/upload-artifact@v6
-        with:
-          name: ustudy-extension
+          name: playwright-report
           path: |
-            dist-extension/
-            public/downloads/ustudy-portal-sync.zip
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
           retention-days: 14
