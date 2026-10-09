@@ -9,16 +9,16 @@ describe('getRandomPortalLoginUrl', () => {
     );
   });
 
-  it('maps the upper random boundary to new-portal18', () => {
+  it('maps the upper random boundary to new-portal3', () => {
     expect(getRandomPortalLoginUrl(() => 1)).toBe(
-      'https://new-portal18.hcmus.edu.vn/Login.aspx',
+      'https://new-portal3.hcmus.edu.vn/Login.aspx',
     );
   });
 
   it('always returns a configured numbered Portal domain', () => {
-    for (let index = 0; index < 180; index += 1) {
-      const url = getRandomPortalLoginUrl(() => index / 180);
-      expect(url).toMatch(/^https:\/\/new-portal(?:[1-9]|1[0-8])\.hcmus\.edu\.vn\/Login\.aspx$/);
+    for (let index = 0; index < 30; index += 1) {
+      const url = getRandomPortalLoginUrl(() => index / 30);
+      expect(url).toMatch(/^https:\/\/new-portal[1-3]\.hcmus\.edu\.vn\/Login\.aspx$/);
     }
   });
 });

@@ -6,7 +6,7 @@
   "portalLogin": {
     "urlTemplate": "https://new-portal{shard}.hcmus.edu.vn/Login.aspx",
     "shardMin": 1,
-    "shardMax": 18
+    "shardMax": 3
   },
   "portalLoginPathPattern": "^/+Login\\.aspx(?:/.*)?$",
   "productionAppUrl": "https://ustudy.hakhoi.io.vn/",

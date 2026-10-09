@@ -46,13 +46,13 @@ describe('Portal sync extension contract', () => {
     expect(background).toContain('getRandomPortalLoginUrl()');
   });
 
-  it('opens login on a random numbered Portal host from 1 through 18', async () => {
+  it('opens login on a random numbered Portal host from 1 through 3', async () => {
     const config = await readJson('src/portal-sync/config.json');
 
     expect(config.portalLogin).toEqual({
       urlTemplate: 'https://new-portal{shard}.hcmus.edu.vn/Login.aspx',
       shardMin: 1,
-      shardMax: 18,
+      shardMax: 3,
     });
   });
 
