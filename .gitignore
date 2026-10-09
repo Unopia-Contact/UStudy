@@ -52,6 +52,7 @@ temp/*
 localstorage.json
 
 *.txt
+ads.txt
 !public/ads.txt
 !public/robots.txt
 public/downloads/*.zip
