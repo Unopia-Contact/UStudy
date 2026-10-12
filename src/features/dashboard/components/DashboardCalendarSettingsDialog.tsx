@@ -273,8 +273,8 @@ export function DashboardCalendarSettingsDialog({
         </p>
       </div>
 
-      {isNativeApp && (
-        <div className="mt-5 border-t border-gray-200 pt-4">
+      <div className="mt-5 border-t border-gray-200 pt-4">
+        {isNativeApp && (
           <>
             <button
               type="button"
@@ -379,8 +379,8 @@ export function DashboardCalendarSettingsDialog({
               </div>
             )}
           </>
-        </div>
-      )}
+        )}
+      </div>
 
     </AppDialog>
   );

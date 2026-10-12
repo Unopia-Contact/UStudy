@@ -545,6 +545,12 @@ export const SecurityLock: React.FC<SecurityLockProps> = ({ onUnlock, setupMode 
                             </button>
                         )}
                     </div>
+
+                    {/* Footer */}
+                    <div className="sec-footer">
+                        <KeyRound size={11} />
+                        <span className="sec-enc-tag">PBKDF2 · AES-GCM Encrypted</span>
+                    </div>
                 </div>
             </div>
         </>
