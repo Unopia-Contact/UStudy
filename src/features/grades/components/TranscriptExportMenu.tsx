@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { downloadXlsxWorkbook } from '../../../helpers/export/xlsx';
 import { GPACalculator } from '../services/gpa-calculator';
-import { getSafeTranscriptFileName, normalizeTranscriptDocumentXml } from '../services/transcript-export';
 import type { StudentCourseGrade } from '../types';
 
 interface TranscriptCourse {
@@ -58,6 +57,16 @@ function buildTranscriptData(props: TranscriptExportMenuProps): TranscriptData {
   };
 }
 
+function getSafeFileName(name: string): string {
+  const normalized = name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'd')
+    .replace(/[^a-z0-9]+/gi, '_')
+    .replace(/^_+|_+$/g, '');
+  return `Bang_diem_${normalized || 'SinhVien'}`;
+}
+
 function downloadBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -79,10 +88,6 @@ async function createTranscriptDocx(data: TranscriptData): Promise<Blob> {
   const PizZip = PizZipModule.default;
   const Docxtemplater = DocxtemplaterModule.default;
   const zip = new PizZip(await response.arrayBuffer());
-  const documentXml = zip.file('word/document.xml')?.asText();
-  if (!documentXml) throw new Error('Mẫu Word bảng điểm không hợp lệ.');
-  zip.file('word/document.xml', normalizeTranscriptDocumentXml(documentXml));
-
   const doc = new Docxtemplater(zip, {
     delimiters: { start: '{{', end: '}}' },
     paragraphLoop: true,
@@ -177,7 +182,7 @@ async function exportTranscriptXlsx(data: TranscriptData, fileName: string): Pro
 
 const exportLabels: Record<TranscriptExportFormat, string> = {
   pdf: 'PDF',
-  docx: 'Word',
+  docx: 'Word theo mẫu',
   xlsx: 'Excel',
 };
 
@@ -205,7 +210,7 @@ export function TranscriptExportMenu(props: TranscriptExportMenuProps) {
     setIsOpen(false);
     setExportingFormat(format);
     const data = buildTranscriptData(props);
-    const fileName = getSafeTranscriptFileName(props.name);
+    const fileName = getSafeFileName(props.name);
 
     try {
       if (format === 'pdf') {
@@ -246,15 +251,15 @@ export function TranscriptExportMenu(props: TranscriptExportMenuProps) {
         <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
           <button type="button" role="menuitem" onClick={() => handleExport('pdf')} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-blue-50">
             <FileText className="h-4 w-4 shrink-0 text-red-600" />
-            <span><strong className="block text-sm text-gray-800">PDF</strong><small className="block text-xs text-gray-500">Bản PDF</small></span>
+            <span><strong className="block text-sm text-gray-800">PDF</strong><small className="block text-xs text-gray-500">Bản PDF chuẩn như trước</small></span>
           </button>
           <button type="button" role="menuitem" onClick={() => handleExport('docx')} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-blue-50">
             <FileText className="h-4 w-4 shrink-0 text-[#004A98]" />
-            <span><strong className="block text-sm text-gray-800">Word</strong><small className="block text-xs text-gray-500">Tệp DOCX có thể chỉnh sửa</small></span>
+            <span><strong className="block text-sm text-gray-800">Word theo mẫu</strong><small className="block text-xs text-gray-500">Tệp DOCX có thể chỉnh sửa</small></span>
           </button>
           <button type="button" role="menuitem" onClick={() => handleExport('xlsx')} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-blue-50">
             <FileSpreadsheet className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span><strong className="block text-sm text-gray-800">Excel</strong><small className="block text-xs text-gray-500">Bản Excel</small></span>
+            <span><strong className="block text-sm text-gray-800">Excel</strong><small className="block text-xs text-gray-500">Thông tin và bảng điểm</small></span>
           </button>
         </div>
       )}
