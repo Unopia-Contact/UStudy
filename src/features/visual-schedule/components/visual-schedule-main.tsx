@@ -140,7 +140,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
       header={
         <PageHeader
           title="Thời khóa biểu"
-          description={<>Xem lịch học theo tuần <span className="font-semibold text-[#004A98]">{schedule.semesterName}</span>.</>}
+          description={<>Xem lịch học theo tuần - {schedule.semesterName}</>}
           actions={<>
             <div className="flex items-center">
               <HolidayManagerDialog
@@ -192,13 +192,13 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     >
 
       {/* Quick Stats Cards */}
-      <div className="mb-4 grid grid-cols-3 items-stretch gap-2 md:mb-6 md:gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
         <QuickStatsCard
           icon={BookOpen}
           title="Tổng môn"
           value={`${stats.totalCourses}/${schedule.totalCourses}`}
           subtitle={`${stats.totalCredits} TC`}
-          tone="blue"
+          bgColor="bg-[#004A98]"
           trend={trends.coursesTrend}
         />
         <QuickStatsCard
@@ -206,7 +206,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           title="Tiết/tuần"
           value={`${stats.totalPeriods}`}
           subtitle={stats.formattedHours}
-          tone="green"
+          bgColor="bg-green-600"
           trend={trends.periodsTrend}
         />
         <QuickStatsCard
@@ -214,7 +214,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           title="Tuần"
           value={`${currentWeek}/${totalWeeks}`}
           subtitle={weekRangeStr}
-          tone="orange"
+          bgColor="bg-orange-600"
         />
       </div>
 

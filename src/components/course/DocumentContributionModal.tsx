@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Send, Info, Book, FileText, Presentation, FileCode, ClipboardList, Plus } from 'lucide-react';
-import { CloseButton } from '../ui/close-button';
+import { X, Send, Info, Book, FileText, Presentation, FileCode, ClipboardList, Plus } from 'lucide-react';
 import { APP_CONFIG } from '../../config';
 
 interface DocumentContributionModalProps {
@@ -84,17 +83,23 @@ export function DocumentContributionModal({
                                 <span>{courseName}</span>
                             </div>
                         </div>
-                        <CloseButton
+                        <button
                             onClick={onClose}
-                            tone="inverse"
-                        />
+                            className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {/* Welcome Section */}
                     <div className="bg-blue-50/50 border border-blue-100/50 rounded-2xl p-5 flex gap-4">
-                        <Info className="h-6 w-6 shrink-0 text-[#004A98]" />
+                        <div className="flex-none w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <div className="flex items-center justify-center w-full h-full">
+                                <Info className="w-5 h-5 text-[#004A98]" />
+                            </div>
+                        </div>
                         <div>
                             <p className="text-sm text-blue-900 font-medium leading-relaxed">
                                 Cảm ơn bạn đã đóng góp cho cộng đồng! Bạn vui lòng chia sẻ link Drive và chọn các loại tài liệu có sẵn trong thư mục nhé.
@@ -118,7 +123,9 @@ export function DocumentContributionModal({
                                             : 'border-gray-100 bg-white hover:border-blue-200 hover:bg-gray-50/50'
                                             }`}
                                     >
-                                        <Icon className={`mb-2 h-6 w-6 transition-transform duration-200 group-hover:scale-110 ${isSelected ? 'text-[#004A98]' : item.color}`} />
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-transform duration-200 group-hover:scale-110 ${isSelected ? 'bg-[#004A98] text-white' : `${item.bg} ${item.color}`}`}>
+                                            <Icon className="w-5 h-5" />
+                                        </div>
                                         <span className={`text-xs font-bold text-center ${isSelected ? 'text-[#004A98]' : 'text-gray-600'}`}>
                                             {item.label}
                                         </span>
@@ -139,7 +146,7 @@ export function DocumentContributionModal({
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => handleCheckboxChange('other')}
-                                        className={`flex h-10 w-10 items-center justify-center transition-colors ${selectedTypes.other ? 'text-[#004A98]' : 'text-gray-500'}`}
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${selectedTypes.other ? 'bg-[#004A98] text-white' : 'bg-gray-100 text-gray-500'}`}
                                     >
                                         <Plus className="w-5 h-5" />
                                     </button>
