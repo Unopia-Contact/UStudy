@@ -46,7 +46,7 @@ export function runScheduleSolver(
 
     const selectedCourses: any[] = [];
 
-    // --- LỌC DỮ LIỆU ---
+    // --- Lá»ŒC Dá»® LIá»†U ---
     userWants.forEach((subjID: any) => {
         const cleanID = String(subjID).trim();
         const course = db.getCourse(cleanID);
@@ -72,18 +72,18 @@ export function runScheduleSolver(
 
     if (selectedCourses.length === 0) return [];
 
-    // --- LỌC BASELINE REGISTERED (HARD CONSTRAINT) ---
-    // Clone courses — KHÔNG mutate course DB gốc.
-    // Invariant: filteredCourses chỉ dùng trong lần solve này.
+    // --- Lá»ŒC BASELINE REGISTERED (HARD CONSTRAINT) ---
+    // Clone courses â€” KHÃ”NG mutate course DB gá»‘c.
+    // Invariant: filteredCourses chá»‰ dÃ¹ng trong láº§n solve nÃ y.
     const filteredCourses = filterCoursesAgainstRegisteredMask(selectedCourses, registeredMask);
 
-    // --- CHẠY THUẬT TOÁN ---
+    // --- CHáº Y THUáº¬T TOÃN ---
     const valuator = new FitnessEvaluator(preferences);
     const solver = new GeneticSolver(filteredCourses, valuator);
     const rawResults = solver.solve(50);
 
-    // --- TỔNG HỢP KẾT QUẢ ---
-    // --- MAPPING VỀ FORMAT UI ---
+    // --- Tá»”NG Há»¢P Káº¾T QUáº¢ ---
+    // --- MAPPING Vá»€ FORMAT UI ---
     const mappedResults = rawResults.map((ind, index) => {
         const scheduleList: any[] = [];
         ind.genes.forEach((classIdx, courseIdx) => {

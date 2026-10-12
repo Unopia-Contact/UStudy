@@ -54,7 +54,7 @@ export function encodeScheduleToMask(
       return;
     }
     if (!isTimeInsideScheduleAxis(resolved.startMinute) || !isTimeInsideScheduleAxis(resolved.endMinute)) {
-      throw new RangeError(`Lịch ${value} nằm ngoài trục thời gian hỗ trợ.`);
+      throw new RangeError(`Lich ${value} nam ngoai truc thoi gian ho tro.`);
     }
 
     const startSlot = minuteToScheduleSlot(resolved.startMinute);
