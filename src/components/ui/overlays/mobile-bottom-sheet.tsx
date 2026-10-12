@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { CloseButton } from '../close-button';
 
 interface MobileBottomSheetProps {
     title: string;
@@ -154,14 +154,11 @@ export function MobileBottomSheet({
                             </h2>
                         </div>
 
-                        <button
-                            type="button"
+                        <CloseButton
                             onClick={onClose}
-                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-white/85 transition-colors hover:bg-white/15 hover:text-white"
-                            aria-label="Đóng"
-                        >
-                            <X className="h-5 w-5" />
-                        </button>
+                            tone="inverse"
+                            label="Đóng"
+                        />
                     </div>
                 </div>
 

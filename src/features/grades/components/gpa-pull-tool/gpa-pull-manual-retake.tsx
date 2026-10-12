@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { BookOpen, Check, ChevronDown, HelpCircle, Plus, Search, Trash2, X } from 'lucide-react';
+import { BookOpen, Check, ChevronDown, HelpCircle, Plus, Search, Trash2 } from 'lucide-react';
 import { MobileBottomSheet } from '../../../../components/ui/overlays/mobile-bottom-sheet';
+import { CloseButton } from '../../../../components/ui/close-button';
 import type { GPAPullManualRetakeProps } from '../../types';
 
 export function GPAPullManualRetake({
@@ -153,9 +154,7 @@ export function GPAPullManualRetake({
                                 <div className="absolute bottom-full right-0 z-[100] mb-2 flex max-h-[32rem] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
                                     <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2.5">
                                         <p className="text-xs font-semibold text-gray-700">Chọn môn cải thiện · {scopeName}</p>
-                                        <button type="button" onClick={() => setIsRetakePickerOpen(false)} className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600" title="Đóng">
-                                            <X className="h-4 w-4" />
-                                        </button>
+                                        <CloseButton onClick={() => setIsRetakePickerOpen(false)} />
                                     </div>
                                     {renderPickerBody(true)}
                                     <div className="border-t border-gray-100 bg-gray-50 p-3">{pickerFooter}</div>

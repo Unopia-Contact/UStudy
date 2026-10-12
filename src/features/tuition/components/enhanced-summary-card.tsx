@@ -34,9 +34,7 @@ export function EnhancedSummaryCard({
 
             <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-12 h-12 rounded-lg ${bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md`}>
-                        <Icon className="w-6 h-6 text-white" />
-                    </div>
+                    <Icon className={`h-7 w-7 shrink-0 transition-transform duration-300 group-hover:scale-110 ${textColor}`} />
                     <div>
                         <h3 className="text-gray-900 font-semibold">{title}</h3>
                         <p className="text-xs text-gray-500">{subtitle}</p>

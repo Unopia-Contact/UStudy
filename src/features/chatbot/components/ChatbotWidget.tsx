@@ -6,6 +6,7 @@ import { AIService } from '../../../logic/ai/aiService';
 import { useStudentDb } from '../../../hooks/useStudentDb';
 import { useStudentGradeData } from '../../grades/hooks/use-student-grade-data';
 import { useSchedule } from '../../visual-schedule/hooks/use-schedule';
+import { CloseButton } from '../../../components/ui/close-button';
 
 interface ChatbotWidgetProps {
     displayMode?: 'floating' | 'page';
@@ -584,13 +585,11 @@ Bạn cần hỗ trợ gì, hãy nhắn cho mình nhé!`,
                                 <Trash2 className="w-4 h-4" />
                             </button>
                             {!isPage && (
-                                <button
+                                <CloseButton
                                     onClick={() => setIsOpen(false)}
-                                    className="p-2 text-white/80 rounded-xl hover:bg-white/10 transition-all duration-200 active:scale-95"
-                                    title="Đóng cửa sổ"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
+                                    tone="inverse"
+                                    label="Đóng cửa sổ"
+                                />
                             )}
                         </div>
                     </div>

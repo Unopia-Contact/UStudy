@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '../ui/form/button';
-import { KeyRound, ShieldAlert, CheckCircle2, Loader2, X, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, ShieldAlert, CheckCircle2, Loader2, Eye, EyeOff } from 'lucide-react';
+import { CloseButton } from '../ui/close-button';
 import { verifyPin, changePin } from '../../helpers/localStorage/save';
 import { useCrypto } from '../../context/CryptoContext';
 
@@ -143,9 +144,7 @@ export const ChangePinModal: React.FC<ChangePinModalProps> = ({ onClose }) => {
                         <span className="font-bold text-slate-800">Đổi mật khẩu</span>
                     </div>
                     {step !== 'success' && !isProcessing && (
-                        <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
-                            <X className="w-5 h-5" />
-                        </button>
+                        <CloseButton onClick={onClose} />
                     )}
                 </div>
 

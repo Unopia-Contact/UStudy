@@ -39,7 +39,7 @@ function GpaFace({
     <span className={`ustudy-card ustudy-card-padding absolute inset-0 block h-full overflow-hidden [backface-visibility:hidden] ${className}`}>
       <span className="ustudy-card-header justify-between">
         <span className="flex min-w-0 items-center gap-2 md:gap-3">
-          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg md:h-10 md:w-10 ${badgeClassName}`}>
+          <span className={`ustudy-icon-badge ${badgeClassName}`}>
             <TrendingUp className="h-4 w-4 text-white md:h-5 md:w-5" />
           </span>
           <span className="min-w-0">
@@ -115,7 +115,7 @@ export function GpaWidget({ currentGPA, currentGPA4, classification, letterGrade
             footerLabel="Xếp loại"
             footerValue={classification}
             accentColor="#004A98"
-            badgeClassName="bg-[#004A98] text-white"
+            badgeClassName="ustudy-icon-primary"
             hint="Xem hệ 4"
           />
           <GpaFace
@@ -125,7 +125,7 @@ export function GpaWidget({ currentGPA, currentGPA4, classification, letterGrade
             footerLabel="Điểm chữ"
             footerValue={letterGrade}
             accentColor="#004A98"
-            badgeClassName="bg-[#004A98] text-white"
+            badgeClassName="ustudy-icon-primary"
             hint="Xem hệ 10"
             className="[transform:rotateY(180deg)]"
           />
@@ -146,7 +146,7 @@ export function CreditsWidget({ accumulatedCredits, totalCredits }: CreditsWidge
   return (
     <section className="ustudy-card ustudy-card-padding h-full">
       <div className="ustudy-card-header">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-white md:h-10 md:w-10">
+        <div className="ustudy-icon-badge ustudy-icon-success">
           <BookOpen className="h-4 w-4 text-white md:h-5 md:w-5" />
         </div>
         <div>
@@ -193,7 +193,7 @@ export function TuitionWidget({ amountLabel, dueDate }: TuitionWidgetProps) {
   return (
     <section className="h-full rounded-xl bg-gradient-to-br from-[#004A98] to-[#0066CC] p-4 text-white shadow-lg md:p-6">
       <div className="ustudy-card-header">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white md:h-10 md:w-10">
+        <div className="ustudy-icon-badge bg-white/20 text-white">
           <DollarSign className="h-4 w-4 text-white md:h-5 md:w-5" />
         </div>
         <div>
