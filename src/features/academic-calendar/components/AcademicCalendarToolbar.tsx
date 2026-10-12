@@ -1,3 +1,4 @@
+import { CalendarRange } from 'lucide-react';
 import { AppSelect } from '../../../components/ui/form';
 import type { AcademicCalendarTermFilter } from '../academic-calendar-utils';
 import { ACADEMIC_TERM_OPTIONS } from '../academic-calendar-utils';

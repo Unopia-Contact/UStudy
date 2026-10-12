@@ -48,6 +48,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     currentWeek,
     totalWeeks,
     weekRangeStr,
+    currentWeekHolidays,
     displaySessions,
     stats,
     trends,

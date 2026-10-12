@@ -1,8 +1,9 @@
 import { AppSelect } from "../../../components/ui/form";
-import { COHORTS, getProgramDataSourceCohort } from "../../../assets/data/academic-programs/registry";
+import { COHORTS, getProgramDataSourceCohort, getProgramOffering } from "../../../assets/data/academic-programs/registry";
+import { getTuitionProfileName } from "../../../assets/data/tuition";
 import { useDepartmentData } from "../../../context/DepartmentContext";
 import { useCampus } from "../../../context/CampusContext";
-import { CAMPUS_OPTIONS } from "../../../domain/campus";
+import { CAMPUS_OPTIONS, getCampusDefinition } from "../../../domain/campus";
 import { CheckCircle, GraduationCap, Upload, Shield } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppNotification } from "../../../context/NotificationContext";
@@ -24,7 +25,7 @@ import {
 export function SettingUserProfile({ onPageChange }: { onPageChange: (page: string) => void }) {
     const {
         facultyId, majorId, cohortId, academicYear,
-        currentFaculty,
+        currentFaculty, currentMajor,
         faculties, academicYears,
         setFaculty, setMajor, setCohort, setAcademicYear,
         isConfigured, setIsConfigured
@@ -37,6 +38,16 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
     const programDataSourceCohort = getProgramDataSourceCohort(cohortId, facultyId, majorId);
     const programDataSourceLabel = COHORTS.find((cohort) => cohort.id === programDataSourceCohort)?.name ?? programDataSourceCohort;
     const isUsingSharedProgramData = Boolean(programDataSourceCohort && programDataSourceCohort !== cohortId);
+    const currentProgramOffering = currentFaculty && currentMajor
+        ? getProgramOffering(currentFaculty.id, currentMajor.id, cohortId)
+        : null;
+    const programCampusNames = currentProgramOffering?.campusIds
+        .map((campusId) => getCampusDefinition(campusId).name)
+        .join(' và ');
+    const tuitionProfileName = currentProgramOffering
+        ? getTuitionProfileName(currentProgramOffering.tuitionProfileId)
+        : null;
+
     /** Lưu dữ liệu nhạy cảm đã mã hóa + populate RAM cache */
     const saveImportedSecure = async (rawData: any, metaData: any, key: CryptoKey) => {
         const params = metaData?.params || {};
