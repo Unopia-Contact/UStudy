@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronRight, Lock, Search, X, Circle, CheckCircle2, AlertTriangle, Shuffle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lock, Search, X, Circle, CheckCircle2, AlertTriangle, Check, Sparkles, Shuffle } from 'lucide-react';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
 import type { Course } from '../../../types';
@@ -46,12 +46,13 @@ export function CourseSidebar({
   registeredCourses,
   allowedClassesMap,
   selections,
+  conflicts,
   focusedCourseCode,
   onSelectClass,
   onRemoveSelection,
   onToggleAllowedClass,
   unfilledCount,
-  totalCredits: _totalCredits,
+  totalCredits,
   onHybridSolve,
   solvingHybrid,
 }: CourseSidebarProps) {
@@ -141,6 +142,9 @@ export function CourseSidebar({
   const getSelectionForCourse = (courseCode: string) =>
     selections.find(s => s.courseCode === courseCode);
 
+  const getCourseConflicts = (courseCode: string) =>
+    conflicts.filter(c => c.involvedCourses.includes(courseCode));
+
   const lockedCount = selections.filter(s => s.locked).length;
 
   return (
@@ -179,7 +183,7 @@ export function CourseSidebar({
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-[#004A98]">{course.courseCode}</span>
                     <span className="min-w-0 flex-1 truncate text-xs font-medium text-gray-800">{course.courseName}</span>
-                    <Lock className="h-3.5 w-3.5 shrink-0 text-[#004A98]" aria-label="Lớp đã được đăng ký" />
+                    <Lock className="h-3.5 w-3.5 shrink-0 text-[#004A98]" aria-label="Lớp đã được trường đăng ký" />
                   </div>
                   <p className="mt-1 truncate text-[10px] text-gray-500">
                     {course.classLabels.join(' / ') || 'Chưa có lớp'} · {course.scheduleLabels.join(' · ') || 'Chưa có lịch học'}
@@ -209,6 +213,7 @@ export function CourseSidebar({
               const courseCode = course.code;
               const isExpanded = expandedCourses.has(courseCode);
               const selection = getSelectionForCourse(courseCode);
+              const courseConflicts = getCourseConflicts(courseCode);
               const classes = courseClasses[courseCode] ?? [];
               const allowedClassIds = allowedClassesMap[courseCode] ?? classes.map((item) => item.id);
               const isFocused = focusedCourseCode === courseCode;

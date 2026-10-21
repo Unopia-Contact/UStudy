@@ -164,7 +164,7 @@ export interface ResolveOptions {
     acceptMissingSemester?: boolean;
     /** Danh sách lớp mở đã xử lý, dùng để xác định campus cho KQĐKHP. */
     openCourses?: any[];
-    /** Cơ sở dùng khi KQĐKHP không đối chiếu được với lớp mở. */
+    /** CÆ¡ sá»Ÿ dÃ¹ng khi KQÄKHP khÃ´ng Ä‘á»‘i chiáº¿u Ä‘Æ°á»£c vá»›i lá»›p má»Ÿ. */
     defaultCampusId?: CampusId;
 }
 

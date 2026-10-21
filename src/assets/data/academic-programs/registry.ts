@@ -1,9 +1,9 @@
 /**
- * Nguồn dữ liệu chương trình đào tạo.
- * Cấu trúc gốc: Khóa tuyển -> Khoa -> Ngành.
+ * Nguon du lieu chuong trinh dao tao.
+ * Cau truc goc: Khoa tuyen -> Khoa -> Nganh.
  *
- * Khi thêm khóa mới, thêm một entry vào ACADEMIC_YEAR_MAJOR_CATALOGS. Nếu
- * chương trình của khóa đó dùng lại khóa cũ, khai báo defaultProgramDataSource.
+ * Khi them khoa moi, them mot entry vao ACADEMIC_YEAR_MAJOR_CATALOGS. Neu
+ * chuong trinh cua khoa do dung lai khoa cu, khai bao defaultProgramDataSource.
  */
 
 import type { CampusId } from '../../../domain/campus';
@@ -495,7 +495,7 @@ export const COHORTS: CohortInfo[] = ACADEMIC_YEAR_MAJOR_CATALOGS.map(({ cohortI
     name: label,
 }));
 
-/** Lớp tương thích cho các tab cũ đang cần tra ngược theo khoa/ngành. */
+/** Lop tuong thich cho cac tab cu dang can tra nguoc theo khoa/nganh. */
 export const FACULTIES: FacultyInfo[] = (() => {
     const facultyMap = new Map<string, FacultyInfo>();
 
@@ -591,7 +591,7 @@ export function resolveDataCohort(facultyId: string, majorId: string, cohortId: 
     return major?.dataSource?.[cohortId] ?? cohortId;
 }
 
-/** Tuition được load riêng theo năm học trong assets/data/tuition. */
+/** Tuition duoc load rieng theo nam hoc trong assets/data/tuition. */
 export async function loadCohortData(facultyId: string, majorId: string, cohortId: string) {
     const sourceCohort = resolveDataCohort(facultyId, majorId, cohortId);
 

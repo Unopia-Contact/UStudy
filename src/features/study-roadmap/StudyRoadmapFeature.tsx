@@ -26,7 +26,7 @@ import { createPortal } from 'react-dom';
 import './roadmap-mobile.css';
 import { useRoadmapScrollMemory } from './hooks/use-roadmap-scroll-memory';
 import { useCampus } from '../../context/CampusContext';
-import { STUDY_ROADMAP_TAB_TO_PATH, getStudyRoadmapTabFromPath } from '../../app/routes';
+import { APP_ROUTES, STUDY_ROADMAP_TAB_TO_PATH, getStudyRoadmapTabFromPath } from '../../app/routes';
 import { tabs, type Tab } from './types';
 import {
     createCourseCodeSet,

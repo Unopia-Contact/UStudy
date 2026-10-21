@@ -1,0 +1,41 @@
+<svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="420" fill="#ffffff"/>
+  <text x="42" y="48" font-family="Inter, Arial, sans-serif"
+        font-size="28" font-weight="800" fill="#0f4c81">TẦNG HẦM · NHÀ F</text>
+
+  <g id="basement-main-area">
+    <path d="M120 85 H650 V245 H585 V315 H120 Z"
+          fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+    <text x="340" y="185" text-anchor="middle"
+          font-family="Inter, Arial, sans-serif" font-size="17"
+          font-weight="600" fill="#475569">KHU VỰC TẦNG HẦM</text>
+
+    <!-- các cột thể hiện trên bảng chỉ dẫn -->
+    <g fill="#bae6fd" stroke="#1594c6" stroke-width="1">
+      <rect x="180" y="235" width="8" height="8"/>
+      <rect x="250" y="235" width="8" height="8"/>
+      <rect x="320" y="235" width="8" height="8"/>
+      <rect x="390" y="235" width="8" height="8"/>
+      <rect x="460" y="235" width="8" height="8"/>
+    </g>
+  </g>
+
+  <g>
+    <rect x="650" y="85" width="58" height="108" rx="4"
+          fill="#e0f2fe" stroke="#1594c6" stroke-width="2"/>
+    <text x="679" y="120" text-anchor="middle"
+          font-family="Inter, Arial, sans-serif" font-size="13" fill="#075985">WC</text>
+    <text x="679" y="160" text-anchor="middle"
+          font-family="Inter, Arial, sans-serif" font-size="13" fill="#075985">WC</text>
+
+    <g transform="translate(656 198)">
+      <rect width="46" height="46" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+      <path d="M4 39 H42 M4 32 H42 M4 25 H42 M4 18 H42 M4 11 H42 M4 4 H42"
+            stroke="#64748b" stroke-width="1"/>
+      <path d="M8 42 V4 M38 42 V4" stroke="#64748b" stroke-width="1.2"/>
+    </g>
+  </g>
+
+  <path d="M585 245 H650 V300 H615 V350 H565 V315"
+        fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+</svg>

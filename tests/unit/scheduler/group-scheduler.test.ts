@@ -125,5 +125,5 @@ describe('group scheduler', () => {
       .find((item) => item.courseId === 'CSC10009')?.classId;
     expect(unrestrictedClass).toBe('MORNING');
     expect(unrestricted.solutions[0].fitness).toBe(withoutAfternoon.solutions[0].fitness);
-  }, 15_000);
+  });
 });

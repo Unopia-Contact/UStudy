@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-test.skip(({ isMobile }) => !isMobile, 'Mobile navigation is hidden on desktop viewports.');
-
 test('mobile More menu traps focus and closes with Escape', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('department_configured', JSON.stringify(true));

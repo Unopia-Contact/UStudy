@@ -1,8 +1,9 @@
 import { AppSelect } from "../../../components/ui/form";
-import { COHORTS, getProgramDataSourceCohort } from "../../../assets/data/academic-programs/registry";
+import { COHORTS, getProgramDataSourceCohort, getProgramOffering } from "../../../assets/data/academic-programs/registry";
+import { getTuitionProfileName } from "../../../assets/data/tuition";
 import { useDepartmentData } from "../../../context/DepartmentContext";
 import { useCampus } from "../../../context/CampusContext";
-import { CAMPUS_OPTIONS } from "../../../domain/campus";
+import { CAMPUS_OPTIONS, getCampusDefinition } from "../../../domain/campus";
 import { CheckCircle, GraduationCap, Upload, Shield } from "lucide-react";
 import { useRef, useState } from "react";
 import { useAppNotification } from "../../../context/NotificationContext";
@@ -24,7 +25,7 @@ import {
 export function SettingUserProfile({ onPageChange }: { onPageChange: (page: string) => void }) {
     const {
         facultyId, majorId, cohortId, academicYear,
-        currentFaculty,
+        currentFaculty, currentMajor,
         faculties, academicYears,
         setFaculty, setMajor, setCohort, setAcademicYear,
         isConfigured, setIsConfigured
@@ -37,6 +38,16 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
     const programDataSourceCohort = getProgramDataSourceCohort(cohortId, facultyId, majorId);
     const programDataSourceLabel = COHORTS.find((cohort) => cohort.id === programDataSourceCohort)?.name ?? programDataSourceCohort;
     const isUsingSharedProgramData = Boolean(programDataSourceCohort && programDataSourceCohort !== cohortId);
+    const currentProgramOffering = currentFaculty && currentMajor
+        ? getProgramOffering(currentFaculty.id, currentMajor.id, cohortId)
+        : null;
+    const programCampusNames = currentProgramOffering?.campusIds
+        .map((campusId) => getCampusDefinition(campusId).name)
+        .join(' và ');
+    const tuitionProfileName = currentProgramOffering
+        ? getTuitionProfileName(currentProgramOffering.tuitionProfileId)
+        : null;
+
     /** Lưu dữ liệu nhạy cảm đã mã hóa + populate RAM cache */
     const saveImportedSecure = async (rawData: any, metaData: any, key: CryptoKey) => {
         const params = metaData?.params || {};
@@ -255,7 +266,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                 </div>
             }
             <h2 className="ustudy-settings-title"><GraduationCap className="ustudy-settings-title-icon" />Chương trình đào tạo</h2>
-            <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành để hiển thị đúng dữ liệu của bạn.</p>
+            <p className="ustudy-settings-description">Chọn Cơ sở mặc định, Khóa tuyển, Khoa, Ngành và Năm học để hiển thị đúng dữ liệu của bạn.</p>
 
 
             <div className="grid grid-cols-1 gap-4 md:gap-6">
@@ -361,7 +372,9 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
                             onClick={(e) => { e.preventDefault(); onPageChange('privacy'); }}
                             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors group"
                         >
-                            <Shield className="h-6 w-6 shrink-0 text-blue-600" />
+                            <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
+                                <Shield className="w-5 h-5 text-blue-600" />
+                            </div>
                             <div className="text-left">
                                 <p className="text-sm font-semibold">Bảo mật & Quyền dữ liệu</p>
                                 <p className="text-xs text-blue-500">Tìm hiểu cách chúng tôi bảo vệ dữ liệu của bạn</p>

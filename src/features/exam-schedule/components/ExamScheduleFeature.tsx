@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Calendar, Clock, MapPin, AlertCircle, FileDown, BookOpen, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, AlertCircle, FileDown, Bell, BookOpen, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useStudentDb } from '../../../hooks/useStudentDb';
 import { hasImportedData } from '../../../helpers/localStorage/data-import-status';
 import { useDepartmentData } from '../../../context/DepartmentContext';
@@ -31,7 +31,7 @@ export function ExamScheduleVi() {
     const { academicYear, semesterNumber } = useDepartmentData();
 
     const [selectedType, setSelectedType] = useState<'all' | 'Giữa kỳ' | 'Cuối kỳ'>('all');
-    const [selectedLocation] = useState<string>('all');
+    const [selectedLocation, setSelectedLocation] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isCalendarExportOpen, setIsCalendarExportOpen] = useState(false);
 
@@ -214,7 +214,9 @@ export function ExamScheduleVi() {
                 {/* Card: Upcoming Exams (Takes 2 columns) */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="px-4 py-3 md:px-6 md:py-4 border-b border-gray-100 flex items-center gap-2 md:gap-3">
-                        <Clock className="h-5 w-5 shrink-0 text-[#004A98]" />
+                        <div className="w-8 h-8 md:w-9 md:h-9 bg-[#004A98]/10 rounded-lg flex items-center justify-center">
+                            <Clock className="w-4 h-4 md:w-[18px] md:h-[18px] text-[#004A98]" />
+                        </div>
                         <div>
                             <h3 className="text-xs md:text-sm text-gray-900 font-semibold">Các môn thi sắp tới</h3>
                             <p className="text-[10px] md:text-xs text-gray-400">{upcomingExams.length} môn cần chuẩn bị</p>
@@ -301,7 +303,9 @@ export function ExamScheduleVi() {
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center text-center py-16">
-                            <CheckCircle2 className="mb-3 h-8 w-8 text-green-500" />
+                            <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                                <CheckCircle2 className="w-7 h-7 text-green-400" />
+                            </div>
                             <p className="text-sm text-gray-600 font-medium">Không có kỳ thi sắp tới</p>
                             <p className="text-xs text-gray-400 mt-1">Chúc mừng bạn đã hoàn thành tất cả!</p>
                         </div>
@@ -312,7 +316,9 @@ export function ExamScheduleVi() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {/* Header */}
                     <div className="px-4 py-3 md:px-6 md:py-4 border-b border-gray-100 flex items-center gap-2 md:gap-3">
-                        <BookOpen className="h-5 w-5 shrink-0 text-emerald-600" />
+                        <div className="w-8 h-8 md:w-9 md:h-9 bg-emerald-50 rounded-lg flex items-center justify-center">
+                            <BookOpen className="w-4 h-4 md:w-[18px] md:h-[18px] text-emerald-600" />
+                        </div>
                         <div>
                             <h3 className="text-xs md:text-sm text-gray-900 font-semibold">Tiến độ kỳ thi</h3>
                             <p className="text-[10px] md:text-xs text-gray-400 truncate max-w-[150px] md:max-w-none">{selectedSemester === 'all' ? 'Tất cả học kỳ' : selectedSemester}</p>
@@ -489,7 +495,7 @@ export function ExamScheduleVi() {
                         </div>
                     ) : (
                         <div className="divide-y divide-gray-100">
-                            {filteredData.map((exam) => {
+                            {filteredData.map((exam, index) => {
                                 const daysUntil = getDaysUntilExam(exam.examDate);
                                 return (
                                     <div key={exam.id} className="px-4 py-3">

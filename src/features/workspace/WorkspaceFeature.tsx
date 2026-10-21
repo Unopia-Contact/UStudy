@@ -67,7 +67,9 @@ export function WorkspaceFeature() {
                                 onClick={() => navigate('/ad/lab/security')}
                                 className="group flex min-h-32 items-start gap-4 rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:border-[#004A98]/40 hover:bg-blue-50/40"
                             >
-                                <ShieldCheck className="h-6 w-6 shrink-0 text-[#004A98]" />
+                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98] group-hover:bg-white">
+                                    <ShieldCheck className="h-5 w-5" />
+                                </span>
                                 <span>
                                     <span className="block text-sm font-semibold text-gray-900">Security Lab</span>
                                     <span className="mt-1 block text-sm leading-6 text-gray-600">Kiểm thử WebAuthn PRF và vault gắn với thiết bị.</span>
@@ -79,7 +81,9 @@ export function WorkspaceFeature() {
                                 onClick={() => navigate('/ad/lab/bookmark')}
                                 className="group flex min-h-32 items-start gap-4 rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:border-[#004A98]/40 hover:bg-blue-50/40"
                             >
-                                <Bookmark className="h-6 w-6 shrink-0 text-[#004A98]" />
+                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98] group-hover:bg-white">
+                                    <Bookmark className="h-5 w-5" />
+                                </span>
                                 <span>
                                     <span className="block text-sm font-semibold text-gray-900">Bookmarklet Lab</span>
                                     <span className="mt-1 block text-sm leading-6 text-gray-600">Gửi packet đồng bộ rỗng để kiểm tra các trạng thái dữ liệu.</span>

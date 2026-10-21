@@ -157,7 +157,7 @@ export function MobileBottomSheet({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+                            className="rounded-lg border-0 bg-transparent p-2 text-white/85 transition-colors hover:bg-white/15 hover:text-white"
                             aria-label="Đóng"
                         >
                             <X className="h-5 w-5" />

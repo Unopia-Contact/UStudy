@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { CalendarPlus, ChevronUp, ExternalLink, GitBranch, Trash2 } from 'lucide-react';
 import { courseLinks } from '../../assets/data/courseLinks';
 import { DocumentContributionModal } from '../../components/course';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/ui/overlays/tooltip';
 import { StatusBadge } from './StatusBadge';
 import type { CourseDragStartHandler, CourseMeta, MobilePlannerOpenHandler } from './types';
 
@@ -83,16 +82,9 @@ export function StudyPlanCourseRow({
                         </p>
                     </div>
                     <div className="flex-1 min-w-0">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <p className="text-[10px] md:text-sm text-gray-500 md:text-gray-900 truncate font-medium leading-tight md:leading-normal">
-                                    {course.course_name_vi}
-                                </p>
-                            </TooltipTrigger>
-                            <TooltipContent hideArrow side="top" sideOffset={6} className="max-w-72 border border-gray-200 bg-white text-pretty text-gray-900 shadow-lg">
-                                {course.course_name_vi}
-                            </TooltipContent>
-                        </Tooltip>
+                        <p className="text-[10px] md:text-sm text-gray-500 md:text-gray-900 truncate font-medium leading-tight md:leading-normal">
+                            {course.course_name_vi}
+                        </p>
                     </div>
                 </div>
 
@@ -179,14 +171,7 @@ export function StudyPlanCourseRow({
                         </div>
                         <div>
                             <p className="text-[10px] font-medium uppercase text-gray-500">Danh mục</p>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <p className="mt-1 truncate text-xs font-semibold text-gray-900">{course.category || '-'}</p>
-                                </TooltipTrigger>
-                                <TooltipContent hideArrow side="top" sideOffset={6} className="max-w-72 border border-gray-200 bg-white text-pretty text-gray-900 shadow-lg">
-                                    {course.category || '-'}
-                                </TooltipContent>
-                            </Tooltip>
+                            <p className="mt-1 truncate text-xs font-semibold text-gray-900">{course.category || '-'}</p>
                         </div>
                     </div>
 
@@ -209,14 +194,7 @@ export function StudyPlanCourseRow({
                                         >
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-xs font-semibold text-gray-900">{prerequisite.id}</p>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <p className="mt-0.5 truncate text-[11px] text-gray-500">{prerequisite.name}</p>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent hideArrow side="top" sideOffset={6} className="max-w-72 border border-gray-200 bg-white text-pretty text-gray-900 shadow-lg">
-                                                        {prerequisite.name}
-                                                    </TooltipContent>
-                                                </Tooltip>
+                                                <p className="mt-0.5 truncate text-[11px] text-gray-500">{prerequisite.name}</p>
                                             </div>
                                             <div className="flex flex-shrink-0 items-center gap-3 text-[10px]">
                                                 <span className="text-gray-500">{getPrerequisiteTypeLabel(prerequisite.type)}</span>

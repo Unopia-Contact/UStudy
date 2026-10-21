@@ -2,13 +2,16 @@ import { useTuitionManagement } from './hooks/use-tuition-management';
 import { calculateDaysUntilDue } from './hooks/use-tuition-countdown';
 
 import {
+  CheckCircle2,
   CreditCard,
   Download,
+  Clock,
   AlertTriangle,
 } from 'lucide-react';
 import { NoDataCard } from '../../components/feedback';
 import { PageHeader } from '../../components/layout/page-header';
 import { PageShell } from '../../components/layout/page-shell';
+import TuitionStatus from './components/tuition-status';
 import { TuitionCountDown } from './components/tuition-countdown';
 import { Payment } from './components/payment';
 import { TuitionDeskTopCardList } from './components/tuition-desktop-card-list';
@@ -21,6 +24,34 @@ interface TuitionPageProps {
 }
 
 // ==================== HELPER UI ====================
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'paid':
+      return (
+        <span className="px-3 py-1.5 bg-green-100 text-green-700 text-sm font-medium rounded-full flex items-center gap-1 w-fit">
+          <CheckCircle2 className="w-4 h-4" />
+          Đã thanh toán
+        </span>
+      );
+    case 'partial':
+      return (
+        <span className="px-3 py-1.5 bg-yellow-100 text-yellow-700 text-sm font-medium rounded-full flex items-center gap-1 w-fit">
+          <Clock className="w-4 h-4" />
+          Thanh toán một phần
+        </span>
+      );
+    case 'unpaid':
+      return (
+        <span className="px-3 py-1.5 bg-red-100 text-red-700 text-sm font-medium rounded-full flex items-center gap-1 w-fit animate-pulse">
+          <AlertTriangle className="w-4 h-4" />
+          Chưa thanh toán
+        </span>
+      );
+    default:
+      return null;
+  }
+};
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount);
 const formatDate = (dateString: string | null | undefined) => {
@@ -79,7 +110,7 @@ export function TuitionPage({ selectedSemester }: TuitionPageProps) {
     <PageShell
       header={<PageHeader
         title="Học phí"
-        description={<>Xem chi tiết học phí <span className="font-semibold text-[#004A98]">{currentSemesterSummary.semesterName}</span>.</>}
+        description={<>Xem chi tiết học phí học kỳ <span className="font-semibold text-[#004A98]">{currentSemesterSummary.semesterName}</span>.</>}
         actions={<button
           onClick={handleExport}
           className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-[#004A98] text-white rounded-xl hover:bg-[#003d7a] transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 active:scale-95"

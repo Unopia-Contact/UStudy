@@ -8,11 +8,11 @@ const semesterStart = new Date(2026, 0, 5);
 const session: ScheduleSession = {
   id: 'CSC10009|24CTT1|LT|1',
   courseCode: 'CSC10009',
-  courseName: 'Cơ sở dữ liệu',
+  courseName: 'Co so du lieu',
   classCode: '24CTT1',
   credits: 4,
   type: 'LT',
-  instructor: 'Giảng viên',
+  instructor: 'Giang vien',
   room: 'F101',
   dayOfWeek: 2,
   startPeriod: 1,
@@ -36,7 +36,7 @@ function createSchedule(overrides: WeeklySchedule['overrides'] = {
 }): WeeklySchedule {
   return {
     semester: '25-26/3',
-    semesterName: 'Học kỳ 3',
+    semesterName: 'Hoc ky 3',
     weekNumber: 1,
     weekRange: '',
     totalCourses: 1,

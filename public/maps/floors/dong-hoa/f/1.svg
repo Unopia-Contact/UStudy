@@ -1,0 +1,483 @@
+<svg
+  viewBox="0 0 1400 520"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">Sơ đồ tầng 1 - Nhà F</title>
+  <desc id="desc">
+    Tầng 1 Nhà F gồm các phòng F101 đến F106, hai cụm WC và cầu thang,
+    phòng trực kỹ thuật, hành lang và lối vào chính.
+  </desc>
+
+  <defs>
+    <style>
+      .outer-wall {
+        fill: none;
+        stroke: #475569;
+        stroke-width: 3;
+        stroke-linejoin: round;
+      }
+
+      .inner-wall {
+        fill: none;
+        stroke: #64748b;
+        stroke-width: 2;
+      }
+
+      .room {
+        fill: #d9f3ff;
+        stroke: #1594c6;
+        stroke-width: 2.5;
+      }
+
+      .service {
+        fill: #e7f7ff;
+        stroke: #1594c6;
+        stroke-width: 2;
+      }
+
+      .corridor {
+        fill: #f8fafc;
+        stroke: #64748b;
+        stroke-width: 2.5;
+      }
+
+      .room-code {
+        font-family: Inter, Arial, sans-serif;
+        font-size: 21px;
+        font-weight: 700;
+        fill: #075985;
+        text-anchor: middle;
+      }
+
+      .room-type {
+        font-family: Inter, Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        fill: #0369a1;
+        text-anchor: middle;
+      }
+
+      .small-label {
+        font-family: Inter, Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        fill: #075985;
+        text-anchor: middle;
+      }
+
+      .corridor-label {
+        font-family: Inter, Arial, sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 3px;
+        fill: #94a3b8;
+        text-anchor: middle;
+      }
+
+      .door {
+        fill: none;
+        stroke: #0f6f9f;
+        stroke-width: 1.6;
+      }
+
+      .stair-line {
+        stroke: #64748b;
+        stroke-width: 1.4;
+      }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="520" fill="#ffffff" />
+
+  <!-- ====================================================== -->
+  <!-- HÀNH LANG CHÍNH                                        -->
+  <!-- ====================================================== -->
+
+  <path
+    class="corridor"
+    d="
+      M 55 290
+      H 1340
+
+      V 355
+      H 1035
+
+      V 430
+      H 945
+      V 355
+
+      H 500
+      V 420
+      H 410
+      V 355
+
+      H 55
+      Z
+    "
+  />
+
+  <text
+    x="700"
+    y="329"
+    class="corridor-label"
+  >
+    HÀNH LANG
+  </text>
+
+  <!-- ====================================================== -->
+  <!-- F106                                                   -->
+  <!-- ====================================================== -->
+
+  <g id="room-f106">
+    <rect
+      class="room"
+      x="55"
+      y="70"
+      width="190"
+      height="220"
+      rx="3"
+    />
+
+    <text x="150" y="165" class="room-code">F106</text>
+    <text x="150" y="189" class="room-type">PHÒNG HỌC</text>
+
+    <!-- doors -->
+    <rect x="112" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M112 290 V272 A18 18 0 0 1 130 290" />
+
+    <rect x="190" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M190 290 V272 A18 18 0 0 1 208 290" />
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- F105                                                   -->
+  <!-- ====================================================== -->
+
+  <g id="room-f105">
+    <rect
+      class="room"
+      x="245"
+      y="70"
+      width="185"
+      height="220"
+      rx="3"
+    />
+
+    <text x="337.5" y="165" class="room-code">F105</text>
+    <text x="337.5" y="189" class="room-type">PHÒNG HỌC</text>
+
+    <rect x="287" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M287 290 V272 A18 18 0 0 1 305 290" />
+
+    <rect x="370" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M370 290 V272 A18 18 0 0 1 388 290" />
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- WC + CẦU THANG TRÁI                                    -->
+  <!-- ====================================================== -->
+
+  <g id="service-west">
+    <rect
+      class="service"
+      x="430"
+      y="70"
+      width="82"
+      height="112"
+      rx="3"
+    />
+
+    <line
+      x1="430"
+      y1="126"
+      x2="512"
+      y2="126"
+      class="inner-wall"
+    />
+
+    <text x="471" y="105" class="small-label">WC</text>
+    <text x="471" y="161" class="small-label">WC</text>
+
+    <!-- staircase -->
+    <g id="stairs-west">
+      <rect
+        x="436"
+        y="188"
+        width="70"
+        height="102"
+        rx="2"
+        fill="#ffffff"
+        stroke="#64748b"
+        stroke-width="2"
+      />
+
+      <line x1="442" y1="198" x2="500" y2="198" class="stair-line" />
+      <line x1="442" y1="209" x2="500" y2="209" class="stair-line" />
+      <line x1="442" y1="220" x2="500" y2="220" class="stair-line" />
+      <line x1="442" y1="231" x2="500" y2="231" class="stair-line" />
+      <line x1="442" y1="242" x2="500" y2="242" class="stair-line" />
+      <line x1="442" y1="253" x2="500" y2="253" class="stair-line" />
+      <line x1="442" y1="264" x2="500" y2="264" class="stair-line" />
+      <line x1="442" y1="275" x2="500" y2="275" class="stair-line" />
+
+      <path
+        d="M471 278 V201 M471 201 L464 211 M471 201 L478 211"
+        fill="none"
+        stroke="#475569"
+        stroke-width="2"
+      />
+    </g>
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- F104                                                   -->
+  <!-- ====================================================== -->
+
+  <g id="room-f104">
+    <rect
+      class="room"
+      x="512"
+      y="70"
+      width="205"
+      height="220"
+      rx="3"
+    />
+
+    <text x="614.5" y="165" class="room-code">F104</text>
+    <text x="614.5" y="189" class="room-type">PHÒNG HỌC</text>
+
+    <rect x="558" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M558 290 V272 A18 18 0 0 1 576 290" />
+
+    <rect x="657" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M657 290 V272 A18 18 0 0 1 675 290" />
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- F103                                                   -->
+  <!-- ====================================================== -->
+
+  <g id="room-f103">
+    <rect
+      class="room"
+      x="717"
+      y="70"
+      width="205"
+      height="220"
+      rx="3"
+    />
+
+    <text x="819.5" y="165" class="room-code">F103</text>
+    <text x="819.5" y="189" class="room-type">PHÒNG HỌC</text>
+
+    <rect x="762" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M762 290 V272 A18 18 0 0 1 780 290" />
+
+    <rect x="861" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M861 290 V272 A18 18 0 0 1 879 290" />
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- WC + CẦU THANG PHẢI                                   -->
+  <!-- ====================================================== -->
+
+  <g id="service-east">
+    <rect
+      class="service"
+      x="922"
+      y="70"
+      width="82"
+      height="112"
+      rx="3"
+    />
+
+    <line
+      x1="922"
+      y1="126"
+      x2="1004"
+      y2="126"
+      class="inner-wall"
+    />
+
+    <text x="963" y="105" class="small-label">WC</text>
+    <text x="963" y="161" class="small-label">WC</text>
+
+    <g id="stairs-east">
+      <rect
+        x="928"
+        y="188"
+        width="70"
+        height="102"
+        rx="2"
+        fill="#ffffff"
+        stroke="#64748b"
+        stroke-width="2"
+      />
+
+      <line x1="934" y1="198" x2="992" y2="198" class="stair-line" />
+      <line x1="934" y1="209" x2="992" y2="209" class="stair-line" />
+      <line x1="934" y1="220" x2="992" y2="220" class="stair-line" />
+      <line x1="934" y1="231" x2="992" y2="231" class="stair-line" />
+      <line x1="934" y1="242" x2="992" y2="242" class="stair-line" />
+      <line x1="934" y1="253" x2="992" y2="253" class="stair-line" />
+      <line x1="934" y1="264" x2="992" y2="264" class="stair-line" />
+      <line x1="934" y1="275" x2="992" y2="275" class="stair-line" />
+
+      <path
+        d="M963 278 V201 M963 201 L956 211 M963 201 L970 211"
+        fill="none"
+        stroke="#475569"
+        stroke-width="2"
+      />
+    </g>
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- F102                                                   -->
+  <!-- ====================================================== -->
+
+  <g id="room-f102">
+    <rect
+      class="room"
+      x="1004"
+      y="70"
+      width="170"
+      height="220"
+      rx="3"
+    />
+
+    <text x="1089" y="165" class="room-code">F102</text>
+    <text x="1089" y="189" class="room-type">PHÒNG HỌC</text>
+
+    <rect x="1038" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M1038 290 V272 A18 18 0 0 1 1056 290" />
+
+    <rect x="1127" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M1127 290 V272 A18 18 0 0 1 1145 290" />
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- F101                                                   -->
+  <!-- ====================================================== -->
+
+  <g id="room-f101">
+    <rect
+      class="room"
+      x="1174"
+      y="70"
+      width="166"
+      height="220"
+      rx="3"
+    />
+
+    <text x="1257" y="165" class="room-code">F101</text>
+    <text x="1257" y="189" class="room-type">PHÒNG HỌC</text>
+
+    <rect x="1205" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M1205 290 V272 A18 18 0 0 1 1223 290" />
+
+    <rect x="1290" y="286" width="28" height="8" fill="#f8fafc" />
+    <path class="door" d="M1290 290 V272 A18 18 0 0 1 1308 290" />
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- PHÒNG TRỰC KỸ THUẬT                                   -->
+  <!-- ====================================================== -->
+
+  <g id="technical-room">
+    <rect
+      class="service"
+      x="410"
+      y="355"
+      width="90"
+      height="65"
+      rx="3"
+    />
+
+    <text x="455" y="383" class="small-label">
+      <tspan x="455">Phòng trực</tspan>
+      <tspan x="455" dy="16">kỹ thuật</tspan>
+    </text>
+
+    <rect x="442" y="351" width="24" height="8" fill="#f8fafc" />
+    <path
+      class="door"
+      d="M442 355 V340 A15 15 0 0 1 457 355"
+    />
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- SẢNH / LỐI VÀO CHÍNH                                  -->
+  <!-- ====================================================== -->
+
+  <g id="main-entrance">
+    <!-- phần sảnh kéo xuống -->
+    <path
+      d="
+        M945 355
+        H1035
+        V430
+        H945
+        Z
+      "
+      fill="#f8fafc"
+      stroke="#64748b"
+      stroke-width="2.5"
+    />
+
+    <!-- bậc thang ngoài -->
+    <line x1="954" y1="437" x2="1026" y2="437" class="inner-wall" />
+    <line x1="958" y1="444" x2="1022" y2="444" class="inner-wall" />
+    <line x1="962" y1="451" x2="1018" y2="451" class="inner-wall" />
+    <line x1="966" y1="458" x2="1014" y2="458" class="inner-wall" />
+
+    <!-- cửa đôi -->
+    <rect x="975" y="351" width="30" height="8" fill="#f8fafc" />
+    <path
+      class="door"
+      d="M975 355 V337 A18 18 0 0 1 993 355"
+    />
+    <path
+      class="door"
+      d="M1005 355 V337 A18 18 0 0 0 987 355"
+    />
+
+    <text
+      x="990"
+      y="488"
+      class="small-label"
+      style="font-size:13px;font-weight:700"
+    >
+      LỐI VÀO CHÍNH
+    </text>
+  </g>
+
+  <!-- ====================================================== -->
+  <!-- ĐƯỜNG BAO NGOÀI NHẸ                                   -->
+  <!-- ====================================================== -->
+
+  <path
+    class="outer-wall"
+    d="
+      M55 70
+      H1340
+      V355
+      H1035
+      V430
+      H945
+      V355
+      H500
+      V420
+      H410
+      V355
+      H55
+      Z
+    "
+    opacity="0.65"
+    pointer-events="none"
+  />
+
+</svg>
