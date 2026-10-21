@@ -39,7 +39,7 @@ function GpaFace({
     <span className={`ustudy-card ustudy-card-padding absolute inset-0 block h-full overflow-hidden [backface-visibility:hidden] ${className}`}>
       <span className="ustudy-card-header justify-between">
         <span className="flex min-w-0 items-center gap-2 md:gap-3">
-          <span className={`ustudy-icon-badge ${badgeClassName}`}>
+          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white md:h-10 md:w-10 ${badgeClassName}`}>
             <TrendingUp className="h-4 w-4 text-white md:h-5 md:w-5" />
           </span>
           <span className="min-w-0">
@@ -115,7 +115,7 @@ export function GpaWidget({ currentGPA, currentGPA4, classification, letterGrade
             footerLabel="Xếp loại"
             footerValue={classification}
             accentColor="#004A98"
-            badgeClassName="ustudy-icon-primary"
+            badgeClassName="bg-[#004A98]"
             hint="Xem hệ 4"
           />
           <GpaFace
@@ -125,7 +125,7 @@ export function GpaWidget({ currentGPA, currentGPA4, classification, letterGrade
             footerLabel="Điểm chữ"
             footerValue={letterGrade}
             accentColor="#004A98"
-            badgeClassName="ustudy-icon-primary"
+            badgeClassName="bg-[#004A98]"
             hint="Xem hệ 10"
             className="[transform:rotateY(180deg)]"
           />
