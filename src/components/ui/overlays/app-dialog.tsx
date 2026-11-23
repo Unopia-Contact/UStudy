@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './dialog';
 import { cn } from '../utils';
 
 type AppDialogSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -11,6 +11,7 @@ interface AppDialogProps {
   title: ReactNode;
   description?: ReactNode;
   icon?: LucideIcon;
+  trigger?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   size?: AppDialogSize;
@@ -34,6 +35,7 @@ export function AppDialog({
   title,
   description,
   icon: Icon,
+  trigger,
   children,
   footer,
   size = 'md',
@@ -45,6 +47,7 @@ export function AppDialog({
 }: AppDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent
         data-preserve-mobile-navigation={preserveMobileNavigation ? 'true' : undefined}
         overlayClassName={preserveMobileNavigation ? 'ustudy-dialog-above-mobile-nav' : undefined}

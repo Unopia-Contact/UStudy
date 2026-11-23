@@ -6,6 +6,9 @@ import {
     clearSecureCache,
     migrateLegacyPlaintextSecureData,
     SECURE_DATA_KEYS,
+    getCryptoMetadataKeys,
+    isEncryptedStorageValue,
+    withStorageMutation,
 } from '../helpers/localStorage/save';
 import { migrateCourseDatabaseCampusMetadata } from '../logic/course-db-campus-migration';
 
@@ -43,6 +46,7 @@ interface CryptoContextType {
     isReady: boolean;
     /** true khi có dữ liệu nhạy cảm trong localStorage */
     hasData: boolean;
+    isCacheReady: boolean;
     /** Gọi sau khi verify PIN thành công - lưu key vào RAM và populate cache */
     unlock: (key: CryptoKey) => void;
     /** Xóa key khỏi RAM và clear cache - app quay về màn hình lock */
@@ -60,41 +64,76 @@ export function CryptoProvider({ children }: { children: React.ReactNode }) {
     const [cryptoKey, setCryptoKey] = useState<CryptoKey | null>(() => getPersistedKey());
     const [isReady, setIsReady] = useState(false);
     const [hasData, setHasData] = useState(false);
+    const [cachedKey, setCachedKey] = useState<CryptoKey | null>(null);
 
-    // Sau khi cryptoKey thay đổi → populate/clear RAM cache
+    // Refresh the decrypted values after another tab commits a batch.
     useEffect(() => {
         if (!cryptoKey) {
             clearSecureCache();
             return;
         }
-
-        // Decrypt toàn bộ secure data và đưa vào RAM cache
-        (async () => {
+        let active = true;
+        let generation = 0;
+        let timer: number | undefined;
+        const refresh = async () => {
+            const revision = ++generation;
+            const values = await Promise.all(SECURE_DATA_KEYS.map(async (key) => {
+                const stored = localStorage.getItem(key);
+                // Some older/current features persist this key as JSON.
+                if (stored === null || !isEncryptedStorageValue(stored)) return null;
+                try {
+                    return { key, stored, value: await readSecure(key, cryptoKey, null) };
+                } catch {
+                    return null;
+                }
+            }));
+            if (!active || revision !== generation || getPersistedKey() !== cryptoKey) return;
+            clearSecureCache();
+            for (const item of values) {
+                if (item && item.stored === localStorage.getItem(item.key)) {
+                    populateSecureCache(item.key, item.value, item.stored);
+                }
+            }
+            setCachedKey(cryptoKey);
+            window.postMessage({ type: CACHE_POPULATED_EVENT }, window.location.origin);
+        };
+        const onStorage = (event: StorageEvent) => {
+            if (event.storageArea !== localStorage
+                || (event.key !== null && !(SECURE_DATA_KEYS as readonly string[]).includes(event.key))) return;
+            ++generation;
+            window.clearTimeout(timer);
+            timer = window.setTimeout(() => { void refresh(); }, 0);
+        };
+        window.addEventListener('storage', onStorage);
+        void (async () => {
             try {
-                await migrateLegacyPlaintextSecureData(cryptoKey);
-                await migrateCourseDatabaseCampusMetadata(cryptoKey);
+                await withStorageMutation(async () => {
+                    if (!active) return;
+                    await migrateLegacyPlaintextSecureData(cryptoKey);
+                    if (active) await migrateCourseDatabaseCampusMetadata(cryptoKey);
+                });
             } catch (error) {
                 console.error('[crypto] Không thể hoàn tất migration dữ liệu cục bộ.', error);
             }
-
-            await Promise.all(
-                SECURE_DATA_KEYS.map(async (key) => {
-                    try {
-                        const val = await readSecure(key, cryptoKey, null);
-                        if (val !== null) {
-                            populateSecureCache(key, val);
-                        }
-                    } catch (error) {
-                        console.error(`[crypto] Secure data integrity check failed for "${key}".`, error);
-                    }
-                })
-            );
-
-            // Dùng postMessage thay vì dispatchEvent(new MessageEvent) để đảm bảo event vào queue async
-            // Giúp React có đủ thời gian mount các component và gắn listener
-            window.postMessage({ type: CACHE_POPULATED_EVENT }, '*');
+            if (active) await refresh();
         })();
+        return () => {
+            active = false;
+            window.clearTimeout(timer);
+            window.removeEventListener('storage', onStorage);
+        };
     }, [cryptoKey]);
+
+    useEffect(() => {
+        const handleStorage = (event: StorageEvent) => {
+            if (event.storageArea === localStorage && (event.key === null || getCryptoMetadataKeys().includes(event.key)
+                || (SECURE_DATA_KEYS as readonly string[]).includes(event.key))) {
+                setHasData(hasSecureData());
+            }
+        };
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
+    }, []);
 
     const unlock = useCallback((key: CryptoKey) => {
         setPersistedKey(key);
@@ -112,7 +151,7 @@ export function CryptoProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <CryptoContext.Provider value={{ cryptoKey, isReady, hasData, unlock, lock, refreshHasData }}>
+        <CryptoContext.Provider value={{ cryptoKey, isReady, hasData, isCacheReady: !cryptoKey || cachedKey === cryptoKey, unlock, lock, refreshHasData }}>
             <CryptoGateInit
                 onReady={(dataAvailable) => {
                     setHasData(dataAvailable);

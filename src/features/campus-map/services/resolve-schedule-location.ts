@@ -2,7 +2,7 @@ import { CAMPUS_MAP_DATA, type BuildingRuntime, type Campus, type FloorRuntime, 
 import { resolveKnownPortalRoom } from '../../../integrations/hcmus-portal/rooms';
 
 export type ScheduleRoomReference = {
-  room: string;
+  room?: string;
   portalLocationCode?: string;
 };
 

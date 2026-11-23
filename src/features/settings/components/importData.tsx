@@ -3,16 +3,18 @@ import { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { AppDialog } from '../../../components/ui/overlays/app-dialog';
 import { SecurityLock } from '../../../components/security';
-import { CACHE_POPULATED_EVENT, useCrypto } from '../../../context/CryptoContext';
-import { createImportRollbackSnapshot, getCryptoMetadataKeys, hasSecureData, IMPORT_HISTORY_STORAGE_KEY, IMPORT_ROLLBACK_STORAGE_KEY, importBackupWithCurrentKey, isEncryptedBackup, populateSecureCache, saveSecure, SECURE_DATA_KEYS, unlockBackupKey } from '../../../helpers/localStorage/save';
-import { recordDataImport } from '../../../helpers/localStorage/data-import-status';
-import { processRawData } from '../../../logic/dataProcessor';
+import { useCrypto } from '../../../context/CryptoContext';
+import { commitImport, getCryptoMetadataKeys, hasSecureData, IMPORT_HISTORY_STORAGE_KEY, IMPORT_ROLLBACK_STORAGE_KEY, isEncryptedBackup, SECURE_DATA_KEYS, unlockBackupKey } from '../../../helpers/localStorage/save';
+import { STORAGE_KEYS } from '../../../config/storageKeys';
+import { buildDataImportStatus } from '../../../helpers/localStorage/data-import-status';
 import { OpticalReceiverDialog, OpticalSenderDialog } from '../../optical-sync';
 import { buildOpticalSyncPayload, isOpticalSyncKey } from '../../optical-sync/services/optical-sync-payload';
 import {
   isSystemBackupData,
   normalizeStorageBackupData,
-  parseStorageBackupValue,
+  getBackupSelection,
+  isBundledWithRaw,
+  prepareBackupChanges,
   SYSTEM_BACKUP_SOURCE,
   isManagedStorageKey,
   unwrapSystemBackup,
@@ -34,6 +36,8 @@ interface ImportPreview {
   sourceName: string;
   items: ImportItem[];
   selectedKeys: string[];
+  expected: Record<string, string | null>;
+  isPortalFile?: boolean;
 }
 
 interface ExportGroup {
@@ -57,7 +61,7 @@ const MAX_BACKUP_FILE_BYTES = 8 * 1024 * 1024;
 const ACADEMIC_DATA_KEYS = new Set(['raw_student_db', 'student_db_full', 'course_db_offline']);
 
 const IMPORT_LABELS: Record<string, { label: string; group: string }> = {
-  raw_student_db: { label: 'Dữ liệu Portal gốc', group: 'Dữ liệu học tập' },
+  raw_student_db: { label: 'Dữ liệu Portal gốc và thông tin học kỳ', group: 'Dữ liệu học tập' },
   student_db_full: { label: 'Kết quả học tập và đăng ký', group: 'Dữ liệu học tập' },
   course_db_offline: { label: 'Danh sách lớp mở', group: 'Dữ liệu học tập' },
   import_meta: { label: 'Học kỳ và thời điểm đồng bộ', group: 'Dữ liệu học tập' },
@@ -89,10 +93,11 @@ function getImportItem(key: string, value: string): ImportItem {
 interface ImportDataProps {
   compact?: boolean;
   importButtonLabel?: string;
+  completeSetup?: boolean;
   transferMode?: ExportDestination;
 }
 
-export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ liệu', transferMode = 'file' }: ImportDataProps = {}) {
+export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ liệu', transferMode = 'file', completeSetup = false }: ImportDataProps = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [pendingImport, setPendingImport] = useState<ImportPreview | null>(null);
@@ -102,6 +107,8 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
   const [opticalPayload, setOpticalPayload] = useState<string | null>(null);
   const [isOpticalReceiverOpen, setIsOpticalReceiverOpen] = useState(false);
   const { cryptoKey } = useCrypto();
+  const [isImporting, setIsImporting] = useState(false);
+  const importInProgress = useRef(false);
 
   const previewGroups = useMemo(() => {
     if (!preview) return [];
@@ -127,6 +134,7 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
 
       const items = Object.entries(store)
         .filter(([key]) => !INTERNAL_BACKUP_KEYS.has(key))
+        .filter(([key]) => key !== 'app_notification')
         .filter(([key]) => isManagedStorageKey(key))
         .filter(([key]) => destination === 'file' || isOpticalSyncKey(key))
         .map(([key]) => ({ key, label: IMPORT_LABELS[key]?.label ?? key, group: IMPORT_LABELS[key]?.group ?? 'Cài đặt và dữ liệu khác' }));
@@ -146,7 +154,7 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
   function confirmExport() {
     if (!exportPreview || exportPreview.selectedKeys.length === 0) return;
     try {
-      const selectedKeys = exportPreview.selectedKeys;
+      const selectedKeys = getBackupSelection(exportPreview.data, exportPreview.selectedKeys);
       if (exportDestination === 'optical') {
         const payload = buildOpticalSyncPayload(selectedKeys, exportPreview.data);
         setExportPreview(null);
@@ -207,7 +215,15 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
     const importData = normalizeStorageBackupData(backup.data);
     const items = Object.entries(importData)
       .filter(([key]) => !INTERNAL_BACKUP_KEYS.has(key))
-      .map(([key, value]) => getImportItem(key, value));
+      .filter(([key]) => !Object.hasOwn(importData, STORAGE_KEYS.RAW_STUDENT_DB) || !isBundledWithRaw(key))
+      .map(([key, value]) => {
+        const item = getImportItem(key, value);
+        if (item.status === 'unchanged' && key === STORAGE_KEYS.RAW_STUDENT_DB
+          && Object.keys(importData).some((related) => isBundledWithRaw(related) && importData[related] !== localStorage.getItem(related))) {
+          return { ...item, status: 'update' as const };
+        }
+        return item;
+      });
     if (items.length === 0) {
       window.alert('Gói đồng bộ không chứa mục dữ liệu có thể nhập.');
       return false;
@@ -218,7 +234,11 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
       encrypted,
       sourceName,
       items,
+      isPortalFile: backup.isPortalFile,
       selectedKeys: items.filter((item) => item.status !== 'unchanged').map((item) => item.key),
+      expected: Object.fromEntries([...Object.keys(importData), ...getCryptoMetadataKeys(),
+        STORAGE_KEYS.RAW_STUDENT_DB, STORAGE_KEYS.STUDENT_DB, STORAGE_KEYS.COURSE_DB_OFFLINE, STORAGE_KEYS.IMPORT_META,
+      ].map((key) => [key, localStorage.getItem(key)])),
     });
     return true;
   }
@@ -261,64 +281,64 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
     } : current);
   }
 
-  async function applyPlainImport(importPreview: ImportPreview, encryptionKey?: CryptoKey | null) {
-    const secureKeys = new Set<string>(SECURE_DATA_KEYS);
-    for (const key of importPreview.selectedKeys) {
-      const value = importPreview.data[key];
-      if (secureKeys.has(key)) {
-        if (!encryptionKey) throw new Error('Cần mở khóa ứng dụng để nhập dữ liệu được bảo vệ.');
-        const parsedValue = parseStorageBackupValue(value);
-        await saveSecure(key, parsedValue, encryptionKey);
-        populateSecureCache(key, parsedValue);
-      } else {
-        localStorage.setItem(key, value);
-      }
+  async function persistImport(importPreview: ImportPreview, key?: CryptoKey | null, backupKey?: CryptoKey) {
+    const changes = await prepareBackupChanges(importPreview.data, importPreview.selectedKeys, {
+      currentKey: key ?? backupKey,
+      backupKey,
+      isPortalFile: importPreview.isPortalFile,
+    });
+    if (backupKey && !key) {
+      for (const metadataKey of getCryptoMetadataKeys()) changes[metadataKey] = importPreview.data[metadataKey] ?? null;
     }
-
-    if (importPreview.selectedKeys.includes('raw_student_db') && encryptionKey) {
-      const raw = parseStorageBackupValue(importPreview.data.raw_student_db) as any;
-      const { student, courses } = processRawData(raw);
-      await saveSecure('student_db_full', student, encryptionKey);
-      await saveSecure('course_db_offline', courses, encryptionKey);
-      populateSecureCache('student_db_full', student);
-      populateSecureCache('course_db_offline', courses);
+    if (importPreview.selectedKeys.some((storageKey) => ACADEMIC_DATA_KEYS.has(storageKey))) {
+      changes[STORAGE_KEYS.LAST_DATA_IMPORT] = buildDataImportStatus(transferMode === 'optical' ? 'optical' : 'json');
     }
-    if (importPreview.selectedKeys.some((key) => ACADEMIC_DATA_KEYS.has(key))) {
-      recordDataImport(transferMode === 'optical' ? 'optical' : 'json');
-    }
-    window.dispatchEvent(new MessageEvent('message', { data: { type: CACHE_POPULATED_EVENT } }));
-    window.location.reload();
-  }
-
-  async function createRollbackForPreview(importPreview: ImportPreview): Promise<boolean> {
+    if (completeSetup) changes[STORAGE_KEYS.DEPARTMENT_CONFIGURED] = JSON.stringify(true);
     const selectedItems = importPreview.items.filter((item) => importPreview.selectedKeys.includes(item.key));
-    return createImportRollbackSnapshot('Tệp sao lưu', {
-      added: selectedItems.filter((item) => item.status === 'add').length,
-      updated: selectedItems.filter((item) => item.status === 'update').length,
-      unchanged: importPreview.items.filter((item) => item.status === 'unchanged').length,
-    }, [], importPreview.sourceName);
+    const expected = Object.fromEntries(Object.keys(changes)
+      // setupPin has just initialized the local envelope for a plain transfer.
+      .filter((storageKey) => Object.hasOwn(importPreview.expected, storageKey))
+      .map((storageKey) => [storageKey, importPreview.expected[storageKey]]));
+    if (!importPreview.selectedKeys.includes(STORAGE_KEYS.RAW_STUDENT_DB)
+      && importPreview.selectedKeys.some(isBundledWithRaw)) {
+      expected[STORAGE_KEYS.RAW_STUDENT_DB] = importPreview.expected[STORAGE_KEYS.RAW_STUDENT_DB];
+    }
+    await commitImport(changes, {
+      source: transferMode === 'optical' ? 'Đồng bộ quang học' : 'Tệp sao lưu',
+      summary: {
+        added: selectedItems.filter((item) => item.status === 'add').length,
+        updated: selectedItems.filter((item) => item.status === 'update').length,
+        unchanged: importPreview.items.filter((item) => item.status === 'unchanged').length,
+      },
+      displayName: importPreview.sourceName,
+    }, expected);
   }
 
   async function confirmPreview() {
-    if (!preview || preview.selectedKeys.length === 0) return;
-    if (!await createRollbackForPreview(preview)) {
-      setPreview(null);
-      window.alert('Không đủ dung lượng để lưu điểm hoàn tác. Dữ liệu chưa được nhập.');
-      return;
-    }
-    setPreview(null);
+    if (!preview?.selectedKeys.length || importInProgress.current) return;
     if (preview.encrypted) {
       setPendingImport(preview);
+      setPreview(null);
       return;
     }
     const includesSecureData = preview.selectedKeys.some((key) => (SECURE_DATA_KEYS as readonly string[]).includes(key));
     if (includesSecureData && !cryptoKey) {
       setPendingPlainSecureImport(preview);
+      setPreview(null);
       return;
     }
-    void applyPlainImport(preview, cryptoKey).catch((error) => {
+
+    importInProgress.current = true;
+    setIsImporting(true);
+    try {
+      await persistImport(preview, cryptoKey);
+      window.location.reload();
+    } catch (error) {
       window.alert(error instanceof Error ? error.message : 'Không thể nhập dữ liệu.');
-    });
+    } finally {
+      importInProgress.current = false;
+      setIsImporting(false);
+    }
   }
 
   function handleOpticalPayload(text: string): boolean {
@@ -371,7 +391,7 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
         footer={(
           <>
             <button type="button" onClick={() => setPreview(null)} className="ustudy-button-dialog ustudy-button-dialog-cancel">Hủy</button>
-            <button type="button" disabled={!preview?.selectedKeys.length} onClick={() => { void confirmPreview(); }} className="ustudy-button-dialog ustudy-button-dialog-confirm">Nhập {preview?.selectedKeys.length ?? 0} mục</button>
+            <button type="button" disabled={isImporting || !preview?.selectedKeys.length} onClick={() => { void confirmPreview(); }} className="ustudy-button-dialog ustudy-button-dialog-confirm">Nhập {preview?.selectedKeys.length ?? 0} mục</button>
           </>
         )}
       >
@@ -455,21 +475,8 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
           customVerify={async (pin) => {
             const backupKey = await unlockBackupKey(pin, pendingImport.data);
             if (!backupKey) return false;
-
-            if (hasSecureData() && cryptoKey) {
-              await importBackupWithCurrentKey(pendingImport.data, pin, cryptoKey, pendingImport.selectedKeys);
-            } else if (hasSecureData() && !cryptoKey) {
-              return false;
-            } else {
-              getCryptoMetadataKeys().forEach((key) => {
-                const value = pendingImport.data[key];
-                if (value) localStorage.setItem(key, value);
-              });
-              pendingImport.selectedKeys.forEach((key) => localStorage.setItem(key, pendingImport.data[key]));
-            }
-            if (pendingImport.selectedKeys.some((key) => ACADEMIC_DATA_KEYS.has(key))) {
-              recordDataImport(transferMode === 'optical' ? 'optical' : 'json');
-            }
+            if (hasSecureData() && !cryptoKey) throw new Error('Hãy mở khóa dữ liệu hiện tại trước khi nhập.');
+            await persistImport(pendingImport, cryptoKey, backupKey);
             return true;
           }}
           onUnlock={() => {
@@ -484,12 +491,10 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
           setupMode={!hasSecureData()}
           customTitle={hasSecureData() ? 'Mở khóa để nhận dữ liệu' : 'Bảo vệ dữ liệu trên thiết bị này'}
           customSubtitle={hasSecureData() ? 'Nhập mật khẩu UStudy hiện tại để mã hóa dữ liệu vừa nhận.' : 'Tạo mật khẩu để mã hóa dữ liệu vừa nhận trên thiết bị này.'}
-          onUnlock={(key) => {
-            const pending = pendingPlainSecureImport;
+          onUnlock={async (key) => {
+            await persistImport(pendingPlainSecureImport, key);
             setPendingPlainSecureImport(null);
-            void applyPlainImport(pending, key).catch((error) => {
-              window.alert(error instanceof Error ? error.message : 'Không thể nhập dữ liệu.');
-            });
+            window.location.reload();
           }}
         />
       )}

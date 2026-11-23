@@ -1,263 +1,28 @@
 import { AppSelect } from "../../../components/ui/form";
-import { COHORTS, getProgramDataSourceCohort, getProgramOffering } from "../../../assets/data/academic-programs/registry";
-import { getTuitionProfileName } from "../../../assets/data/tuition";
+import { COHORTS, getProgramDataSourceCohort } from "../../../assets/data/academic-programs/registry";
 import { useDepartmentData } from "../../../context/DepartmentContext";
 import { useCampus } from "../../../context/CampusContext";
-import { CAMPUS_OPTIONS, getCampusDefinition } from "../../../domain/campus";
-import { CheckCircle, GraduationCap, Upload, Shield } from "lucide-react";
-import { useRef, useState } from "react";
+import { CAMPUS_OPTIONS } from "../../../domain/campus";
+import { CheckCircle, GraduationCap, Shield } from "lucide-react";
 import { useAppNotification } from "../../../context/NotificationContext";
-import { useCrypto } from "../../../context/CryptoContext";
-import { processRawData } from "../../../logic/dataProcessor";
-import { createImportRollbackSnapshot, getCryptoMetadataKeys, importBackupWithCurrentKey, isEncryptedBackup, readFromStorage, savePlain, saveSecure, populateSecureCache, SECURE_DATA_KEYS } from "../../../helpers/localStorage/save";
-import { CACHE_POPULATED_EVENT } from "../../../context/CryptoContext";
-import { SecurityLock } from "../../../components/security";
+import { savePlain } from "../../../helpers/localStorage/save";
 import { STORAGE_KEYS } from "../../../config/storageKeys";
-import { buildRawImportPreview } from "../../../logic/import-preview";
-import { mergeImportMetadata, type PortalDataSource } from "../../../logic/import-metadata";
-import {
-    isSystemBackupData,
-    normalizeStorageBackupData,
-    parseStorageBackupValue,
-    unwrapSystemBackup,
-} from "../services/system-backup";
+import { ImportData } from "./importData";
 
 export function SettingUserProfile({ onPageChange }: { onPageChange: (page: string) => void }) {
     const {
         facultyId, majorId, cohortId, academicYear,
-        currentFaculty, currentMajor,
-        faculties, academicYears,
+        currentFaculty, faculties, academicYears,
         setFaculty, setMajor, setCohort, setAcademicYear,
         isConfigured, setIsConfigured
     } = useDepartmentData();
     const { defaultCampusId, setDefaultCampusId } = useCampus();
     const { addNotification } = useAppNotification();
-    const { cryptoKey, unlock, refreshHasData, hasData } = useCrypto();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [pendingImport, setPendingImport] = useState<any>(null);
     const programDataSourceCohort = getProgramDataSourceCohort(cohortId, facultyId, majorId);
     const programDataSourceLabel = COHORTS.find((cohort) => cohort.id === programDataSourceCohort)?.name ?? programDataSourceCohort;
     const isUsingSharedProgramData = Boolean(programDataSourceCohort && programDataSourceCohort !== cohortId);
-    const currentProgramOffering = currentFaculty && currentMajor
-        ? getProgramOffering(currentFaculty.id, currentMajor.id, cohortId)
-        : null;
-    const programCampusNames = currentProgramOffering?.campusIds
-        .map((campusId) => getCampusDefinition(campusId).name)
-        .join(' và ');
-    const tuitionProfileName = currentProgramOffering
-        ? getTuitionProfileName(currentProgramOffering.tuitionProfileId)
-        : null;
-
-    /** Lưu dữ liệu nhạy cảm đã mã hóa + populate RAM cache */
-    const saveImportedSecure = async (rawData: any, metaData: any, key: CryptoKey) => {
-        const params = metaData?.params || {};
-        const updatedSources: PortalDataSource[] = ['grades'];
-        if (params.registration || !metaData) updatedSources.push('registrations');
-        if (params.exam || !metaData) updatedSources.push('exams');
-        if (params.class || !metaData) updatedSources.push('courses');
-        if (params.tuition || !metaData) updatedSources.push('tuition');
-        const mergedMeta = mergeImportMetadata(readFromStorage('import_meta', null), metaData, updatedSources);
-
-        await saveSecure('raw_student_db', rawData, key);
-        const { student, courses } = processRawData(rawData);
-        await saveSecure('student_db_full', student, key);
-        await saveSecure('course_db_offline', courses, key);
-        if (mergedMeta) await saveSecure('import_meta', mergedMeta, key);
-
-        // Populate RAM cache để hooks đọc được ngay
-        populateSecureCache('raw_student_db', rawData);
-        populateSecureCache('student_db_full', student);
-        populateSecureCache('course_db_offline', courses);
-        if (mergedMeta) populateSecureCache('import_meta', mergedMeta);
-
-        // Báo các hook re-render (giống CryptoContext làm sau unlock)
-        window.dispatchEvent(new MessageEvent('message', { data: { type: CACHE_POPULATED_EVENT } }));
-
-        refreshHasData();
-        return student;
-    };
-
-    const handleImportClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const createJsonImportRollback = async (source: string, data: any) => {
-        const changes = data?.grades || data?.registrations || data?.courses
-            ? buildRawImportPreview(data, readFromStorage('raw_student_db', null))
-            : Object.keys(data || {}).map((key) => ({ status: localStorage.getItem(key) === null ? 'add' : 'update' }));
-        const summary = {
-            added: changes.filter((change: any) => change.status === 'add').length,
-            updated: changes.filter((change: any) => change.status === 'update').length,
-            removed: changes.filter((change: any) => change.status === 'remove').length,
-            unchanged: changes.filter((change: any) => change.status === 'unchanged').length,
-        };
-        const changedSources = Array.from(new Set(changes.map((change: any) => change.collection).filter(Boolean))) as PortalDataSource[];
-        const details = changedSources.map((changedSource) => ({
-            source: changedSource,
-            added: changes.filter((change: any) => change.collection === changedSource && change.status === 'add').length,
-            updated: changes.filter((change: any) => change.collection === changedSource && change.status === 'update').length,
-            removed: changes.filter((change: any) => change.collection === changedSource && change.status === 'remove').length,
-            unchanged: changes.filter((change: any) => change.collection === changedSource && change.status === 'unchanged').length,
-        }));
-        return createImportRollbackSnapshot(source, summary, details);
-    };
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const content = e.target?.result;
-            if (typeof content !== 'string') return;
-
-            try {
-                const importedContent = JSON.parse(content);
-
-                // Hỗ trợ cả định dạng mới (có metadata) và định dạng cũ (flat object)
-                const backup = unwrapSystemBackup(importedContent);
-                const data = backup?.data ?? importedContent;
-                const storageData = backup ? normalizeStorageBackupData(backup.data) : null;
-
-                // 1. Kiểm tra xem có phải là bản export toàn bộ localStorage (từ trang Setting) không
-                const isFullDump = Boolean(
-                    backup && isSystemBackupData(backup.data, backup.hasSystemEnvelope)
-                );
-
-                if (isFullDump) {
-                    if (window.confirm("Hành động này sẽ ghi đè toàn bộ dữ liệu hiện tại bằng dữ liệu từ file. Bạn có chắc chắn muốn tiếp tục?")) {
-                        if (!storageData || !await createJsonImportRollback('Tệp JSON sao lưu', storageData)) {
-                            throw new Error('Không đủ dung lượng để lưu điểm hoàn tác. Dữ liệu chưa được nhập.');
-                        }
-                        if (!cryptoKey) {
-                            // Nếu backup có salt → là bản backup đã mã hóa
-                            // Restore thẳng vào localStorage, SecurityGate sẽ tự hiện màn hình nhập mật khẩu.
-                            if (isEncryptedBackup(storageData)) {
-                                for (const [key, value] of Object.entries(storageData)) {
-                                    localStorage.setItem(key, value);
-                                }
-                                // Sau khi reload salt + pin_verify vào localStorage,
-                                // refreshHasData() → hasData=true → SecurityGate tự chặn và hỏi mật khẩu cũ
-                                refreshHasData();
-                                addNotification({
-                                    title: 'Backup đã được tải',
-                                    message: 'Nhập mật khẩu của file backup để tiếp tục khôi phục dữ liệu.',
-                                    type: 'info'
-                                });
-                                return;
-                            }
-                            // Backup không mã hóa → yêu cầu tạo mật khẩu mới
-                            setPendingImport({ type: 'FULL_DUMP', data: storageData });
-                            return;
-                        }
-
-                        // Lưu từng key: secure keys thì mã hóa, các key khác thì plain
-                        if (isEncryptedBackup(storageData)) {
-                            const backupPin = window.prompt('Nhập mật khẩu của file sao lưu để khôi phục dữ liệu:');
-                            if (!backupPin) return;
-                            await importBackupWithCurrentKey(storageData, backupPin, cryptoKey);
-                        } else {
-                            const secureKeys = new Set<string>(SECURE_DATA_KEYS);
-                            for (const [key, value] of Object.entries(storageData)) {
-                                if (secureKeys.has(key)) {
-                                    const parsedValue = parseStorageBackupValue(value);
-                                    await saveSecure(key, parsedValue, cryptoKey);
-                                    populateSecureCache(key, parsedValue);
-                                } else if (!getCryptoMetadataKeys().includes(key)) {
-                                    localStorage.setItem(key, value);
-                                }
-                            }
-                        }
-                        // Báo các hook re-render
-                        window.dispatchEvent(new MessageEvent('message', { data: { type: CACHE_POPULATED_EVENT } }));
-                        refreshHasData();
-
-                        addNotification({
-                            title: 'Nhập dữ liệu thành công',
-                            message: `Toàn bộ dữ liệu hệ thống đã được khôi phục.`,
-                            type: 'success'
-                        });
-
-                        setIsConfigured(true);
-                    }
-                    return;
-                }
-
-                // 2. Nếu không phải bản dump, kiểm tra xem có phải là raw data từ Bookmarklet không
-                let rawData = data.raw || data;
-                let metaData = data.meta || null;
-
-                if (rawData && typeof rawData === 'object' && (rawData.grades || rawData.courses)) {
-                    if (!await createJsonImportRollback('Tệp JSON từ Portal', rawData)) {
-                        throw new Error('Không đủ dung lượng để lưu điểm hoàn tác. Dữ liệu chưa được nhập.');
-                    }
-                    if (!cryptoKey) {
-                        setPendingImport({ type: 'RAW_DATA', data: { rawData, metaData } });
-                        return;
-                    }
-
-                    const student = await saveImportedSecure(rawData, metaData, cryptoKey);
-
-                    addNotification({
-                        title: 'Nhập dữ liệu thành công',
-                        message: `Dữ liệu của ${student.name} đã được tải lên và mã hóa.`,
-                        type: 'success'
-                    });
-
-                    setIsConfigured(true);
-                } else {
-                    throw new Error("Định dạng file không hợp lệ. Vui lòng sử dụng file JSON xuất từ hệ thống hoặc Bookmarklet.");
-                }
-
-            } catch (error: any) {
-                console.error("Import error:", error);
-                addNotification({
-                    title: 'Lỗi nhập dữ hiệu',
-                    message: error.message || "Không thể đọc file JSON này. Vui lòng kiểm tra lại.",
-                    type: 'error'
-                });
-            }
-        };
-        reader.readAsText(file);
-        event.target.value = '';
-    };
-
     return (
         <div className="ustudy-settings-card">
-            {pendingImport && (
-                <SecurityLock
-                    setupMode={!hasData}
-                    onUnlock={async (key) => {
-                        unlock(key);
-                        const { type, data } = pendingImport;
-                        if (type === 'FULL_DUMP') {
-                            const secureKeys = new Set<string>(SECURE_DATA_KEYS);
-                            for (const [storageKey, value] of Object.entries(data as Record<string, string>)) {
-                                if (secureKeys.has(storageKey)) {
-                                    const parsedValue = parseStorageBackupValue(value);
-                                    await saveSecure(storageKey, parsedValue, key);
-                                    populateSecureCache(storageKey, parsedValue);
-                                } else if (!getCryptoMetadataKeys().includes(storageKey)) {
-                                    localStorage.setItem(storageKey, value);
-                                }
-                            }
-                        } else {
-                            await saveImportedSecure(data.rawData, data.metaData, key);
-                        }
-
-                        addNotification({
-                            title: 'Nhập dữ liệu thành công',
-                            message: `Dữ liệu đã được mã hóa và bảo vệ bằng mật khẩu.`,
-                            type: 'success'
-                        });
-
-                        setPendingImport(null);
-                        setIsConfigured(true);
-                    }}
-                />
-            )}
-
-
             {!isConfigured &&
                 <div className="mb-6 w-full flex flex-col items-center justify-center">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Chào mừng bạn</h2>
@@ -327,22 +92,7 @@ export function SettingUserProfile({ onPageChange }: { onPageChange: (page: stri
 
             <div className="mt-5 border-t border-gray-200 pt-4 md:mt-6">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        accept=".json"
-                        className="hidden"
-                    />
-                    {!isConfigured && (
-                        <button
-                            onClick={handleImportClick}
-                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#004A98] px-4 text-sm font-medium text-[#004A98] transition-colors hover:bg-blue-50"
-                        >
-                            <Upload className="w-4 h-4" />
-                            Nhập dữ liệu (JSON)
-                        </button>
-                    )}
+                    {!isConfigured && <ImportData compact completeSetup importButtonLabel="Nhập dữ liệu (JSON)" />}
 
                     <button
                         onClick={() => {

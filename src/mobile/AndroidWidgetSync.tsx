@@ -6,9 +6,8 @@ import { isScheduleWidgetAvailable, syncScheduleWidget } from './schedule-widget
 
 /** Chỉ đồng bộ sau khi bộ nhớ mã hóa đã được mở; không đọc PIN hay dữ liệu sinh viên. */
 export function AndroidWidgetSync() {
-  const { cryptoKey } = useCrypto();
+  const { cryptoKey, isCacheReady } = useCrypto();
   const [revision, setRevision] = useState(0);
-  const [cacheReady, setCacheReady] = useState(false);
   const schedule = useSchedule();
 
   useEffect(() => {
@@ -16,7 +15,6 @@ export function AndroidWidgetSync() {
     const refresh = () => setRevision((value) => value + 1);
     const onMessage = (event: MessageEvent) => {
       if (event.source === window && event.data?.type === CACHE_POPULATED_EVENT) {
-        setCacheReady(true);
         refresh();
       }
     };
@@ -36,14 +34,14 @@ export function AndroidWidgetSync() {
   useEffect(() => {
     if (!isScheduleWidgetAvailable()) return;
     // Sau khi xóa dữ liệu và mở ứng dụng lại, xóa cả bản lịch native còn sót.
-    if (!cryptoKey || !cacheReady) return;
+    if (!cryptoKey || !isCacheReady) return;
     const timer = window.setTimeout(() => {
       void syncScheduleWidget(buildWidgetScheduleSnapshot(schedule)).catch((error) => {
         console.warn('[ScheduleWidget] Không thể đồng bộ lịch:', error);
       });
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [cryptoKey, cacheReady, schedule, revision]);
+  }, [cryptoKey, isCacheReady, schedule, revision]);
 
   return null;
 }

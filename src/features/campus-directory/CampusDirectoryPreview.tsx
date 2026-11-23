@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Building2, ChevronRight, Search, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { CAMPUS_UNITS, type CampusUnitType } from '../../assets/data/campus-directory';
+import { CAMPUS_UNITS } from '../../assets/data/campus-directory';
 import { AppSelect } from '../../components/ui/form/app-select';
 import { MobileBottomSheet } from '../../components/ui/overlays/mobile-bottom-sheet';
 import { searchCampusUnits } from './campus-directory-search';

@@ -224,7 +224,7 @@ function processTuition(rawTuitionMap: RawData['tuition']) {
         });
 
         processedMap[period] = {
-            total: rawTuition.totals.totalDue || "0",
+            total: rawTuition.totals.totalDue ?? "",
             fee: rawTuition.totals.fee || "0",
             actualFee: rawTuition.totals.actualFee || "0",
             details,

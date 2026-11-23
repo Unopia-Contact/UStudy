@@ -28,7 +28,7 @@ const COLLECTION_LABELS: Record<ImportCollection, string> = {
 const COLLECTIONS: ImportCollection[] = ['grades', 'registrations', 'courses', 'exams', 'tuition'];
 
 function normalizeIdentityPart(value: unknown): string {
-  return String(value ?? '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('vi-VN');
+  return String(value ?? '').normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleUpperCase('vi-VN');
 }
 
 function normalizeSemester(value: unknown): string {
@@ -89,10 +89,56 @@ function valueKey(collection: ImportCollection, value: any, index: number): stri
     case 'registrations':
       return registrationKey(value) || `registration-${index}`;
     case 'courses':
-      return [value?.id, value?.className].map((part) => String(part ?? '').trim()).join('|') || `course-${index}`;
+      return JSON.stringify([value?.id, value?.className, value?.schedule, value?.location,
+        value?.practicalGroupRaw, value?.exerciseGroupRaw].map(normalizeIdentityPart));
     default:
       return collection;
   }
+}
+
+function collectionKeys(collection: ImportCollection, values: any[]): string[] {
+  const occurrences = new Map<string, number>();
+  return values.map((value, index) => {
+    const key = valueKey(collection, value, index);
+    if (collection !== 'courses') return key;
+    const occurrence = occurrences.get(key) ?? 0;
+    occurrences.set(key, occurrence + 1);
+    return JSON.stringify([key, occurrence]);
+  });
+}
+
+function mergePeriodData(collection: 'exams' | 'tuition', incoming: unknown, current: any) {
+  if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) return undefined;
+  const entries = Object.entries(incoming).filter(([period, value]) => {
+    if (collection === 'exams' && (period === 'midterm' || period === 'final')) {
+      return Array.isArray(value) && value.length > 0;
+    }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    if (collection === 'tuition') return Array.isArray(value.details) && value.totals && typeof value.totals === 'object';
+    return Array.isArray(value.midterm) && Array.isArray(value.final);
+  });
+  if (entries.length === 0) return undefined;
+  return { ...current, ...Object.fromEntries(entries) };
+}
+
+function knownStudentName(value: unknown): string {
+  const name = normalizeIdentityPart(value);
+  return ['UNKNOWN', 'ERROR', 'CHƯA CẬP NHẬT'].includes(name) ? '' : name;
+}
+
+export function assertSameStudent(incoming: any, current: any): void {
+  if (!incoming || !current) return;
+  const incomingId = normalizeIdentityPart(incoming?.studentId);
+  const currentId = normalizeIdentityPart(current?.studentId);
+  const incomingName = knownStudentName(incoming?.name);
+  const currentName = knownStudentName(current?.name);
+  if ((currentId || currentName) && !(incomingId && currentId) && !(incomingName && currentName)) {
+    throw new Error('Không xác định được hồ sơ sinh viên của gói đồng bộ.');
+  }
+  const mismatch = incomingId && currentId
+    ? incomingId !== currentId
+    : incomingName && currentName && incomingName !== currentName;
+  if (mismatch) throw new Error('Dữ liệu Portal thuộc hồ sơ sinh viên khác.');
 }
 
 function removalChangeId(collection: ImportCollection, key: string): string {
@@ -121,21 +167,24 @@ export function buildRawImportPreview(
   for (const collection of COLLECTIONS) {
     const incomingValue = incoming?.[collection];
     if (collection === 'exams' || collection === 'tuition') {
-      if (incomingValue === undefined) continue;
       const currentValue = current?.[collection];
-      changes.push({ id: `${collection}:0`, collection, index: 0, label: valueLabel(collection, incomingValue), status: currentValue === undefined ? 'add' : isSameValue(currentValue, incomingValue) ? 'unchanged' : 'update' });
+      const merged = mergePeriodData(collection, incomingValue, currentValue);
+      if (!merged) continue;
+      changes.push({ id: `${collection}:0`, collection, index: 0, label: valueLabel(collection, incomingValue), status: currentValue === undefined ? 'add' : isSameValue(currentValue, merged) ? 'unchanged' : 'update' });
       continue;
     }
     if (!Array.isArray(incomingValue)) continue;
     const currentValues = Array.isArray(current?.[collection]) ? current[collection] : [];
-    const currentByKey = new Map(currentValues.map((value: any, index: number) => [valueKey(collection, value, index), value]));
+    const currentKeys = collectionKeys(collection, currentValues);
+    const incomingKeyList = collectionKeys(collection, incomingValue);
+    const currentByKey = new Map(currentValues.map((value: any, index: number) => [currentKeys[index], value]));
     const legacyRegistrationsByBase = collection === 'registrations'
       ? new Map(currentValues
         .filter((value: any) => !normalizeSemester(value?.semester))
         .map((value: any) => [registrationBaseKey(value), value]))
       : null;
     incomingValue.forEach((value: any, index: number) => {
-      const key = valueKey(collection, value, index);
+      const key = incomingKeyList[index];
       const currentValue = currentByKey.get(key)
         ?? (collection === 'registrations' ? legacyRegistrationsByBase?.get(registrationBaseKey(value)) : undefined);
       const hasRegistrationDuplicates = collection === 'registrations' && currentValues.filter((currentValue: any) => (
@@ -157,7 +206,7 @@ export function buildRawImportPreview(
 
     const isScopedRegistrationSnapshot = collection === 'registrations'
       && Boolean(incomingRegistrationScope)
-      && (incomingValue.length > 0 || isRegistrationSnapshotComplete(context.incomingMeta));
+      && isRegistrationSnapshotComplete(context.incomingMeta);
     if (isScopedRegistrationSnapshot && incomingValue.length === 0 && currentValues.length === 0) {
       changes.push({
         id: registrationSnapshotChangeId(incomingRegistrationScope),
@@ -173,7 +222,7 @@ export function buildRawImportPreview(
     if ((!isScopedRegistrationSnapshot && incomingValue.length === 0)
       || (collection !== 'grades' && collection !== 'registrations' && collection !== 'courses')) continue;
 
-    const incomingKeys = new Set(incomingValue.map((value: any, index: number) => valueKey(collection, value, index)));
+    const incomingKeys = new Set(incomingKeyList);
     const incomingRegistrationBases = collection === 'registrations'
       ? new Set(incomingValue.map(registrationBaseKey))
       : null;
@@ -183,7 +232,7 @@ export function buildRawImportPreview(
 
     const queuedRemovalKeys = new Set<string>();
     currentValues.forEach((value: any, index: number) => {
-      const key = valueKey(collection, value, index);
+      const key = currentKeys[index];
       const semester = collection === 'registrations' ? normalizeSemester(value?.semester) : '';
       const existsInIncoming = incomingKeys.has(key)
         || (collection === 'registrations'
@@ -212,6 +261,7 @@ export function buildRawImportPreview(
 }
 
 export function mergeSelectedRawImport(incoming: any, current: any, selectedIds: readonly string[]): any {
+  assertSameStudent(incoming, current);
   const selected = new Set(selectedIds);
   const next = { ...(current || {}) };
   const collectionNames = new Set<string>(COLLECTIONS);
@@ -219,22 +269,28 @@ export function mergeSelectedRawImport(incoming: any, current: any, selectedIds:
   // Preserve future scraper fields even before the import UI knows how to
   // render them. Known collections still follow the user's item selection.
   for (const [key, value] of Object.entries(incoming || {})) {
-    if (key !== 'name' && !collectionNames.has(key)) next[key] = value;
+    if (key !== 'name' && key !== 'studentId' && !collectionNames.has(key)) next[key] = value;
   }
   for (const collection of COLLECTIONS) {
     const incomingValue = incoming?.[collection];
     if (incomingValue === undefined) continue;
     if (collection === 'exams' || collection === 'tuition') {
-      if (selected.has(`${collection}:0`)) next[collection] = incomingValue;
+      const merged = mergePeriodData(collection, incomingValue, current?.[collection]);
+      if (merged && selected.has(`${collection}:0`)) next[collection] = merged;
       continue;
     }
     if (!Array.isArray(incomingValue)) continue;
     const currentCollection = Array.isArray(current?.[collection]) ? current[collection] : [];
-    const retainedCurrentCollection = currentCollection.filter((value: any, index: number) => (
-      !selected.has(removalChangeId(collection, valueKey(collection, value, index)))
-    ));
+    if (!selectedIds.some((id) => id.startsWith(`${collection}:`))) continue;
+    const currentKeys = collectionKeys(collection, currentCollection);
+    const incomingKeys = collectionKeys(collection, incomingValue);
+    const retainedKeys = currentKeys.filter((key) => !selected.has(removalChangeId(collection, key)));
+    const retainedCurrentCollection = currentCollection.filter((_, index) =>
+      !selected.has(removalChangeId(collection, currentKeys[index])),
+    );
     const merged = collection === 'registrations' ? dedupeRegistrations(retainedCurrentCollection) : [...retainedCurrentCollection];
-    const indexesByKey = new Map(merged.map((value: any, index: number) => [valueKey(collection, value, index), index]));
+    const mergedKeys = collection === 'registrations' ? collectionKeys(collection, merged) : retainedKeys;
+    const indexesByKey = new Map(mergedKeys.map((key, index) => [key, index]));
     const legacyRegistrationIndexes = collection === 'registrations'
       ? new Map(merged
         .map((value: any, index: number) => ({ value, index }))
@@ -243,7 +299,7 @@ export function mergeSelectedRawImport(incoming: any, current: any, selectedIds:
       : null;
     incomingValue.forEach((value: any, index: number) => {
       if (!selected.has(`${collection}:${index}`)) return;
-      const key = valueKey(collection, value, index);
+      const key = incomingKeys[index];
       const currentIndex = indexesByKey.get(key)
         ?? (collection === 'registrations' ? legacyRegistrationIndexes?.get(registrationBaseKey(value)) : undefined);
       if (currentIndex === undefined) {
@@ -256,7 +312,8 @@ export function mergeSelectedRawImport(incoming: any, current: any, selectedIds:
     });
     next[collection] = merged;
   }
-  return { ...next, name: incoming?.name || next.name };
+  if (normalizeIdentityPart(incoming?.studentId)) next.studentId = incoming.studentId;
+  return { ...next, name: (knownStudentName(incoming?.name) && incoming.name) || next.name };
 }
 
 export function getImportCollectionLabel(collection: ImportCollection): string {

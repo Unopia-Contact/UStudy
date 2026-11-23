@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import {
-  changePin, getFailCount, importBackupWithCurrentKey, readImportRollbackValue,
+  changePin, getFailCount, importBackupWithCurrentKey, IMPORT_ROLLBACK_STORAGE_KEY, readImportRollbackValue,
   readSecure, restoreLastImportRollback, saveSecure, setupPin, unlockBackupKey,
   verifyPin,
 } from '../../src/helpers/localStorage/save';
@@ -21,18 +21,18 @@ function rollback(data: Record<string, string>) {
   }));
 }
 
-it('[FINDING SEC-01] quota is swallowed by saveSecure', async () => {
+it('[REGRESSION SEC-01] saveSecure reports quota failures', async () => {
   const key = await setupPin('synthetic-audit');
   const original = localStorage.setItem.bind(localStorage);
   vi.spyOn(localStorage, 'setItem').mockImplementation((name, value) => {
     if (name === 'raw_student_db') throw new DOMException('Synthetic quota', 'QuotaExceededError');
     original(name, value);
   });
-  await expect(saveSecure('raw_student_db', { audit: true }, key)).resolves.toBeUndefined();
+  await expect(saveSecure('raw_student_db', { audit: true }, key)).rejects.toThrow('Synthetic quota');
   expect(localStorage.getItem('raw_student_db')).toBeNull();
 });
 
-it('[FINDING SEC-01] a corrupt second backup item leaves the first item imported', async () => {
+it('[REGRESSION SEC-01] a corrupt selected backup item leaves the entire batch untouched', async () => {
   const backupKey = await setupPin('backup-audit');
   await saveSecure('raw_student_db', { audit: 'incoming' }, backupKey);
   await saveSecure('saved_schedules', [], backupKey);
@@ -42,7 +42,7 @@ it('[FINDING SEC-01] a corrupt second backup item leaves the first item imported
   const current = await setupPin('current-audit');
   await saveSecure('raw_student_db', { audit: 'original' }, current);
   await expect(importBackupWithCurrentKey(data, 'backup-audit', current)).rejects.toThrow();
-  expect(await readSecure('raw_student_db', current, null)).toEqual({ audit: 'incoming' });
+  expect(await readSecure('raw_student_db', current, null)).toEqual({ audit: 'original' });
 });
 
 it('[CONTROL] wrong backup password changes nothing', async () => {
@@ -63,7 +63,7 @@ it('[FINDING SEC-03] old envelope decrypts data written after password change', 
   expect(await readSecure('raw_student_db', recovered!, null)).toEqual({ audit: 'new-data' });
 });
 
-it('[FINDING SEC-05] restore combines a foreign v2 ciphertext with current envelope', async () => {
+it('[REGRESSION SEC-05] restore rejects a snapshot from a different vault', async () => {
   const oldKey = await setupPin('audit-first-vault');
   await saveSecure('raw_student_db', { audit: 'first-vault' }, oldKey);
   const old = snapshot();
@@ -71,12 +71,11 @@ it('[FINDING SEC-05] restore combines a foreign v2 ciphertext with current envel
   const current = await setupPin('audit-second-vault');
   await saveSecure('raw_student_db', { audit: 'second-vault' }, current);
   rollback(old);
-  expect(await restoreLastImportRollback()).toBe(true);
-  await expect(readSecure('raw_student_db', current, null)).rejects.toBeDefined();
-  expect(await readSecure('raw_student_db', oldKey, null)).toEqual({ audit: 'first-vault' });
+  expect(await restoreLastImportRollback(current)).toBe(false);
+  expect(await readSecure('raw_student_db', current, null)).toEqual({ audit: 'second-vault' });
 });
 
-it('[FINDING SEC-05] quota during restore loses the pre-restore values', async () => {
+it('[REGRESSION SEC-05] quota during restore keeps the pre-restore values and undo point', async () => {
   localStorage.setItem('audit-original', 'must-survive');
   rollback({ 'audit-first': 'new', 'audit-second': 'blocked' });
   const original = localStorage.setItem.bind(localStorage);
@@ -85,14 +84,15 @@ it('[FINDING SEC-05] quota during restore loses the pre-restore values', async (
     original(name, value);
   });
   expect(await restoreLastImportRollback()).toBe(false);
-  expect(localStorage.getItem('audit-original')).toBeNull();
-  expect(localStorage.getItem('audit-first')).toBe('new');
+  expect(localStorage.getItem('audit-original')).toBe('must-survive');
+  expect(localStorage.getItem('audit-first')).toBeNull();
+  expect(localStorage.getItem(IMPORT_ROLLBACK_STORAGE_KEY)).not.toBeNull();
 });
 
-it('[FINDING SEC-05] v2 snapshot reader accepts unauthenticated JSON for a secure key', async () => {
+it('[REGRESSION SEC-05] v2 snapshot reader requires encrypted academic data', async () => {
   const key = await setupPin('synthetic-audit');
   rollback({ ...snapshot(), raw_student_db: JSON.stringify({ audit: 'plain-injection' }) });
-  expect(await readImportRollbackValue('raw_student_db', key, null)).toEqual({ audit: 'plain-injection' });
+  await expect(readImportRollbackValue('raw_student_db', key, null)).rejects.toThrow();
 });
 
 it('[FINDING SEC-08] authentic ciphertext is accepted under a different storage name', async () => {

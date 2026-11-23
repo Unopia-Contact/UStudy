@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { X509Certificate } from 'node:crypto';
+import { runInNewContext } from 'node:vm';
 
 import { describe, expect, it } from 'vitest';
 import { isSupportedPortalOrigin } from '../../../src/portal-sync/protocol';
@@ -10,6 +11,45 @@ async function readJson(path: string): Promise<any> {
 }
 
 describe('Portal sync extension contract', () => {
+  it('keeps concurrent checkpoints and queues their completed packages independently', async () => {
+    const makeStorage = (data: Record<string, unknown>) => ({
+      async get(keys: string | string[]) {
+        return structuredClone(Object.fromEntries((Array.isArray(keys) ? keys : [keys]).map((key) => [key, data[key]])));
+      },
+      async set(values: Record<string, unknown>) {
+        Object.assign(data, structuredClone(values));
+      },
+      async remove(key: string) { delete data[key]; },
+    });
+    const sessions = Object.fromEntries([1, 2].map((id) => [id, {
+      id: String(id), currentRequestId: `request-${id}`, selectedSources: ['grades'], completedSources: [],
+    }]));
+    const session = makeStorage({ ustudySyncSessions: sessions });
+    const event = { addListener() {} };
+    const context = {
+      URL,
+      importScripts() {},
+      USTUDY_EXTENSION_CONFIG: await readJson('src/portal-sync/config.json'),
+      chrome: {
+        storage: { session, local: makeStorage({}) },
+        runtime: { onInstalled: event, onStartup: event, onMessage: event },
+        tabs: { query: async () => [], onRemoved: event },
+        action: { async setBadgeText() {}, async setBadgeBackgroundColor() {} },
+      },
+    };
+    const source = await readFile(resolve('extension/background.js'), 'utf8');
+    const extension = runInNewContext(`${source}\n({ saveSourceCheckpoint, storeSyncResult, readPendingImports })`, context);
+    const portalUrl = 'https://new-portal1.hcmus.edu.vn/SinhVien.aspx';
+    await Promise.all([1, 2].map((tabId) => extension.saveSourceCheckpoint(
+      { tab: { id: tabId, url: portalUrl } }, `request-${tabId}`,
+      { source: 'grades', rawPatch: { grades: [{ id: String(tabId) }] } },
+    )));
+    await Promise.all([1, 2].map((tabId) => extension.storeSyncResult({ raw: {} }, 'manual', tabId, `request-${tabId}`)));
+    const pending = await extension.readPendingImports();
+    expect(pending.map((entry: { packet: { raw: { grades: Array<{ id: string }> } } }) => entry.packet.raw.grades[0].id))
+      .toEqual(['1', '2']);
+  });
+
   it('accepts only HTTPS Portal content origins', () => {
     expect(isSupportedPortalOrigin('https://new-portal.hcmus.edu.vn')).toBe(true);
     expect(isSupportedPortalOrigin('https://new-portal1.hcmus.edu.vn')).toBe(true);

@@ -60,7 +60,7 @@ export function TuitionDeskTopCardList({
                             Số Tiết
                         </th>
                         <th className="px-2 py-2.5 text-[10px] text-gray-700 uppercase tracking-wide text-center font-semibold">
-                            <Tooltip text="Số tín chỉ tính học phí (có thể khác số TC thực tế)">
+                            <Tooltip text="TC HP = Tổng số tiết (LT + TH + BT) ÷ 15">
                                 <span className="cursor-help flex items-center gap-0.5 justify-center">
                                     TC<br />HP
                                     <Info className="w-3 h-3 text-gray-400" />

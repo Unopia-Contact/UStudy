@@ -378,7 +378,7 @@ dữ liệu học tập, kể cả khi các danh sách trong gói đều rỗng.
 | --- | --- | --- |
 | `__pbkdf2_salt__` | local | Salt hiện tại, Base64 |
 | `__pin_verify__` | local, secure | Blob kiểm tra PIN |
-| `__ustudy_last_import_rollback__` | local, plain | Snapshot toàn bộ localStorage trước import gần nhất |
+| `__ustudy_last_import_rollback__` | local, plain | Tham chiếu snapshot trước lần nhập thành công gần nhất |
 | `__ustudy_import_history__` | local, plain | Tối đa 20 bản tóm tắt import |
 | `curent_page` | session | Route gần nhất; giữ nguyên lỗi chính tả vì là key đã phát hành |
 | `__fail_count__` | session | Số lần nhập PIN sai trong phiên |
@@ -392,7 +392,9 @@ interface ImportRollbackSnapshot {
   createdAt: string;
   source: string;
   summary: { added: number; updated: number; removed?: number; unchanged: number };
-  data: Record<string, string>; // nguyên giá trị localStorage trước import
+  data: Record<string, string>; // dữ liệu ghi trực tiếp trong snapshot cũ
+  storage?: 'indexeddb';
+  snapshotId?: string; // ID trong kho snapshots của IndexedDB ustudy-import-rollback
   details?: Array<{
     source: string;
     added: number;
@@ -406,8 +408,8 @@ interface ImportRollbackSnapshot {
 
 ## 7. Các điểm lệch hiện có
 
-- `STORAGE_KEYS.APP_NOTIFICATION` đang trỏ đến `app_notification`, nhưng
-  `NotificationContext` thực tế đọc/ghi `app_notifications`.
+- `app_notifications` là khóa thông báo hiện tại. Trình nhập vẫn nhận tên cũ
+  `app_notification` trong tệp sao lưu.
 - `SECURE_DATA_KEYS` có một số key hiện vẫn được ghi bằng `savePlain`, gồm
   `gpa_projected_grades`, `app_notifications`, `solver_preferences`,
   `allowed_classes_map` và `saved_schedules`. Không suy luận rằng một key đã mã

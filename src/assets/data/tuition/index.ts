@@ -23,7 +23,7 @@ export const DEFAULT_TUITION_PROFILE_ID: TuitionProfileId = 'tuition-cs2';
 import { APP_CONFIG } from '../../../config/appConfig';
 
 export const ACADEMIC_YEARS = [
-    { id: '2026-2027', name: 'Năm học 2026-2027 (dự báo)' },
+    { id: '2026-2027', name: 'Năm học 2026-2027' },
     { id: '2025-2026', name: 'Năm học 2025-2026' },
     { id: '2024-2025', name: 'Năm học 2024-2025' },
 ];

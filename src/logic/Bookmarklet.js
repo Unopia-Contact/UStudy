@@ -625,8 +625,16 @@
         return rows.filter(Boolean);
     }
 
+    function getLatestTuitionPeriod(tuition) {
+        const period = Object.keys(tuition).filter(key => /^\d{2}-\d{2}\/\d$/.test(key)).sort().at(-1);
+        if (!period) return null;
+        const [year, sem] = period.split('/');
+        return { year, sem };
+    }
+
     async function fetchVirtualPage(url) {
         const res = await fetch(url);
+        if (!res.ok) throw new Error(`Portal trả về HTTP ${res.status}.`);
         const text = await res.text();
         return parseHTML(text);
     }
@@ -715,8 +723,8 @@
         showLoading("Đang khởi tạo & Lấy dữ liệu cơ bản...");
 
         let gradeData = { name: "Unknown", grades: [] };
-        let tuitionData = { details: [], totals: {}, year: "", sem: "" };
-        let examData = { midterm: [], final: [] };
+        let tuitionData = {};
+        let examData = {};
         let courses = [];
         let registrations = [];
         let registrationPeriod = { year: '', sem: '', semester: '' };
@@ -737,7 +745,8 @@
         // Lấy Học phí
         const tuitionTask = config.getTuition ? (async () => {
             showLoading("Bắt đầu quét Học phí toàn diện...");
-            let docHocPhiBase = await fetchVirtualPage(URLS.HOCPHI);
+            let docHocPhiBase = await fetchVirtualPage(URLS.HOCPHI).catch(() => null);
+            if (!docHocPhiBase) return tuitionData;
 
             // B1: Đào danh sách NH/HK học phí
             const tuitionPeriods = [];
@@ -768,20 +777,19 @@
 
                 try {
                     // Nhịp 1: Lấy ViewState
-                    const viewState = docHocPhiBase.getElementById('__VIEWSTATE')?.value;
-                    const viewStateGen = docHocPhiBase.getElementById('__VIEWSTATEGENERATOR')?.value;
-                    const eventValidation = docHocPhiBase.getElementById('__EVENTVALIDATION')?.value;
-
-                    if (!viewState) {
+                    if (!docHocPhiBase.getElementById('__VIEWSTATE')?.value) {
                         // Nếu chưa có docHocPhiBase hoàn chỉnh (ví dụ do cache), fetch lại layout
                         docHocPhiBase = await fetchVirtualPage(URLS.HOCPHI);
-                        continue;
                     }
 
                     const formData = new URLSearchParams();
                     formData.append('__EVENTTARGET', '');
                     formData.append('__EVENTARGUMENT', '');
-                    formData.append('__VIEWSTATE', viewState);
+                    const tuitionViewState = docHocPhiBase.getElementById('__VIEWSTATE')?.value;
+                    if (!tuitionViewState) continue;
+                    const viewStateGen = docHocPhiBase.getElementById('__VIEWSTATEGENERATOR')?.value;
+                    const eventValidation = docHocPhiBase.getElementById('__EVENTVALIDATION')?.value;
+                    formData.append('__VIEWSTATE', tuitionViewState);
                     if (viewStateGen) formData.append('__VIEWSTATEGENERATOR', viewStateGen);
                     if (eventValidation) formData.append('__EVENTVALIDATION', eventValidation);
 
@@ -795,11 +803,13 @@
                         body: formData,
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
                     });
+                    if (!postRes.ok) throw new Error(`Portal trả về HTTP ${postRes.status}.`);
 
                     const finalTuitionDoc = parseHTML(await postRes.text());
                     const periodData = scrapeBackgroundData(finalTuitionDoc, 'TUITION');
 
-                    if (periodData && periodData.details.length > 0) {
+                    if (periodData?.details?.length > 0 &&
+                        (!periodData.year || !periodData.sem || `${periodData.year}/${periodData.sem}` === period)) {
                         allTuition[period] = periodData;
                     }
 
@@ -815,7 +825,7 @@
                 payload: {
                     source: 'tuition',
                     rawPatch: { tuition: tuitionData },
-                    metaPatch: { params: { tuition: { year: tuitionData.year || '', sem: tuitionData.sem || '' } } }
+                    metaPatch: { params: { tuition: getLatestTuitionPeriod(tuitionData) } }
                 }
             });
             return tuitionData;
@@ -824,7 +834,8 @@
         // 3. Xử lý Lịch thi (SONG SONG TOÀN DIỆN - mỗi cặp năm/kỳ độc lập nhau)
         const examTask = config.getExam ? (async () => {
             showLoading(`Đang khởi động tiến trình quét Lịch Thi toàn diện...`);
-            let docThiBase = await fetchVirtualPage(URLS.LICHTHI);
+            const docThiBase = await fetchVirtualPage(URLS.LICHTHI).catch(() => null);
+            if (!docThiBase) return examData;
 
             // B1: Đào list Năm học
             const yearOptions = [];
@@ -857,6 +868,7 @@
                     // NHỊP 1: Dọn đường (GET request - mỗi worker tự lấy ViewState riêng)
                     const targetUrl = `${URLS.LICHTHI}&nh=${year}&hk=${sem}`;
                     const getRes = await fetch(targetUrl);
+                    if (!getRes.ok) return null;
                     const prefilledDoc = parseHTML(await getRes.text());
 
                     const viewState = prefilledDoc.getElementById('__VIEWSTATE')?.value;
@@ -895,6 +907,7 @@
                         body: formData,
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
                     });
+                    if (!postRes.ok) return null;
 
                     const finalDoc = parseHTML(await postRes.text());
                     const partialData = scrapeBackgroundData(finalDoc, 'EXAM');
@@ -1056,7 +1069,7 @@
             source: IS_EXTENSION ? 'extension' : 'bookmarklet',
             scrapedAt: new Date().toISOString(),
             params: {
-                tuition: config.getTuition ? { year: tuitionData.year, sem: tuitionData.sem } : null,
+                tuition: config.getTuition ? getLatestTuitionPeriod(tuitionData) : null,
                 exam: config.getExam ? { year: config.examYear, sem: config.examSem } : null,
                 class: config.getClass ? { year: config.classYear, sem: config.classSem } : null,
                 registration: config.getReg ? registrationPeriod : null,

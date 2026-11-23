@@ -629,7 +629,10 @@ export function DataSourceCenter({ defaultExpanded = false }: { defaultExpanded?
         footer={(
           <>
             <button type="button" onClick={() => setIsUndoConfirmOpen(false)} className="h-9 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50">Hủy</button>
-            <button type="button" onClick={() => { void restoreLastImportRollback().then((restored) => { if (restored) window.location.reload(); }); }} className="h-9 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700">Hoàn tác toàn bộ</button>
+            <button type="button" onClick={async () => {
+              if (await restoreLastImportRollback(cryptoKey)) window.location.reload();
+              else addNotification({ title: 'Không thể hoàn tác', message: 'Không khôi phục được dữ liệu từ điểm hoàn tác.', type: 'error' });
+            }} className="h-9 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700">Hoàn tác toàn bộ</button>
           </>
         )}
       >

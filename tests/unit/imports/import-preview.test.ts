@@ -103,4 +103,34 @@ describe('raw import preview', () => {
     const merged = mergeSelectedRawImport({ customPortalBlock: { value: 1 } }, {}, []);
     expect(merged.customPortalBlock).toEqual({ value: 1 });
   });
+
+  it('keeps meetings that share a course and class code, including repeated entries', () => {
+    const first = { id: 'CSC10001', className: 'A', schedule: 'T2(1-3)', location: 'D207' };
+    const second = { ...first, schedule: 'T3(1-3)', location: 'D209' };
+    const incoming = { courses: [first, second, { ...second, enrolled: '12' }] };
+    const changes = buildRawImportPreview(incoming, {});
+    const merged = mergeSelectedRawImport(incoming, {}, changes.map(({ id }) => id));
+    expect(merged.courses).toEqual(incoming.courses);
+    expect(buildRawImportPreview(incoming, merged).map(({ status }) => status)).toEqual(['unchanged', 'unchanged', 'unchanged']);
+  });
+
+  it('does not discard existing exam or tuition periods when a scan returns a subset', () => {
+    const exam = { midterm: [], final: [{ id: 'TEST' }] };
+    const fee = { details: [], totals: { totalDue: '200000' } };
+    const current = { exams: { '25-26-1': exam }, tuition: { '25-26/1': fee } };
+    const incoming = { exams: { '26-27-1': exam }, tuition: { '26-27/1': fee } };
+    const changes = buildRawImportPreview(incoming, current);
+
+    expect(mergeSelectedRawImport(incoming, current, changes.map(({ id }) => id))).toMatchObject({
+      exams: { ...current.exams, ...incoming.exams },
+      tuition: { ...current.tuition, ...incoming.tuition },
+    });
+    expect(buildRawImportPreview({ exams: {}, tuition: null }, current)).toEqual([]);
+  });
+
+  it('rejects Portal packages for a different student before merging records', () => {
+    const current = { name: 'Sinh viên A', grades: [{ id: 'OLDER' }] };
+    expect(() => mergeSelectedRawImport({ name: 'Sinh viên B', grades: [{ id: 'NEW' }] }, current, ['grades:0']))
+      .toThrow('hồ sơ sinh viên khác');
+  });
 });

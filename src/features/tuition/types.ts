@@ -31,6 +31,7 @@ export interface TuitionCourse {
     credits: number;
     periods: number;
     tuitionCredits: number;
+    pricePerCredit?: number;
     tuitionFee: number;
     discount: number;
     support: number;
@@ -38,6 +39,8 @@ export interface TuitionCourse {
     otherFees: number;
     note: string;
 }
+
+export type TuitionDataSource = 'tuition_page' | 'registration' | 'grades' | 'none';
 
 export interface TuitionSummary {
     semester: string;

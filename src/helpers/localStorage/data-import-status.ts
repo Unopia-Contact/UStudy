@@ -1,5 +1,5 @@
 import { STORAGE_KEYS } from '../../config/storageKeys';
-import { readPlain, savePlain } from './save';
+import { readPlain } from './save';
 
 export type DataImportSource = 'bookmarklet' | 'extension' | 'mobile-app' | 'json' | 'optical';
 
@@ -8,11 +8,8 @@ interface DataImportStatus {
     source: DataImportSource;
 }
 
-export function recordDataImport(source: DataImportSource): void {
-    savePlain<DataImportStatus>(STORAGE_KEYS.LAST_DATA_IMPORT, {
-        at: new Date().toISOString(),
-        source,
-    });
+export function buildDataImportStatus(source: DataImportSource): string {
+    return JSON.stringify({ at: new Date().toISOString(), source } satisfies DataImportStatus);
 }
 
 export function hasImportedData(): boolean {

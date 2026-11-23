@@ -35,7 +35,7 @@ const DEFAULT_STATS = {
   lastError: null,
 };
 const activePortalRuns = new Map();
-const checkpointQueues = new Map();
+let storageQueue = Promise.resolve();
 
 function getRandomPortalLoginUrl() {
   const { urlTemplate, shardMin, shardMax } = CONFIG.portalLogin;
@@ -48,13 +48,9 @@ function getSelectedSources(settings) {
     .filter((source) => source === 'grades' || Boolean(settings.sources[source]));
 }
 
-function enqueueCheckpoint(tabId, operation) {
-  const previous = checkpointQueues.get(tabId) || Promise.resolve();
-  const next = previous.catch(() => undefined).then(operation);
-  checkpointQueues.set(tabId, next);
-  void next.finally(() => {
-    if (checkpointQueues.get(tabId) === next) checkpointQueues.delete(tabId);
-  });
+function enqueueStorageMutation(operation) {
+  const next = storageQueue.then(operation, operation);
+  storageQueue = next;
   return next;
 }
 
@@ -72,35 +68,34 @@ function isPendingImportFresh(pending) {
   return Boolean(pending?.id && pending?.packet && Number.isFinite(createdAt) && Date.now() - createdAt <= PENDING_IMPORT_TTL_MS);
 }
 
-async function clearPendingImport() {
-  await Promise.all([
-    chrome.storage.session.remove(STORAGE_KEYS.pendingImport),
-    chrome.storage.local.remove(STORAGE_KEYS.pendingImport),
+async function readPendingImports() {
+  const [session, local] = await Promise.all([
+    chrome.storage.session.get(STORAGE_KEYS.pendingImport),
+    chrome.storage.local.get(STORAGE_KEYS.pendingImport),
   ]);
-  await chrome.action.setBadgeText({ text: '' });
+  const current = session[STORAGE_KEYS.pendingImport];
+  const entries = Array.isArray(current) ? current : [current];
+  const byId = new Map();
+  for (const entry of [...entries, local[STORAGE_KEYS.pendingImport]]) {
+    if (isPendingImportFresh(entry) && !byId.has(entry.id)) byId.set(entry.id, entry);
+  }
+  return [...byId.values()];
 }
 
-async function readPendingImport() {
-  const sessionStored = await chrome.storage.session.get(STORAGE_KEYS.pendingImport);
-  const sessionPending = sessionStored[STORAGE_KEYS.pendingImport];
-  if (isPendingImportFresh(sessionPending)) return sessionPending;
-  if (sessionPending) await clearPendingImport();
+async function readPendingImport(ignoredIds = []) {
+  const ignored = new Set(Array.isArray(ignoredIds) ? ignoredIds : []);
+  const pending = await readPendingImports();
+  return pending.find(({ id }) => !ignored.has(id)) ?? null;
+}
 
-  // One-time migration for packets created by older extension versions.
-  const legacyStored = await chrome.storage.local.get(STORAGE_KEYS.pendingImport);
-  const legacyPending = legacyStored[STORAGE_KEYS.pendingImport];
-  if (!legacyPending) return null;
-  if (!isPendingImportFresh(legacyPending)) {
-    await clearPendingImport();
-    return null;
-  }
-  await chrome.storage.session.set({ [STORAGE_KEYS.pendingImport]: legacyPending });
+async function writePendingImports(pending) {
+  // Legacy local data must not reappear after a packet is acknowledged.
+  await chrome.storage.session.set({ [STORAGE_KEYS.pendingImport]: pending });
   await chrome.storage.local.remove(STORAGE_KEYS.pendingImport);
-  return legacyPending;
 }
 
 async function removeSyncSession(tabId) {
-  return enqueueCheckpoint(tabId, async () => {
+  return enqueueStorageMutation(async () => {
     const sessions = await readSyncSessions();
     delete sessions[tabId];
     await writeSyncSessions(sessions);
@@ -112,16 +107,8 @@ async function readAutoCooldowns() {
   return stored[STORAGE_KEYS.autoCooldowns] || {};
 }
 
-async function setAutoCooldown(tabId, cooldownMinutes) {
-  return enqueueCheckpoint(tabId, async () => {
-    const cooldowns = await readAutoCooldowns();
-    cooldowns[tabId] = Date.now() + cooldownMinutes * 60 * 1000;
-    await chrome.storage.session.set({ [STORAGE_KEYS.autoCooldowns]: cooldowns });
-  });
-}
-
 async function removeAutoCooldown(tabId) {
-  return enqueueCheckpoint(tabId, async () => {
+  return enqueueStorageMutation(async () => {
     const cooldowns = await readAutoCooldowns();
     delete cooldowns[tabId];
     await chrome.storage.session.set({ [STORAGE_KEYS.autoCooldowns]: cooldowns });
@@ -387,21 +374,23 @@ async function runPortalSync(sender, requestId, trigger = 'manual', documentInst
   const state = await getStoredState();
   const selectedSources = getSelectedSources(state.settings);
   const documentId = documentInstanceId || sender.documentId || null;
-  const activeRun = activePortalRuns.get(tabId);
-  if (activeRun?.documentId === documentId) return { requestId, skipped: true, reason: 'running' };
-
   let session;
-  await enqueueCheckpoint(tabId, async () => {
+  await enqueueStorageMutation(async () => {
+    if (activePortalRuns.get(tabId)?.documentId === documentId) return;
+    const cooldowns = trigger === 'auto' ? await readAutoCooldowns() : {};
     const sessions = await readSyncSessions();
     const existing = sessions[tabId];
     const isExpired = existing && Date.now() - new Date(existing.updatedAt).getTime() > SYNC_SESSION_TIMEOUT_MS;
-    if (existing && !isExpired && hasSameSourceSelection(existing, selectedSources)) {
+    if (existing && !isExpired && hasSameSourceSelection(existing, selectedSources)
+      && existing.academicYear === state.settings.academicYear && existing.semester === state.settings.semester) {
       session = { ...existing, currentRequestId: requestId, updatedAt: new Date().toISOString() };
     } else {
       session = {
         id: crypto.randomUUID(),
         tabId,
         selectedSources,
+        academicYear: state.settings.academicYear,
+        semester: state.settings.semester,
         completedSources: [],
         partialRaw: {},
         partialMeta: { params: {} },
@@ -411,34 +400,37 @@ async function runPortalSync(sender, requestId, trigger = 'manual', documentInst
         trigger: trigger === 'auto' ? 'auto' : 'manual',
       };
     }
+    if (trigger === 'auto' && session.completedSources.length === 0 && Number(cooldowns[tabId] || 0) > Date.now()) {
+      session = null;
+      return;
+    }
     sessions[tabId] = session;
     await writeSyncSessions(sessions);
+    activePortalRuns.set(tabId, { requestId, documentId });
   });
 
-  if (trigger === 'auto' && session.completedSources.length === 0) {
-    const cooldowns = await readAutoCooldowns();
-    if (Number(cooldowns[tabId] || 0) > Date.now()) {
-      await removeSyncSession(tabId);
-      return { requestId, skipped: true, reason: 'cooldown' };
-    }
-  }
-
-  activePortalRuns.set(tabId, { requestId, documentId });
+  if (session === undefined) return { requestId, skipped: true, reason: 'running' };
+  if (!session) return { requestId, skipped: true, reason: 'cooldown' };
   const runtime = buildRunnerRuntime(requestId, state.settings, session.completedSources);
 
-  await chrome.storage.local.set({ [STORAGE_KEYS.pendingSyncRequest]: false });
-  await chrome.scripting.executeScript({
-    target: { tabId },
-    world: 'MAIN',
-    func: (value) => { window.__USTUDY_PORTAL_SYNC_RUNTIME__ = value; },
-    args: [runtime],
-  });
+  try {
+    await chrome.storage.local.set({ [STORAGE_KEYS.pendingSyncRequest]: false });
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      world: 'MAIN',
+      func: (value) => { window.__USTUDY_PORTAL_SYNC_RUNTIME__ = value; },
+      args: [runtime],
+    });
+  } catch (error) {
+    if (activePortalRuns.get(tabId)?.requestId === requestId) activePortalRuns.delete(tabId);
+    throw error;
+  }
   void chrome.scripting.executeScript({
     target: { tabId },
     world: 'MAIN',
     files: ['portal-runner.js'],
   }).catch(async (error) => {
-    activePortalRuns.delete(tabId);
+    if (activePortalRuns.get(tabId)?.requestId === requestId) activePortalRuns.delete(tabId);
     await chrome.tabs.sendMessage(tabId, {
       type: 'USTUDY_RUNNER_ERROR',
       requestId,
@@ -462,7 +454,7 @@ async function saveSourceCheckpoint(sender, requestId, payload) {
     throw new Error('Nhóm dữ liệu checkpoint không hợp lệ.');
   }
 
-  return enqueueCheckpoint(tabId, async () => {
+  return enqueueStorageMutation(async () => {
     const sessions = await readSyncSessions();
     const session = sessions[tabId];
     if (!session || session.currentRequestId !== requestId || !session.selectedSources.includes(source)) {
@@ -485,7 +477,7 @@ async function saveSourceCheckpoint(sender, requestId, payload) {
 async function touchSyncSession(sender, requestId) {
   if (!sender.tab?.id) return { ignored: true };
   const tabId = sender.tab.id;
-  return enqueueCheckpoint(tabId, async () => {
+  return enqueueStorageMutation(async () => {
     const sessions = await readSyncSessions();
     const session = sessions[tabId];
     if (!session || session.currentRequestId !== requestId) return { ignored: true };
@@ -497,56 +489,57 @@ async function touchSyncSession(sender, requestId) {
 }
 
 async function storeSyncResult(packet, trigger = 'manual', tabId, requestId) {
-  let finalPacket = packet;
-  if (tabId) {
-    await (checkpointQueues.get(tabId) || Promise.resolve()).catch(() => undefined);
+  const { pendingImport, stats, openApp } = await enqueueStorageMutation(async () => {
     const sessions = await readSyncSessions();
     const session = sessions[tabId];
-    if (session && session.currentRequestId === requestId) {
-      finalPacket = {
-        ...packet,
-        raw: { ...(packet?.raw || {}), ...(session.partialRaw || {}) },
-        meta: {
-          ...(packet?.meta || {}),
-          ...(session.partialMeta || {}),
-          params: { ...(packet?.meta?.params || {}), ...(session.partialMeta?.params || {}) },
-        },
-      };
+    if (!session || session.currentRequestId !== requestId) {
+      throw new Error('Phiên đồng bộ đã thay đổi. Hãy đồng bộ lại.');
     }
-  }
-  if (!finalPacket?.raw || !Array.isArray(finalPacket.raw.grades)) throw new Error('Gói dữ liệu Portal không hợp lệ.');
-  const state = await getStoredState();
-  const now = new Date().toISOString();
-  const pendingImport = {
-    id: crypto.randomUUID(),
-    createdAt: now,
-    trigger: trigger === 'auto' ? 'auto' : 'manual',
-    packet: finalPacket,
-  };
-  const stats = {
-    ...state.stats,
-    successfulSyncs: state.stats.successfulSyncs + 1,
-    lastSyncedAt: now,
-    lastError: null,
-  };
+    const finalPacket = {
+      ...packet,
+      raw: { ...(packet?.raw || {}), ...(session.partialRaw || {}) },
+      meta: {
+        ...(packet?.meta || {}),
+        ...(session.partialMeta || {}),
+        params: { ...(packet?.meta?.params || {}), ...(session.partialMeta?.params || {}) },
+      },
+    };
+    if (!Array.isArray(finalPacket.raw.grades)) throw new Error('Gói dữ liệu Portal không hợp lệ.');
 
-  await Promise.all([
-    chrome.storage.session.set({ [STORAGE_KEYS.pendingImport]: pendingImport }),
-    chrome.storage.local.set({ [STORAGE_KEYS.stats]: stats }),
-  ]);
-  await chrome.action.setBadgeBackgroundColor({ color: '#004A98' });
-  await chrome.action.setBadgeText({ text: '1' });
-  if (tabId) {
-    activePortalRuns.delete(tabId);
+    const state = await getStoredState();
+    const createdAt = new Date().toISOString();
+    const id = session.id;
+    const pending = await readPendingImports();
+    if (!pending.some((entry) => entry.id === id)) {
+      pending.push({ id, createdAt, trigger: trigger === 'auto' ? 'auto' : 'manual', packet: finalPacket });
+      await writePendingImports(pending);
+    }
+
+    const storedStats = state.stats;
+    const stats = {
+      ...storedStats,
+      successfulSyncs: storedStats.successfulSyncs + Number(storedStats.lastCompletedSessionId !== id),
+      lastSyncedAt: createdAt,
+      lastCompletedSessionId: id,
+      lastError: null,
+    };
+    await chrome.storage.local.set({ [STORAGE_KEYS.stats]: stats });
     if (trigger === 'auto' || state.settings.mode === 'auto') {
-      await setAutoCooldown(tabId, state.settings.cooldownMinutes);
+      const cooldowns = await readAutoCooldowns();
+      cooldowns[tabId] = Date.now() + state.settings.cooldownMinutes * 60 * 1000;
+      await chrome.storage.session.set({ [STORAGE_KEYS.autoCooldowns]: cooldowns });
     }
-    await removeSyncSession(tabId);
-  }
+    delete sessions[tabId];
+    await writeSyncSessions(sessions);
+    activePortalRuns.delete(tabId);
+    await chrome.action.setBadgeBackgroundColor({ color: '#004A98' });
+    await chrome.action.setBadgeText({ text: String(pending.length) });
+    return { pendingImport: { id, createdAt }, stats, openApp: state.settings.openAppAfterSync };
+  });
 
-  if (state.settings.openAppAfterSync) await openOrFocusApp();
+  if (openApp) await openOrFocusApp();
   else await notifyAppTabs();
-  return { pendingImport: { id: pendingImport.id, createdAt: pendingImport.createdAt }, stats };
+  return { pendingImport, stats };
 }
 
 async function handleMessage(message, sender) {
@@ -569,23 +562,30 @@ async function handleMessage(message, sender) {
       if (!isPortalReadyUrl(sender.tab?.url)) throw new Error('Nguồn đồng bộ không hợp lệ.');
       return storeSyncResult(message.payload, message.trigger, sender.tab?.id, message.requestId);
     case 'SYNC_FAILED': {
-      if (sender.tab?.id) {
-        activePortalRuns.delete(sender.tab.id);
-      }
-      const state = await getStoredState();
-      await chrome.storage.local.set({
-        [STORAGE_KEYS.stats]: { ...state.stats, lastError: String(message.message || 'Đồng bộ thất bại.') },
+      return enqueueStorageMutation(async () => {
+        if (sender.tab?.id && activePortalRuns.get(sender.tab.id)?.requestId === message.requestId) {
+          activePortalRuns.delete(sender.tab.id);
+        }
+        const state = await getStoredState();
+        await chrome.storage.local.set({
+          [STORAGE_KEYS.stats]: { ...state.stats, lastError: String(message.message || 'Đồng bộ thất bại.') },
+        });
+        return { recorded: true };
       });
-      return { recorded: true };
     }
-    case 'GET_PENDING_IMPORT': {
-      return readPendingImport();
-    }
+    case 'GET_PENDING_IMPORT':
+      return readPendingImport(message.payload?.ignoredIds);
     case 'ACK_PENDING_IMPORT': {
-      const pending = await readPendingImport();
-      if (!pending || pending.id !== message.payload?.id) return { acknowledged: false };
-      await clearPendingImport();
-      return { acknowledged: true };
+      const acknowledged = await enqueueStorageMutation(async () => {
+        const pending = await readPendingImports();
+        const remaining = pending.filter(({ id }) => id !== message.payload?.id);
+        if (remaining.length === pending.length) return false;
+        await writePendingImports(remaining);
+        await chrome.action.setBadgeText({ text: remaining.length ? String(remaining.length) : '' });
+        return true;
+      });
+      if (acknowledged) await notifyAppTabs();
+      return { acknowledged };
     }
     default:
       throw new Error('Yêu cầu extension không được hỗ trợ.');
@@ -593,10 +593,15 @@ async function handleMessage(message, sender) {
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
-  const state = await getStoredState();
-  await chrome.storage.local.set({
-    [STORAGE_KEYS.settings]: state.settings,
-    [STORAGE_KEYS.stats]: state.stats,
+  await enqueueStorageMutation(async () => {
+    const state = await getStoredState();
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.settings]: state.settings,
+      [STORAGE_KEYS.stats]: state.stats,
+    });
+    const pending = await readPendingImports();
+    await writePendingImports(pending);
+    await chrome.action.setBadgeText({ text: pending.length ? String(pending.length) : '' });
   });
   await injectAppBridgeIntoOpenTabs();
 });

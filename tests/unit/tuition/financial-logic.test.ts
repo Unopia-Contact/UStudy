@@ -72,4 +72,26 @@ describe('FinancialLogic', () => {
     expect(result.summary.status).toBe('paid');
     expect(result.summary.amountDue).toBe(0);
   });
+
+  it.each(['700,000', '700.000 ₫', '700,000 VND'])('uses the actual Portal balance %s for a historical term', (total) => {
+    const result = FinancialLogic.calculateTuitionData(
+      '25-26/1',
+      undefined,
+      {
+        tuition: {
+          '25-26/1': {
+            total,
+            fee: '1,000,000',
+            details: [{ code: 'CSC10009', name: 'Database', fee: 1_000_000, actualFee: 0, credits: 1, periods: 15, tuitionCredits: 1 }],
+          },
+        },
+      },
+      { params: { registration: { year: '26-27', sem: 1 } } },
+      rates,
+      metadata,
+    );
+
+    expect(result.summary).toMatchObject({ status: 'partial', amountDue: 700_000, advancePayment: 300_000 });
+    expect(result.courses[0].actualFee).toBe(0);
+  });
 });

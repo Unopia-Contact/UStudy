@@ -88,7 +88,13 @@ export function Header({
   };
 
   const handleLogOutConfirm = async () => {
-    await clearAllStorage();
+    try {
+      await clearAllStorage();
+    } catch {
+      setShowLogoutModal(false);
+      addNotification({ title: 'Không thể xóa dữ liệu', message: 'Không xóa được dữ liệu lưu trên thiết bị. Vui lòng thử lại.', type: 'error' });
+      return;
+    }
     lock();
     addNotification({
       title: 'Đăng xuất thành công',

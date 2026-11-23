@@ -7,10 +7,11 @@ import { CryptoProvider, CACHE_POPULATED_EVENT, useCrypto } from './context/Cryp
 import { CampusProvider } from './context/CampusContext';
 import { DepartmentProvider } from './context/DepartmentContext';
 import { NotificationProvider, useAppNotification } from './context/NotificationContext';
-import { createImportRollbackSnapshot, readFromStorage, saveSecure, populateSecureCache } from './helpers/localStorage/save';
-import { recordDataImport } from './helpers/localStorage/data-import-status';
-import { processRawData } from './logic/dataProcessor';
-import { buildRawImportPreview, getImportCollectionLabel, mergeSelectedRawImport, type RawImportChange } from './logic/import-preview';
+import { commitImport, readFromStorage, populateSecureCache } from './helpers/localStorage/save';
+import { STORAGE_KEYS } from './config/storageKeys';
+import { buildAcademicStorageValues, encryptAcademicStorageValues } from './logic/academic-storage';
+import { buildDataImportStatus } from './helpers/localStorage/data-import-status';
+import { assertSameStudent, buildRawImportPreview, getImportCollectionLabel, mergeSelectedRawImport, type RawImportChange } from './logic/import-preview';
 import { mergeImportMetadata, type PortalDataSource } from './logic/import-metadata';
 import { requestPortalExtension } from './portal-sync/bridge';
 import { AnalyticsBootstrap } from './features/analytics/AnalyticsBootstrap';
@@ -34,6 +35,7 @@ interface PendingRawImport {
   selectedIds: string[];
   source: PortalImportTransport;
   extensionPendingId?: string;
+  expected: Record<string, string | null>;
 }
 
 interface ImportSummary {
@@ -61,7 +63,9 @@ interface ImportCollectionSummary {
 function AppContent() {
   const { addNotification } = useAppNotification();
   const { cryptoKey, unlock, refreshHasData, hasData } = useCrypto();
-  const [pendingData, setPendingData] = useState<any>(null);
+  const [pendingData, setPendingData] = useState<PendingRawImport | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const importInProgress = useRef(false);
   const [importPreview, setImportPreview] = useState<PendingRawImport | null>(null);
   const [isImportDetailsOpen, setIsImportDetailsOpen] = useState(false);
   const handledExtensionImports = useRef(new Set<string>());
@@ -132,23 +136,6 @@ function AppContent() {
     return Array.from(summaries.values());
   }, [importPreview]);
 
-  const saveImportedData = useCallback(async (raw: any, meta: any, key: CryptoKey, source: PortalImportTransport) => {
-    const { student, courses } = processRawData(raw);
-    await saveSecure('raw_student_db', raw, key);
-    await saveSecure('student_db_full', student, key);
-    await saveSecure('course_db_offline', courses, key);
-    if (meta) await saveSecure('import_meta', meta, key);
-
-    populateSecureCache('raw_student_db', raw);
-    populateSecureCache('student_db_full', student);
-    populateSecureCache('course_db_offline', courses);
-    if (meta) populateSecureCache('import_meta', meta);
-    recordDataImport(source);
-    window.dispatchEvent(new MessageEvent('message', { data: { type: CACHE_POPULATED_EVENT } }));
-    refreshHasData();
-    return student;
-  }, [refreshHasData]);
-
   const preparePortalImport = useCallback((payload: PortalSyncPacket, source: PortalImportTransport, suppressIfUnchanged = false, extensionPendingId?: string) => {
       const incomingVersion = payload.scraperVersion || payload.version || String(payload.meta?.scraperVersion || payload.meta?.version || '');
       if (incomingVersion && incomingVersion !== PORTAL_SCRAPER_VERSION) {
@@ -164,11 +151,23 @@ function AppContent() {
       }
       const currentRaw = readFromStorage<any>('raw_student_db', null);
       const currentMeta = readFromStorage<any>('import_meta', null);
+      const expected = Object.fromEntries([
+        STORAGE_KEYS.RAW_STUDENT_DB, STORAGE_KEYS.STUDENT_DB, STORAGE_KEYS.COURSE_DB_OFFLINE, STORAGE_KEYS.IMPORT_META,
+      ].map((key) => [key, localStorage.getItem(key)]));
+      try {
+        if (!currentRaw && expected.raw_student_db !== null) {
+          throw new Error('Dữ liệu đang được mở khóa hoặc không đọc được. Hãy thử lại khi dữ liệu đã sẵn sàng.');
+        }
+        assertSameStudent(payload.raw, currentRaw ?? readFromStorage(STORAGE_KEYS.STUDENT_DB, null));
+      } catch (error) {
+        addNotification({ title: 'Không thể nhập dữ liệu', message: (error as Error).message, type: 'error' });
+        return 'rejected';
+      }
       const changes = buildRawImportPreview(payload.raw, currentRaw, {
         incomingMeta: payload.meta,
         currentMeta,
       });
-      if (suppressIfUnchanged && changes.every((change) => change.status === 'unchanged')) return false;
+      if (suppressIfUnchanged && changes.every((change) => change.status === 'unchanged')) return 'unchanged';
       setIsImportDetailsOpen(false);
       setImportPreview({
         payload,
@@ -176,8 +175,9 @@ function AppContent() {
         selectedIds: changes.filter((change) => change.status !== 'unchanged').map((change) => change.id),
         source,
         extensionPendingId,
+        expected,
       });
-      return true;
+      return 'preview';
   }, [addNotification]);
 
   useEffect(() => {
@@ -206,15 +206,21 @@ function AppContent() {
   }, [preparePortalImport]);
 
   useEffect(() => {
+    if (importPreview || pendingData || isImporting) return;
     let active = true;
 
     async function consumePendingExtensionImport() {
-      const pendingImport = await requestPortalExtension<PendingPortalImport>('GET_PENDING_IMPORT');
-      if (!active || !pendingImport || handledExtensionImports.current.has(pendingImport.id)) return;
-      if (!isPortalSyncPacket(pendingImport.packet)) return;
-
-      handledExtensionImports.current.add(pendingImport.id);
-      preparePortalImport(pendingImport.packet, 'extension', pendingImport.trigger === 'auto', pendingImport.id);
+      while (active) {
+        const pendingImport = await requestPortalExtension<PendingPortalImport>('GET_PENDING_IMPORT', {
+          ignoredIds: Array.from(handledExtensionImports.current),
+        });
+        if (!active || !pendingImport || handledExtensionImports.current.has(pendingImport.id)) return;
+        handledExtensionImports.current.add(pendingImport.id);
+        if (!isPortalSyncPacket(pendingImport.packet)) continue;
+        const outcome = preparePortalImport(pendingImport.packet, 'extension', pendingImport.trigger === 'auto', pendingImport.id);
+        if (outcome === 'preview') return;
+        if (outcome === 'unchanged') await requestPortalExtension('ACK_PENDING_IMPORT', { id: pendingImport.id });
+      }
     }
 
     function handlePendingAvailable(event: MessageEvent) {
@@ -234,63 +240,73 @@ function AppContent() {
       window.removeEventListener('message', handlePendingAvailable);
       document.removeEventListener(PORTAL_EXTENSION_READY_EVENT, handleExtensionReady);
     };
-  }, [preparePortalImport]);
+  }, [preparePortalImport, importPreview, pendingData, isImporting]);
+
+  const applyPortalImport = useCallback(async (preview: PendingRawImport, key: CryptoKey) => {
+    const selected = new Set(preview.selectedIds);
+    const selectedChanges = preview.changes.filter((change) => selected.has(change.id));
+    const updatedSources = new Set<PortalDataSource>(selectedChanges.map((change) => change.collection));
+    const raw = mergeSelectedRawImport(preview.payload.raw, readFromStorage(STORAGE_KEYS.RAW_STUDENT_DB, null), preview.selectedIds);
+    const meta = mergeImportMetadata(readFromStorage(STORAGE_KEYS.IMPORT_META, null), preview.payload.meta, updatedSources);
+    const makeSummary = (changes: RawImportChange[], unchanged: number): ImportSummary => ({
+      added: changes.filter((change) => change.status === 'add').length,
+      updated: changes.filter((change) => change.status === 'update').length,
+      removed: changes.filter((change) => change.status === 'remove').length,
+      unchanged,
+    });
+    const summary = makeSummary(selectedChanges, preview.changes.filter((change) => change.status === 'unchanged').length);
+    const details = Array.from(updatedSources, (source) => ({
+      source,
+      ...makeSummary(
+        selectedChanges.filter((change) => change.collection === source),
+        preview.changes.filter((change) => change.collection === source && change.status === 'unchanged').length,
+      ),
+    }));
+    const source = { extension: 'UStudy Extension', 'mobile-app': 'UStudy Android', bookmarklet: 'Bookmarklet Portal' }[preview.source];
+    const values = buildAcademicStorageValues(raw);
+    const encrypted = await encryptAcademicStorageValues(values, meta, key);
+    await commitImport({ ...encrypted, [STORAGE_KEYS.LAST_DATA_IMPORT]: buildDataImportStatus(preview.source) },
+      { source, summary, details }, preview.expected);
+
+    for (const [storageKey, value] of Object.entries(values)) populateSecureCache(storageKey, value, encrypted[storageKey]);
+    if (meta) populateSecureCache(STORAGE_KEYS.IMPORT_META, meta, encrypted[STORAGE_KEYS.IMPORT_META]);
+    window.postMessage({ type: CACHE_POPULATED_EVENT }, window.location.origin);
+    refreshHasData();
+    addNotification({
+      title: 'Nhập dữ liệu thành công',
+      message: `Đã áp dụng ${selected.size} thay đổi cho ${values.student_db_full.name || 'sinh viên'}. Có thể hoàn tác trong Cài đặt.`,
+      type: 'success',
+    });
+    if (preview.extensionPendingId) {
+      void requestPortalExtension('ACK_PENDING_IMPORT', { id: preview.extensionPendingId });
+    }
+  }, [addNotification, refreshHasData]);
 
   const confirmImportPreview = useCallback(async () => {
-    if (!importPreview || importPreview.selectedIds.length === 0) return;
-    const currentRaw = readFromStorage<any>('raw_student_db', null);
-    const selectedChanges = importPreview.changes.filter((change) => importPreview.selectedIds.includes(change.id));
-    const updatedSources = new Set(selectedChanges.map((change) => change.collection as PortalDataSource));
-    const currentMeta = readFromStorage<any>('import_meta', null);
-    const payload = {
-      ...importPreview.payload,
-      raw: mergeSelectedRawImport(importPreview.payload.raw, currentRaw, importPreview.selectedIds),
-      meta: mergeImportMetadata(currentMeta, importPreview.payload.meta, updatedSources),
-    };
-    const selectedCount = importPreview.selectedIds.length;
-    const summary: ImportSummary = {
-      added: selectedChanges.filter((change) => change.status === 'add').length,
-      updated: selectedChanges.filter((change) => change.status === 'update').length,
-      removed: selectedChanges.filter((change) => change.status === 'remove').length,
-      unchanged: importPreview.changes.filter((change) => change.status === 'unchanged').length,
-    };
-    const details = Array.from(updatedSources).map((source) => {
-      const sourceChanges = selectedChanges.filter((change) => change.collection === source);
-      return {
-        source,
-        added: sourceChanges.filter((change) => change.status === 'add').length,
-        updated: sourceChanges.filter((change) => change.status === 'update').length,
-        removed: sourceChanges.filter((change) => change.status === 'remove').length,
-        unchanged: importPreview.changes.filter((change) => change.collection === source && change.status === 'unchanged').length,
-      };
-    });
-
-    const importSourceLabel = importPreview.source === 'extension'
-      ? 'UStudy Extension'
-      : importPreview.source === 'mobile-app'
-        ? 'UStudy Android'
-        : 'Bookmarklet Portal';
-    if (!await createImportRollbackSnapshot(importSourceLabel, summary, details)) {
-      setImportPreview(null);
-      setIsImportDetailsOpen(false);
-      addNotification({ title: 'Không thể nhập dữ liệu', message: 'Không đủ dung lượng để lưu điểm hoàn tác. Dữ liệu hiện tại chưa bị thay đổi.', type: 'error' });
-      return;
-    }
-
-    setImportPreview(null);
-    setIsImportDetailsOpen(false);
-
+    if (!importPreview?.selectedIds.length || importInProgress.current) return;
     if (!cryptoKey) {
-      setPendingData({ ...payload, summary, source: importPreview.source, extensionPendingId: importPreview.extensionPendingId });
+      setPendingData(importPreview);
+      setImportPreview(null);
       return;
     }
 
-    const student = await saveImportedData(payload.raw, payload.meta, cryptoKey, importPreview.source);
-    if (importPreview.extensionPendingId) {
-      await requestPortalExtension('ACK_PENDING_IMPORT', { id: importPreview.extensionPendingId });
+    importInProgress.current = true;
+    setIsImporting(true);
+    try {
+      await applyPortalImport(importPreview, cryptoKey);
+      setImportPreview((current) => current === importPreview ? null : current);
+      setIsImportDetailsOpen(false);
+    } catch (error) {
+      addNotification({
+        title: 'Không thể nhập dữ liệu',
+        message: error instanceof Error ? error.message : 'Vui lòng thử lại.',
+        type: 'error',
+      });
+    } finally {
+      importInProgress.current = false;
+      setIsImporting(false);
     }
-    addNotification({ title: 'Nhập dữ liệu thành công', message: `Đã áp dụng ${selectedCount} thay đổi cho ${student.name}: thêm ${summary.added}, cập nhật ${summary.updated}, xóa ${summary.removed}, trùng ${summary.unchanged}. Có thể hoàn tác trong Cài đặt.`, type: 'success' });
-  }, [addNotification, cryptoKey, importPreview, saveImportedData]);
+  }, [addNotification, applyPortalImport, cryptoKey, importPreview]);
 
   const togglePreviewItem = useCallback((id: string, checked: boolean) => {
     setImportPreview((current) => current ? {
@@ -316,13 +332,8 @@ function AppContent() {
         <SecurityLock
           setupMode={!hasData}
           onUnlock={async (key) => {
+            await applyPortalImport(pendingData, key);
             unlock(key);
-            const student = await saveImportedData(pendingData.raw, pendingData.meta, key, pendingData.source);
-            if (pendingData.extensionPendingId) {
-              await requestPortalExtension('ACK_PENDING_IMPORT', { id: pendingData.extensionPendingId });
-            }
-            const summary: ImportSummary | undefined = pendingData.summary;
-            addNotification({ title: 'Nhập dữ liệu thành công', message: `Dữ liệu đã được mã hóa và sẵn sàng cho ${student.name}.${summary ? ` Thêm ${summary.added}, cập nhật ${summary.updated}, xóa ${summary.removed}, trùng ${summary.unchanged}.` : ''} Có thể hoàn tác trong Cài đặt.`, type: 'success' });
             setPendingData(null);
           }}
         />
@@ -347,7 +358,7 @@ function AppContent() {
               {isImportDetailsOpen ? <ChevronUp className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               {isImportDetailsOpen ? 'Thu gọn' : 'Xem chi tiết'}
             </button>
-            <button type="button" onClick={confirmImportPreview} disabled={!importPreview?.selectedIds.length} className="ustudy-button-primary">Nhập {importPreview?.selectedIds.length ?? 0} thay đổi</button>
+            <button type="button" onClick={confirmImportPreview} disabled={isImporting || !importPreview?.selectedIds.length} className="ustudy-button-primary">Nhập {importPreview?.selectedIds.length ?? 0} thay đổi</button>
           </>
         )}
       >

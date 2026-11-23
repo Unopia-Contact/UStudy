@@ -10,7 +10,7 @@ import {
 } from '../../helpers/localStorage/save';
 
 interface SecurityLockProps {
-    onUnlock: (key: any) => void;
+    onUnlock: (key: any) => void | Promise<void>;
     setupMode?: boolean;
     customVerify?: (pin: string) => Promise<boolean>;
     customTitle?: string;
@@ -351,7 +351,7 @@ export const SecurityLock: React.FC<SecurityLockProps> = ({ onUnlock, setupMode 
         setIsVerifying(true);
         try {
             const key = await setupPin(password);
-            onUnlock(key);
+            await onUnlock(key);
         } catch (err: any) {
             if (!window.crypto || !window.crypto.subtle) {
                 setError('Môi trường không bảo mật (HTTP). Vui lòng dùng App (APK) hoặc HTTPS để mã hóa.');
@@ -373,31 +373,34 @@ export const SecurityLock: React.FC<SecurityLockProps> = ({ onUnlock, setupMode 
             return;
         }
 
-        if (customVerify) {
-            const isValid = await customVerify(password);
-            if (isValid) {
-                onUnlock(null);
+        try {
+            if (customVerify) {
+                if (await customVerify(password)) await onUnlock(null);
+                else {
+                    triggerShake();
+                    setError('Mật khẩu không chính xác với file sao lưu.');
+                    setIsVerifying(false);
+                }
+                return;
+            }
+
+            const key = await verifyPin(password);
+            if (key) {
+                resetFailCount();
+                await onUnlock(key);
             } else {
+                incrementFailCount();
+                const remaining = getLockoutSeconds();
+                setLockoutSeconds(remaining);
+                setPassword('');
                 triggerShake();
-                setError('Mật khẩu không chính xác với file sao lưu.');
+                setError(remaining > 0
+                    ? `Sai mật khẩu quá nhiều lần. Vui lòng thử lại sau ${remaining} giây.`
+                    : 'Mật khẩu không chính xác. Vui lòng thử lại.');
                 setIsVerifying(false);
             }
-            return;
-        }
-
-        const key = await verifyPin(password);
-        if (key) {
-            resetFailCount();
-            onUnlock(key);
-        } else {
-            incrementFailCount();
-            const remaining = getLockoutSeconds();
-            setLockoutSeconds(remaining);
-            setPassword('');
-            triggerShake();
-            setError(remaining > 0
-                ? `Sai mật khẩu quá nhiều lần. Vui lòng thử lại sau ${remaining} giây.`
-                : 'Mật khẩu không chính xác. Vui lòng thử lại.');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Không thể áp dụng dữ liệu. Vui lòng thử lại.');
             setIsVerifying(false);
         }
     }, [password, isLocked, isVerifying, onUnlock, customVerify]);
@@ -415,8 +418,12 @@ export const SecurityLock: React.FC<SecurityLockProps> = ({ onUnlock, setupMode 
 
     const handleForgotPin = async () => {
         if (window.confirm('Hành động này sẽ xóa toàn bộ dữ liệu hiện tại. Bạn có chắc chắn?')) {
-            await clearAllStorage();
-            window.location.reload();
+            try {
+                await clearAllStorage();
+                window.location.reload();
+            } catch {
+                setError('Không xóa được dữ liệu lưu trên thiết bị. Vui lòng thử lại.');
+            }
         }
     };
 

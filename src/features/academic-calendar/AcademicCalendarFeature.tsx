@@ -1,4 +1,3 @@
-import { CalendarClock, CircleCheck, CircleDashed } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getAcademicCalendar, getAcademicCalendars } from '../../assets/data/academic-calendar';
 import { useDepartmentData } from '../../context/DepartmentContext';
@@ -53,15 +52,6 @@ export function AcademicCalendarFeature() {
     }
 
     const currentWeek = position?.currentWeek;
-    const status = position?.state === 'current'
-        ? { icon: CircleCheck, label: `Đang ở tuần ${currentWeek?.index}`, className: 'text-emerald-700 bg-emerald-50' }
-        : position?.state === 'upcoming'
-            ? { icon: CalendarClock, label: 'Kế hoạch sắp bắt đầu', className: 'text-[#004A98] bg-blue-50' }
-            : position?.state === 'finished'
-                ? { icon: CircleCheck, label: 'Năm học đã kết thúc', className: 'text-gray-600 bg-gray-100' }
-                : { icon: CircleDashed, label: 'Không xác định tuần hiện tại', className: 'text-gray-600 bg-gray-100' };
-    const StatusIcon = status.icon;
-
     return (
         <section className="mt-5 space-y-6">
             <AcademicCalendarToolbar

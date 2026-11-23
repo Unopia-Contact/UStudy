@@ -3,9 +3,7 @@ import { useStudentDb } from '../../../hooks/useStudentDb';
 import { useDepartmentData } from '../../../context/DepartmentContext';
 import { readFromStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
-import { getTuitionDeadline } from '../../../config/tuitionDeadlines';
 import { FinancialLogic } from '../services/financial-logic';
-import type { TuitionCourse, TuitionSummary } from '../types';
 import { useCampus } from '../../../context/CampusContext';
 
 export function useTuitionCalculator(selectedSemesterName: string) {
@@ -28,13 +26,6 @@ export function useTuitionCalculator(selectedSemesterName: string) {
             defaultCampusId,
         );
 
-        // Omit the 'source' from the returned object to match previous hook signature (or keep it, it's fine)
-        return {
-            courses: result.courses,
-            summary: result.summary,
-            isDataAvailable: result.isDataAvailable,
-            registrationSemesterName: result.registrationSemesterName,
-            missingMetaCourses: result.missingMetaCourses
-        };
+        return result;
     }, [selectedSemesterName, registrations, tuitionRates, allCoursesMeta, defaultCampusId]);
 }

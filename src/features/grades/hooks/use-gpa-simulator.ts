@@ -22,7 +22,7 @@ function readProjectedGrades(): {
     grades: Record<string, number>;
     legacyGrades: Record<string, number>;
 } {
-    const saved = readPlain<unknown>(STORAGE_KEYS.PROJECTED_GRADES, {});
+    const saved = readFromStorage<unknown>(STORAGE_KEYS.PROJECTED_GRADES, {});
     if (saved && typeof saved === 'object' && (saved as StoredProjectedGradesV2).version === 2) {
         const grades = (saved as StoredProjectedGradesV2).grades ?? {};
         return {
@@ -151,6 +151,7 @@ export function useGPASimulator(
     const projectedPendingCourses = useMemo(() => {
         const newestByCode = new Map<string, {
             code: string;
+            name: string;
             credits: number;
             projectedGrade: number;
         }>();
@@ -164,6 +165,7 @@ export function useGPASimulator(
                 ) return;
                 newestByCode.set(course.code, {
                     code: course.code,
+                    name: course.name,
                     credits: course.credits,
                     projectedGrade: course.projectedGrade,
                 });
@@ -195,6 +197,7 @@ export function useGPASimulator(
         semesterGPA,
         cumulativeGPA,
         cumulativeGPA4,
+        projectedPendingCourses,
         totalSimCredits,
         createGradeAttemptKey,
     };

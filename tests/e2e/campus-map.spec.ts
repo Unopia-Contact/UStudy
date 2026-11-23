@@ -11,30 +11,35 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test('keeps CS2 overview while building and floor counts come from inventory', async ({ page }) => {
+test('keeps CS2 overview while building and floor controls come from inventory', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'This test uses the desktop building panel.');
   const runtimeErrors: string[] = [];
   page.on('pageerror', (error) => runtimeErrors.push(error.message));
-  await page.goto('/campus/map');
+  await page.goto('/campus/map', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Sơ đồ khuôn viên' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Danh sách tòa' })).toBeVisible();
   await expect(page.getByRole('img', { name: 'Sơ đồ khuôn viên cơ sở Đông Hòa' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Chọn Tòa F', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Chọn Tòa F', exact: true })).toHaveCount(1);
   await page.getByRole('button', { name: 'Chọn Nhà điều hành', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Nhà điều hành' })).toBeVisible();
   await expect(page.getByRole('img', { name: 'Sơ đồ khuôn viên cơ sở Đông Hòa' })).toBeVisible();
-  await page.getByRole('button', { name: '2', exact: true }).click();
+  const floor = page.getByRole('button', { name: 'Tầng 2', exact: true });
+  await floor.click();
+  await expect(floor).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('img', { name: 'Sơ đồ khuôn viên cơ sở Đông Hòa' })).toBeVisible();
-  await page.getByRole('button', { name: /Xem bản đồ tầng 2/ }).click();
-  await expect(page.getByText('Chưa có sơ đồ tầng')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Phòng 2.1' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Tầng này chưa có sơ đồ' })).toBeDisabled();
   expect(runtimeErrors).toEqual([]);
 });
 
-test('keeps the new B4.2 deep link without inventing a floor drawing', async ({ page }) => {
-  await page.goto('/campus/map?roomId=dong-hoa%2Fb4-2%2F6%2F2');
+test('keeps the new B4.2 deep link without inventing a floor drawing', async ({ page, isMobile }) => {
+  await page.goto('/campus/map?roomId=dong-hoa%2Fb4-2%2F6%2F2', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Sơ đồ Tòa B4.2 · Tầng 6' })).toBeVisible();
   await expect(page.getByText('Chưa có sơ đồ tầng')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Phòng 6.2' })).toBeVisible();
+  if (isMobile) {
+    await expect(page.getByRole('button', { name: 'Chọn phòng' })).toHaveText('6.2');
+  } else {
+    await expect(page.getByRole('button', { name: 'Phòng 6.2' })).toBeVisible();
+  }
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });

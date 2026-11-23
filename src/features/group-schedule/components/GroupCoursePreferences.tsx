@@ -82,7 +82,7 @@ export function GroupCoursePreferences(props: Props) {
                         </div>)}
                     </div>}
                     {summary && <button type="button" onClick={onClear} className="min-h-11 text-sm text-[#004A98] hover:underline">Bỏ ưu tiên lớp</button>}
-                </div> : <CourseSharingEditor courseId={courseId} subscribers={subscribers} members={members} value={sharing} onChange={onSharingChange} minimal />}
+                </div> : <CourseSharingEditor courseId={courseId} subscribers={subscribers} members={members} value={sharing} onChange={onSharingChange} />}
             </RoadmapDialog>}
         </section>
     );

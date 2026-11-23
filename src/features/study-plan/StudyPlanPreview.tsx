@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, type ElementType } from 'react';
-import { AlertTriangle, ArrowLeft, BookOpen, CheckCircle2, Route, Sigma } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, Line, Cell, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, ArrowLeft, BookOpen } from 'lucide-react';
+import { Bar, CartesianGrid, Line, Cell, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getProgramCategoryCreditProgress, getRequiredCredits } from './credit-progress';
 import type { CourseMeta, StudyPlanStorage } from './types';
 import { getProgramRequiredCredits } from '../../assets/data/academic-programs/category-credits';
@@ -49,35 +49,6 @@ const STATUS_STYLE: Record<SemesterStatus, {
         dotClass: 'bg-violet-500',
     },
 };
-
-function SummaryItem({
-    icon: Icon,
-    label,
-    value,
-    tone = 'blue',
-}: {
-    icon: ElementType;
-    label: string;
-    value: string | number;
-    tone?: 'blue' | 'green' | 'amber' | 'violet';
-}) {
-    const toneClass = {
-        blue: 'bg-blue-50 text-[#004A98]',
-        green: 'bg-emerald-50 text-emerald-700',
-        amber: 'bg-amber-50 text-amber-700',
-        violet: 'bg-violet-50 text-violet-700',
-    }[tone];
-
-    return (
-        <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3">
-            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${toneClass}`}>
-                <Icon className="h-4 w-4" />
-            </div>
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">{label}</p>
-            <p className="ml-auto text-xl font-bold tabular-nums text-gray-900">{value}</p>
-        </div>
-    );
-}
 
 function ProgressRing({ value, plannedValue, total }: { value: number; plannedValue: number; total: number }) {
     const radius = 48;

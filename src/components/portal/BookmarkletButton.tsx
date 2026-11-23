@@ -13,7 +13,7 @@ interface Props {
     hideInstructions?: boolean;
 }
 
-export function BookmarkletButton({ className = '', variant = 'primary', withLabel = true, hideInstructions = false }: Props) {
+export function BookmarkletButton({ className = '', withLabel = true, hideInstructions = false }: Props) {
     const linkRef = useRef<HTMLAnchorElement>(null);
     const [isDragHelpOpen, setIsDragHelpOpen] = useState(false);
 

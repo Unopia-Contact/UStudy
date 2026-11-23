@@ -93,6 +93,11 @@ export const AcademicRulesEngine = {
         );
     },
 
+    isFoundationCourse: (code: string, allCoursesMeta: any[]): boolean =>
+        allCoursesMeta.find(course => course.course_id === code)?.category === 'FOUNDATION',
+
+    isSpecializedCourse: (code: string): boolean => code[3] === '1',
+
     /**
      * Xác định xem nhóm môn có bị loại trừ khỏi GPA hay không (theo tên nhóm).
      * Dùng cho CategoryNode khi check tên danh mục.
@@ -305,6 +310,18 @@ export const AcademicRulesEngine = {
         };
     },
 
+    readSemesterGrade: (record: any, hasBLMExemption: boolean) => {
+        const code = String(record.id).trim();
+        const isExemptedEnglish = hasBLMExemption && ENGLISH_COURSE_IDS.includes(code);
+        return {
+            code,
+            credits: parseInt(record.credits) || 0,
+            score: isExemptedEnglish ? 10 : AcademicRulesEngine.parseRawScore(record.score),
+            semester: String(record.semester || 'Không rõ'),
+            isImprovement: String(record.type).trim() === 'CT',
+        };
+    },
+
     // ───────────── GPA Summary (từ useStudentGradeData.ts) ─────────────
 
     /**
@@ -370,7 +387,7 @@ export const AcademicRulesEngine = {
                 totalFourPointPoints += score4 * creditsForGPA;
 
                 // Tích lũy điểm Cơ sở + Chuyên ngành: Ký tự thứ 4 (index 3) là số '1'
-                const isMajorSpecialized = code.length >= 4 && code[3] === '1';
+                const isMajorSpecialized = AcademicRulesEngine.isSpecializedCourse(code);
                 if (isMajorSpecialized && creditsForGPA > 0) {
                     majorSpecializedPoints += pointsForGPA;
                     majorSpecializedCredits += creditsForGPA;
@@ -378,8 +395,7 @@ export const AcademicRulesEngine = {
                 }
 
                 // Tích lũy điểm Cơ sở ngành: Theo category 'FOUNDATION'
-                const courseMeta = allCoursesMeta.find(c => c.course_id === code);
-                const isFoundation = courseMeta?.category === 'FOUNDATION';
+                const isFoundation = AcademicRulesEngine.isFoundationCourse(code, allCoursesMeta);
                 if (isFoundation && creditsForGPA > 0) {
                     foundationPoints += pointsForGPA;
                     foundationCredits += creditsForGPA;
@@ -404,15 +420,11 @@ export const AcademicRulesEngine = {
 
         // ── Tính GPA từng kỳ dựa trên dữ liệu gốc (không lấy điểm cải thiện) ──
         rawGrades.forEach((g: any) => {
-            const type = String(g.type).trim();
+            const { code, credits, score, semester, isImprovement } = AcademicRulesEngine.readSemesterGrade(g, hasBLMExemption);
             // Không tính môn học cải thiện (CT) trong GPA của kỳ hiện tại
-            if (type === 'CT') return;
+            if (isImprovement) return;
 
-            const code = String(g.id).trim();
-            const credits = parseInt(g.credits) || 0;
-            const isExemptedEnglish = hasBLMExemption && ENGLISH_COURSE_IDS.includes(code);
-            const score: number | null = isExemptedEnglish ? 10 : AcademicRulesEngine.parseRawScore(g.score);
-            const status = isExemptedEnglish ? 'passed' as const : AcademicRulesEngine.evaluateCourseStatus(score);
+            const status = AcademicRulesEngine.evaluateCourseStatus(score);
 
             const hasValidScore = typeof score === 'number' && !isNaN(score);
             if (hasValidScore) {
@@ -420,11 +432,10 @@ export const AcademicRulesEngine = {
                 const semesterResult = AcademicRulesEngine.calculateSemesterGPAParams(code, credits, score);
 
                 if (semesterResult.creditsForGPA > 0) {
-                    const sem = g.semester || 'Không rõ';
-                    if (!semesterMap.has(sem)) {
-                        semesterMap.set(sem, { points: 0, fourPointPoints: 0, credits: 0, earnedCredits: 0 });
+                    if (!semesterMap.has(semester)) {
+                        semesterMap.set(semester, { points: 0, fourPointPoints: 0, credits: 0, earnedCredits: 0 });
                     }
-                    const s = semesterMap.get(sem)!;
+                    const s = semesterMap.get(semester)!;
                     s.points += semesterResult.pointsForGPA;
                     s.fourPointPoints += score10ToFourPoint(score) * semesterResult.creditsForGPA;
                     s.credits += semesterResult.creditsForGPA;

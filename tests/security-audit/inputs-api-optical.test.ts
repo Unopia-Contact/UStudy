@@ -6,7 +6,7 @@ import { normalizeStorageBackupData, isSystemBackupData } from '../../src/featur
 import { buildOpticalSyncPayload } from '../../src/features/optical-sync/services/optical-sync-payload';
 import { decodeOpticalText, encodeOpticalText } from '../../src/features/optical-sync/services/optical-payload';
 import { packFile, unpackFile, verifyFile, parseFrame } from '../../src/features/optical-sync/vendor/decimen/protocol';
-import { populateSecureCache } from '../../src/helpers/localStorage/save';
+import { populateSecureCache, saveSecure, setupPin } from '../../src/helpers/localStorage/save';
 
 it.each([
   { raw: { grades: [null] } },
@@ -81,8 +81,10 @@ it('[CONTROL] GET API call never reaches even the mocked provider', async () => 
 });
 
 it('[FINDING SEC-09] optical container exposes synthetic private data without any secret', async () => {
-  populateSecureCache('raw_student_db', { name: 'SYNTHETIC_OPTICAL_MARKER', grades: [] });
-  const json = buildOpticalSyncPayload(['raw_student_db'], { raw_student_db: 'synthetic-ciphertext-placeholder' });
+  const value = { name: 'SYNTHETIC_OPTICAL_MARKER', grades: [] };
+  await saveSecure('raw_student_db', value, await setupPin('optical-audit'));
+  populateSecureCache('raw_student_db', value);
+  const json = buildOpticalSyncPayload(['raw_student_db'], { raw_student_db: localStorage.getItem('raw_student_db')! });
   const encoded = await encodeOpticalText(json);
   const packed = await packFile('audit.uos', 'application/vnd.ustudy.optical-sync', encoded.bytes);
   const file = await unpackFile(packed.container);

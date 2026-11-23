@@ -9,7 +9,8 @@ async function seedSchedule(page: Page, schedules: string[]) {
     localStorage.setItem('selected_faculty_id', JSON.stringify('khoa-cntt'));
     localStorage.setItem('selected_major_id', JSON.stringify('cong-nghe-thong-tin'));
   });
-  await page.goto('/privacy');
+  await page.goto('/privacy', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('main')).toBeVisible();
   await page.evaluate((values) => {
     localStorage.setItem('student_db_full', JSON.stringify({
       registrations: values.map((schedule, index) => ({

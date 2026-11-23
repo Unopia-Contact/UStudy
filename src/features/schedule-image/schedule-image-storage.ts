@@ -30,6 +30,7 @@ export async function writeBackground(blob?: Blob): Promise<void> {
       else transaction.objectStore(STORE_NAME).delete('background');
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error ?? new Error('Đã hủy cập nhật ảnh nền.'));
     });
   } finally { db.close(); }
 }

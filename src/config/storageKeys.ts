@@ -16,7 +16,7 @@ export const STORAGE_KEYS = {
     SELECTED_BASKET: 'selected_courses_basket',
 
     /** Thông báo */
-    APP_NOTIFICATION: 'app_notification',
+    APP_NOTIFICATION: 'app_notifications',
 
     /** Trang hiện tại */
     PAGE: 'curent_page',

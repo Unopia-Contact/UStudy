@@ -33,7 +33,9 @@ export function useGradeManagement() {
         simulatorCourses,
         handleGradeChange,
         semesterGPA,
-        cumulativeGPA
+        cumulativeGPA,
+        cumulativeGPA4,
+        projectedPendingCourses,
     } = useGPASimulator(gradeData.gradesHistory, data.courses);
 
     const { addNotification } = useAppNotification();
@@ -107,6 +109,9 @@ export function useGradeManagement() {
         setSelectedProjectionSemesterId,
         semesterGPA,
         cumulativeGPA,
+        cumulativeGPA4,
+        projectedPendingCourses,
+        allCoursesMeta: data.courses,
         uniqueSemesters,
         semesterScopedHistory,
         filteredHistory,

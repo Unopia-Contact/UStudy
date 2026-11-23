@@ -12,7 +12,7 @@ import { useCrypto } from '../../context/CryptoContext';
  * CryptoKey được quản lý hoàn toàn bởi CryptoContext (RAM only).
  */
 export const SecurityGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { cryptoKey, isReady, hasData, unlock } = useCrypto();
+    const { cryptoKey, isReady, isCacheReady, hasData, unlock } = useCrypto();
 
     // Lắng nghe storage event - chỉ reload khi secure data bị xóa từ tab khác
     useEffect(() => {
@@ -36,7 +36,7 @@ export const SecurityGate: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     // Chờ khởi tạo
-    if (!isReady) {
+    if (!isReady || !isCacheReady) {
         return (
             <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
                 <div className="animate-pulse text-indigo-600 font-semibold tracking-widest text-xs uppercase">

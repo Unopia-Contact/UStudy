@@ -44,12 +44,23 @@ export function buildOpticalSyncPayload(
 
   selectedKeys.forEach((key) => {
     const rawValue = storageData[key];
-    if (rawValue === undefined) return;
+    if (rawValue === undefined || !isOpticalSyncKey(key)) return;
     if (!secureKeys.has(key)) {
       data[key] = rawValue;
       return;
     }
 
+    // Plain preferences in the selected snapshot are already ready to transfer.
+    try {
+      JSON.parse(rawValue);
+      data[key] = rawValue;
+      return;
+    } catch {
+      // Encrypted values must be read from the corresponding unlocked cache entry.
+    }
+    if (localStorage.getItem(key) !== rawValue) {
+      throw new Error('Dữ liệu đã thay đổi. Hãy mở lại bản xem trước.');
+    }
     const decrypted = readFromStorage<unknown>(key, undefined);
     if (decrypted === undefined) {
       throw new Error(`Hãy mở khóa dữ liệu trước khi gửi mục "${key}".`);

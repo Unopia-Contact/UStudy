@@ -1,7 +1,6 @@
 import { CONFIG } from './Constants.js';
 import { Chromosome } from './Chromosome.js';
 // Lưu ý: Kiểm tra lại tên file FitnessValuator.js hay FitnessEvaluator.js trong dự án của bạn
-import { FitnessEvaluator } from './FitnessValuator.js';
 
 export default class GeneticSolver {
     targetSubjects: any;

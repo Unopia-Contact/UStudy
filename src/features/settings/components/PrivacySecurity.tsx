@@ -2,11 +2,10 @@ import React from 'react';
 import { PageHeader } from '../../../components/layout/page-header';
 import { PageShell } from '../../../components/layout/page-shell';
 import {
-    Shield, Lock, KeyRound, Server, Eye, EyeOff, Fingerprint,
+    Shield, Lock, KeyRound, Server, Eye, EyeOff,
     HardDriveDownload, Trash2, RefreshCw, AlertTriangle, CheckCircle2,
-    ArrowRight, FileKey2, Globe, Cpu
+    ArrowRight, Globe, Cpu
 } from 'lucide-react';
-import { AnonymousAnalyticsSettings } from './AnonymousAnalyticsSettings';
 
 const sections = [
     {

@@ -58,7 +58,6 @@ export interface StudentContextData {
  * Service xử lý giao tiếp với Gemini API và RAG Context
  */
 export class GeminiService {
-    private static GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
     /**
      * Lấy API Key từ biến môi trường .env

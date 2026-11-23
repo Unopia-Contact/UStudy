@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-test('mobile More menu traps focus and closes with Escape', async ({ page }) => {
+test('mobile More menu traps focus and closes with Escape', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'The bottom navigation is a mobile layout.');
   await page.addInitScript(() => {
     localStorage.setItem('department_configured', JSON.stringify(true));
     localStorage.setItem('selected_cohort_id', JSON.stringify('k24'));

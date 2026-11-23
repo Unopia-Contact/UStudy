@@ -14,7 +14,12 @@ export function useTuitionManagement({ selectedSemester: initialSelectedSemester
 
   // Data hooks
   const { isReady, hasData } = useCourseData();
-  const { courses: currentSemesterData, summary: currentSemesterSummary, missingMetaCourses } = useTuitionCalculator(selectedSemesterName);
+  const {
+    courses: currentSemesterData,
+    summary: currentSemesterSummary,
+    missingMetaCourses,
+    source: tuitionSource,
+  } = useTuitionCalculator(selectedSemesterName);
 
   // Action hooks
   const { paymentLink, copiedLink, handleCopyLink, handleOpenLink, handleExport } = useTuitionActions(currentSemesterSummary, currentSemesterData);
@@ -31,6 +36,7 @@ export function useTuitionManagement({ selectedSemester: initialSelectedSemester
     hasData,
     currentSemesterData,
     currentSemesterSummary,
+    tuitionSource,
     missingMetaCourses,
     paymentLink,
     copiedLink,

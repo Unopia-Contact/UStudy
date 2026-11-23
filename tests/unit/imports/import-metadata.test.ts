@@ -7,12 +7,12 @@ describe('import metadata', () => {
     const merged = mergeImportMetadata(
       {
         scrapedAt: '2026-01-01T00:00:00.000Z',
-        params: { registration: { year: '2025-2026', sem: 3 }, keep: true },
+        params: { registration: { year: '2025-2026', sem: 3 }, exam: { sem: 3 }, keep: true },
         sourceUpdatedAt: { grades: '2026-01-01T00:00:00.000Z' },
       },
       {
         scrapedAt: '2026-08-24T00:00:00.000Z',
-        params: { registration: { year: '2026-2027', sem: 1 }, keep: null },
+        params: { registration: { year: '2026-2027', sem: 1 }, exam: { sem: 1 }, keep: null },
       },
       ['registrations'],
     );
@@ -23,6 +23,7 @@ describe('import metadata', () => {
     });
     expect(merged?.params).toEqual({
       registration: { year: '2026-2027', sem: 1 },
+      exam: { sem: 3 },
       keep: true,
     });
   });

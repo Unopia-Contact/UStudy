@@ -9,7 +9,7 @@ export type SectionTab<T extends string> = {
 };
 
 interface SectionTabsProps<T extends string> {
-    tabs: SectionTab<T>[];
+    tabs: readonly SectionTab<T>[];
     activeTab: T;
     onChange: (tab: T) => void;
     ariaLabel: string;
@@ -31,6 +31,7 @@ export function SectionTabs<T extends string>({
                     <button
                         key={tab.id}
                         type="button"
+                        aria-current={isActive ? 'true' : undefined}
                         onClick={() => onChange(tab.id)}
                         className={`relative min-w-max px-4 py-3 text-left transition-colors md:px-5 ${isActive ? 'text-[#004A98]' : 'text-gray-500 hover:text-gray-800'}`}
                     >

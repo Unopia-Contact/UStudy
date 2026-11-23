@@ -1,5 +1,15 @@
-import type { TuitionRates, CourseMeta, CourseFeeResult, TuitionCourse, TuitionSummary } from '../types';
+import type { TuitionRates, CourseMeta, CourseFeeResult, TuitionCourse, TuitionDataSource, TuitionSummary } from '../types';
 import { getTuitionDeadline } from '../../../config/tuitionDeadlines';
+
+function parsePortalCurrency(value: unknown): number | undefined {
+    const text = String(value ?? '').trim().replace(/\s*(?:VNĐ|VND|₫|đ)$/iu, '').trim();
+    const normalized = /^-?\d{1,3}(?:[.\s]\d{3})+$/.test(text)
+        ? text.replace(/[.\s]/g, '')
+        : text.replace(/,/g, '');
+    if (!/^-?\d+(?:\.\d+)?$/.test(normalized)) return undefined;
+    const amount = Number(normalized);
+    return Number.isFinite(amount) ? amount : undefined;
+}
 /**
  * FinancialLogic.ts
  *
@@ -151,57 +161,26 @@ export const FinancialLogic = {
         targetSemester?: string,
         forcePaid?: boolean
     ): { status: 'paid' | 'partial' | 'unpaid'; amountDue: number; advancePayment: number; hasAdvancePayment: boolean } => {
+        const tuitionForSem = targetSemester ? studentDb?.tuition?.[targetSemester] : null;
+        const rawDue = tuitionForSem ? tuitionForSem.total : studentDb?.tuition?.totals?.totalDue;
+        const due = parsePortalCurrency(rawDue);
+        if (due !== undefined) {
+            const amountDue = Math.max(0, due);
+            const portalFee = parsePortalCurrency(tuitionForSem?.fee) ?? totalFee;
+            const advancePayment = Math.max(0, portalFee - amountDue);
+            return {
+                status: amountDue === 0 ? 'paid' : advancePayment > 0 ? 'partial' : 'unpaid',
+                amountDue,
+                advancePayment,
+                hasAdvancePayment: advancePayment > 0,
+            };
+        }
+
         if (isFromHistory || forcePaid) {
             return {
                 status: 'paid',
                 amountDue: 0,
                 advancePayment: totalFee,
-                hasAdvancePayment: true
-            };
-        }
-
-        let isPaid = false;
-        let amountPaidFromPortal = 0;
-
-        try {
-            const tuitionMap = studentDb?.tuition;
-            const tuitionForSem = targetSemester ? tuitionMap?.[targetSemester] : null;
-
-            if (tuitionForSem) {
-                const totalDueStr = String(tuitionForSem.total || "0").replace(/,/g, '');
-                const dueNum = parseFloat(totalDueStr) || 0;
-                const totalFeeStr = String(tuitionForSem.fee || "0").replace(/,/g, '');
-                const totalFeeNum = parseFloat(totalFeeStr) || 0;
-
-                if (dueNum === 0 && totalFeeNum > 0) {
-                    isPaid = true;
-                    amountPaidFromPortal = totalFeeNum;
-                } else if (dueNum > 0) {
-                    amountPaidFromPortal = Math.max(0, totalFeeNum - dueNum);
-                }
-            } else if (studentDb?.tuition?.totals?.totalDue !== undefined) {
-                const totalDueStr = String(studentDb.tuition.totals.totalDue).replace(/,/g, '');
-                const dueNum = parseFloat(totalDueStr) || 0;
-                if (dueNum === 0 && totalFee > 0) {
-                    isPaid = true;
-                }
-            }
-        } catch (e) { }
-
-        if (isPaid) {
-            return {
-                status: 'paid',
-                amountDue: 0,
-                advancePayment: amountPaidFromPortal || totalFee,
-                hasAdvancePayment: true
-            };
-        }
-
-        if (amountPaidFromPortal > 0) {
-            return {
-                status: 'partial',
-                amountDue: Math.max(0, totalFee - amountPaidFromPortal),
-                advancePayment: amountPaidFromPortal,
                 hasAdvancePayment: true
             };
         }
@@ -260,7 +239,7 @@ export const FinancialLogic = {
         isDataAvailable: boolean,
         registrationSemesterName: string,
         missingMetaCourses: string[],
-        source: 'tuition_page' | 'registration' | 'grades' | 'none'
+        source: TuitionDataSource;
     } => {
         const emptySummary: TuitionSummary = {
             semester: targetSemester,
@@ -297,7 +276,7 @@ export const FinancialLogic = {
                 tuitionFee: d.fee,
                 discount: 0,
                 support: 0,
-                actualFee: d.actualFee || d.fee,
+                actualFee: d.actualFee ?? d.fee,
                 otherFees: 0,
                 note: ""
             }));
@@ -307,11 +286,11 @@ export const FinancialLogic = {
                 totalCredits: portalCourses.reduce((sum, c) => sum + c.credits, 0),
                 totalPeriods: portalCourses.reduce((sum, c) => sum + c.periods, 0),
                 totalTuitionCredits: portalCourses.reduce((sum, c) => sum + c.tuitionCredits, 0),
-                totalFee: parseFloat(String(tuitionInDb.fee || "0").replace(/,/g, '')) || portalCourses.reduce((sum, c) => sum + c.tuitionFee, 0),
+                totalFee: parsePortalCurrency(tuitionInDb.fee) ?? portalCourses.reduce((sum, c) => sum + c.tuitionFee, 0),
                 lastUpdated: tuitionInDb.updatedDate || new Date().toLocaleString('vi-VN'),
             };
 
-            const paymentStatus = FinancialLogic.detectPaymentStatus(studentDb, portalSummary.totalFee, false, targetSemester, true);
+            const paymentStatus = FinancialLogic.detectPaymentStatus(studentDb, portalSummary.totalFee, false, targetSemester);
             portalSummary.amountDue = paymentStatus.amountDue;
             portalSummary.advancePayment = paymentStatus.advancePayment;
             portalSummary.status = paymentStatus.status;
@@ -394,15 +373,19 @@ export const FinancialLogic = {
         uniqueCourses.forEach((reg, courseId) => {
             const cid = String(courseId).trim().toUpperCase();
             let billingCredits = 0, courseFee = 0, missingMeta = false;
+            let pricePerCredit: number | undefined;
 
             if (cid === 'ADD00002') {
-                billingCredits = 2;
-                courseFee = billingCredits * (tuitionRates?.default_price || 0);
+                const intro = FinancialLogic.getIntroductoryCourse(tuitionRates);
+                billingCredits = intro.billingCredits;
+                courseFee = intro.fee;
+                pricePerCredit = tuitionRates?.default_price || 0;
             } else {
                 const result = FinancialLogic.calculateCourseFee(cid, parseInt(reg.credits || 3), tuitionRates, allCoursesMeta);
                 billingCredits = result.billingCredits;
                 courseFee = result.courseFee;
                 missingMeta = result.missingMeta;
+                pricePerCredit = missingMeta ? undefined : result.pricePerCredit;
             }
 
             if (missingMeta && cid !== 'ADD00002') missingMetaCourses.push(cid);
@@ -418,7 +401,7 @@ export const FinancialLogic = {
                 courseCode: cid,
                 classCode: reg.classGroup || reg.classId || 'N/A',
                 courseName: reg.name || meta?.name || 'Môn học',
-                credits, periods, tuitionCredits: billingCredits, tuitionFee: courseFee,
+                credits, periods, tuitionCredits: billingCredits, pricePerCredit, tuitionFee: courseFee,
                 discount: 0, support: 0, actualFee: courseFee, otherFees: 0,
                 note: cid === 'ADD00002' ? 'Nhập môn đầu khóa' : (missingMeta ? 'Thiếu dữ liệu CTĐT' : '')
             });

@@ -788,7 +788,7 @@ export function scoreGroupSolution(
   members: GroupMemberToken[],
   config: GroupFitnessConfig,
 ): number {
-  const memberScores = members.map((member, memberIndex) => {
+  const memberScores = members.map((_, memberIndex) => {
     const sharedScore = scoreMemberSchedule(solution, courseDatabase, courses, memberIndex, members, config, 'shared');
     const personalScore = scoreMemberSchedule(solution, courseDatabase, courses, memberIndex, members, config, 'personal');
     return sharedScore + personalScore;

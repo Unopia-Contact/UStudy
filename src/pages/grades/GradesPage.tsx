@@ -4,6 +4,7 @@ import { SectionTabs } from '../../components/ui/navigation/section-tabs';
 import { PageHeader } from '../../components/layout/page-header';
 import { PageShell } from '../../components/layout/page-shell';
 import { TranscriptExportMenu } from '../../features/grades';
+import { GPABreakdownDialog } from '../../features/grades/components/gpa-breakdown-dialog';
 import { GPACalculator } from '../../features/grades/services/gpa-calculator';
 import { readFromStorage, saveToStorage } from '../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../config';
@@ -45,6 +46,8 @@ export function GradesPage() {
     semesterGPA,
     cumulativeGPA,
     cumulativeGPA4,
+    projectedPendingCourses,
+    allCoursesMeta,
     uniqueSemesters,
     semesterScopedHistory,
     filteredHistory,
@@ -74,6 +77,15 @@ export function GradesPage() {
   }, [activeMainTab]);
 
   const studentDb = readFromStorage<any>(STORAGE_KEYS.STUDENT_DB, null);
+  const gpaHelp = (
+    <GPABreakdownDialog
+      rawGrades={Array.isArray(studentDb?.grades) ? studentDb.grades : []}
+      history={gradesHistory}
+      projectedCourses={projectedPendingCourses}
+      projectionSemesters={projectionSemesters}
+      allCoursesMeta={allCoursesMeta}
+    />
+  );
   const gradeMetrics = [
     { label: 'GPA hiện tại', value10: currentGPA, value4: currentGPA4, description: 'Điểm tích lũy hiện tại', textClass: 'text-[#004A98]', barClass: 'bg-[#004A98]' },
     { label: 'GPA dự kiến', value10: cumulativeGPA, value4: cumulativeGPA4, description: 'Sau các môn đang học', textClass: 'text-indigo-600', barClass: 'bg-indigo-500' },
@@ -117,6 +129,7 @@ export function GradesPage() {
       <PageShell
         header={<PageHeader
           title="Quản lý điểm"
+          titleAction={gpaHelp}
           description="Xem điểm số, mô phỏng GPA và theo dõi các môn học cần học lại."
         />}
       >
@@ -130,6 +143,7 @@ export function GradesPage() {
       contentClassName="space-y-6"
       header={<PageHeader
         title="Quản lý điểm"
+        titleAction={gpaHelp}
         description="Xem điểm số, mô phỏng GPA và theo dõi các môn học cần học lại."
         actions={hasData && (
           <TranscriptExportMenu
