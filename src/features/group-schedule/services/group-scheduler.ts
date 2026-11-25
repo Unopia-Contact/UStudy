@@ -45,6 +45,7 @@ const MAX_GROUP_COURSES_PER_MEMBER = 60;
 const MAX_GROUP_NICKNAME_LENGTH = 80;
 const MAX_GROUP_MEMBER_ID_LENGTH = 128;
 const MAX_GROUP_COURSE_ID_LENGTH = 32;
+const SEARCH_TIME_PER_STAGE_MS = 1500;
 const GROUP_DAY_OFF_PENALTY = 40_000;
 const memberAssignmentKey = (courseId: string, memberIndex: number) => `${courseId}__member_${memberIndex}`;
 const sharingGroupAssignmentKey = (courseId: string, subscribers: number[]) => `${courseId}__group_${subscribers.join('_')}`;
@@ -582,10 +583,36 @@ function solveGroupWithTrace(
     if (classDifference !== 0) return classDifference;
     return left.courseId.localeCompare(right.courseId);
   });
+  const candidateLimit = preferenceMode === 'relaxed' && limitRelaxedCandidates
+    ? GROUP_SCHEDULER_CONFIG.RELAXED_CLASS_CANDIDATE_LIMIT : undefined;
+  function rankClasses(classes: ClassLike[], course: CourseWeight, subscribers: number[]) {
+    return classes.map(cls => ({
+      cls,
+      dayPenalty: getDayOffPriorityPenalty(cls, subscribers, members, config),
+      preferenceHits: getPreferenceHits(course.courseId, cls.id, subscribers, members, config, course.classPreferences),
+    })).sort((a, b) => a.dayPenalty - b.dayPenalty || b.preferenceHits - a.preferenceHits)
+      .slice(0, candidateLimit).map(entry => entry.cls);
+  }
+  const courseCandidates = orderedCourses.map(course =>
+    rankClasses(getClasses(courseDatabase, course.courseId), course, course.subscribers));
+  const memberCandidates = orderedCourses.map((course, index) =>
+    mode === 'split' && course.subscribers.length > 1 && course.sharingMode !== 'required'
+      ? course.subscribers.map(member => rankClasses(courseCandidates[index], course, [member])) : []);
   const initialState: StateMatrix = members.map((member) => normalizeMask(member.busyMask));
   let visitedNodes = 0;
   let reachedSearchBudget = false;
   let reachedSolutionLimit = false;
+
+  const deadline = performance.now() + SEARCH_TIME_PER_STAGE_MS;
+  function takeSearchNode() {
+    if (reachedSearchBudget) return false;
+    if (visitedNodes >= searchBudget || (visitedNodes % 32 === 0 && performance.now() >= deadline)) {
+      reachedSearchBudget = true;
+      return false;
+    }
+    visitedNodes++;
+    return true;
+  }
 
   const hasReachedSolutionLimit = () => !scoreSolution && solutions.length >= maxSolutions;
 
@@ -617,12 +644,7 @@ function solveGroupWithTrace(
       reachedSolutionLimit = true;
       return;
     }
-    if (reachedSearchBudget) return;
-    if (visitedNodes >= searchBudget) {
-      reachedSearchBudget = true;
-      return;
-    }
-    visitedNodes++;
+    if (!takeSearchNode()) return;
     if (courseIndex === orderedCourses.length) {
       keepSolution({
         assignments: new Map(assignments),
@@ -632,13 +654,7 @@ function solveGroupWithTrace(
     }
 
     const course = orderedCourses[courseIndex];
-    const availableClasses = [...getClasses(courseDatabase, course.courseId)]
-      .sort((a, b) => {
-        const dayOffDifference = getDayOffPriorityPenalty(a, course.subscribers, members, config) - getDayOffPriorityPenalty(b, course.subscribers, members, config);
-        if (dayOffDifference !== 0) return dayOffDifference;
-        return getPreferenceHits(course.courseId, b.id, course.subscribers, members, config, course.classPreferences) - getPreferenceHits(course.courseId, a.id, course.subscribers, members, config, course.classPreferences);
-      })
-      .slice(0, preferenceMode === 'relaxed' && limitRelaxedCandidates ? GROUP_SCHEDULER_CONFIG.RELAXED_CLASS_CANDIDATE_LIMIT : undefined);
+    const availableClasses = courseCandidates[courseIndex];
     if (availableClasses.length === 0) return;
 
     if (mode === 'split' && course.subscribers.length > 1 && course.sharingMode !== 'required') {
@@ -647,23 +663,14 @@ function solveGroupWithTrace(
           reachedSolutionLimit = true;
           return;
         }
-        if (reachedSearchBudget) return;
-        if (visitedNodes >= searchBudget) {
-          reachedSearchBudget = true;
-          return;
-        }
-        visitedNodes++;
+        if (!takeSearchNode()) return;
         if (subscriberOffset === course.subscribers.length) {
           dfs(courseIndex + 1, workingState, assignments);
           return;
         }
 
         const memberIndex = course.subscribers[subscriberOffset];
-        const sortedForMember = [...availableClasses].sort((a, b) => {
-          const dayOffDifference = getDayOffPriorityPenalty(a, [memberIndex], members, config) - getDayOffPriorityPenalty(b, [memberIndex], members, config);
-          if (dayOffDifference !== 0) return dayOffDifference;
-          return getPreferenceHits(course.courseId, b.id, [memberIndex], members, config, course.classPreferences) - getPreferenceHits(course.courseId, a.id, [memberIndex], members, config, course.classPreferences);
-        }).slice(0, preferenceMode === 'relaxed' && limitRelaxedCandidates ? GROUP_SCHEDULER_CONFIG.RELAXED_CLASS_CANDIDATE_LIMIT : undefined);
+        const sortedForMember = memberCandidates[courseIndex][subscriberOffset];
 
         for (const cls of sortedForMember) {
           const classMask = getClassMask(cls);
@@ -671,7 +678,7 @@ function solveGroupWithTrace(
           if (!isClassValid(classMask, [memberIndex], workingState)) continue;
 
           const nextState = workingState.map((memberMask, idx) => {
-            if (idx !== memberIndex) return [...memberMask];
+            if (idx !== memberIndex) return memberMask;
             return memberMask.map((mask, partIndex) => mask | classMask[partIndex]);
           });
 
@@ -692,7 +699,7 @@ function solveGroupWithTrace(
       if (!isClassValid(classMask, course.subscribers, state)) continue;
 
       const nextState = state.map((memberMask, memberIndex) => {
-        if (!course.subscribers.includes(memberIndex)) return [...memberMask];
+        if (!course.subscribers.includes(memberIndex)) return memberMask;
         return memberMask.map((mask, partIndex) => mask | classMask[partIndex]);
       });
 
@@ -1148,15 +1155,19 @@ export function runGroupScheduleSolver(
   const sharedStrictTrace = staged.trace.find((entry) => entry.stage === 'shared-strict');
   const splitStrictTrace = staged.trace.find((entry) => entry.stage === 'split-strict');
   if (sharedStrictTrace?.solutionCount === 0 && (splitStrictTrace?.solutionCount ?? 0) > 0) {
-    warnings.push('Không có phương án giữ toàn bộ nhóm ưu tiên học cùng lớp; kết quả cần tách ít nhất một nhóm.');
+    warnings.push('Chưa tìm được phương án giữ toàn bộ nhóm ưu tiên học cùng lớp; kết quả cần tách ít nhất một nhóm.');
   }
   if (staged.trace.some((entry) => entry.stage === 'shared-relaxed')) {
-    warnings.push('Không có phương án khi giữ toàn bộ điều kiện lớp. Solver đã nới điều kiện ưu tiên hoặc bắt buộc và trừ điểm rất mạnh.');
+    warnings.push('Chưa tìm được phương án khi giữ toàn bộ điều kiện lớp. Solver đã nới điều kiện ưu tiên hoặc bắt buộc và trừ điểm rất mạnh.');
   }
   const sharedRelaxedTrace = staged.trace.find((entry) => entry.stage === 'shared-relaxed');
   const splitRelaxedTrace = staged.trace.find((entry) => entry.stage === 'split-relaxed');
   if (sharedRelaxedTrace?.solutionCount === 0 && (splitRelaxedTrace?.solutionCount ?? 0) > 0) {
     warnings.push('Phương án dự phòng cần tách ít nhất một nhóm đã chọn ưu tiên học cùng lớp.');
+  }
+
+  if (staged.solutions.length && staged.trace.some(stage => stage.reachedSearchBudget)) {
+    warnings.push('Đã đạt giới hạn tìm kiếm. Các phương án được xếp hạng trong số lịch đã xét.');
   }
 
   const ranked = staged.solutions

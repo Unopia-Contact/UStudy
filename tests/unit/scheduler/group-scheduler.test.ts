@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { buildDensityMap, isDuplicateMember, runGroupScheduleSolver, sanitizeGroupMember } from '../../../src/features/group-schedule/services/group-scheduler';
 import type { GroupMemberToken } from '../../../src/features/group-schedule/types';
@@ -86,6 +86,32 @@ describe('group scheduler', () => {
 
     expect(result.solutions.length).toBeGreaterThan(0);
     expect(result.solutions[0].schedules[0].items[0].classId).toBe('B');
+  });
+
+  it('returns complete schedules already found when the search deadline is reached', () => {
+    const courses = Array.from({ length: 5 }, (_, index) => ({
+      id: `COURSE${index}`,
+      name: `Course ${index}`,
+      credits: 3,
+      classes: Array.from({ length: 8 }, (_, section) => ({
+        id: `C${section}`,
+        schedule: [`T${index + 2}(1-2)`],
+      })),
+    }));
+    const members = ['A', 'B', 'C'].map(nickname => member({ nickname, sharedCourses: courses.map(course => course.id) }));
+    let elapsed = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => (elapsed += 100));
+    try {
+      const result = runGroupScheduleSolver(courses, members);
+      expect(result.trace?.[0].reachedSearchBudget).toBe(true);
+      expect(result.trace?.[0].visitedNodes).toBeLessThan(10_000);
+      expect(result.solutions).toHaveLength(20);
+      for (const solution of result.solutions) {
+        expect(solution.schedules.map(schedule => schedule.items.length)).toEqual([5, 5, 5]);
+      }
+    } finally {
+      clock.mockRestore();
+    }
   });
 
   it('ranks across the search budget instead of stopping at the first solutions', () => {
