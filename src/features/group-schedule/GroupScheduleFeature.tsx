@@ -1,25 +1,26 @@
 import { useEffect, useMemo, useState, Fragment } from 'react';
-import { AlertTriangle, Calendar, Check, Moon, Plus, Save, Settings, Sun, Users, X, Zap } from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, ChevronRight, ListFilter, Moon, MoreHorizontal, Settings, Sun, Users, Zap, type LucideIcon } from 'lucide-react';
 
-import { GroupMemberCard } from './components/GroupMemberCard';
+import { GroupURLShare } from './components/GroupURLShare';
+import { GroupMemberCoursePicker } from './components/GroupMemberCoursePicker';
 import { buildSavedGroupSchedule, GroupScheduleCalendarPreview } from './components/GroupScheduleCalendarPreview';
 import { GroupScheduleResult, type GroupScheduleResultViewMode } from './components/GroupScheduleResult';
 import { GroupScheduleResultViewTabs } from './components/GroupScheduleResultViewTabs';
-import { CourseSharingEditor } from './components/CourseSharingEditor';
+import { GroupScheduleOptionJump } from './components/GroupScheduleOptionJump';
+import { CourseSharingForm, getCourseSharingSummary } from './components/CourseSharingEditor';
 import { GroupCourseMemberNames } from './components/GroupCourseMemberNames';
 import { GroupScheduleComparison } from './components/GroupScheduleComparison';
 import { SavedSchedulesModal } from './components/SavedSchedulesModal';
 import { CourseClassFilterModal } from '../study-roadmap';
-import { Button } from '../../components/ui/form/button';
 import { RoadmapDialog } from '../study-roadmap/components/RoadmapDialog';
 import { DayOffFields } from '../../components/schedule/day-off-fields';
 import { AppSelect } from '../../components/ui/form';
 import { Input } from '../../components/ui/form/input';
-import { Textarea } from '../../components/ui/form/textarea';
 import { PageHeader } from '../../components/layout/page-header';
+import { ScheduleOptionSelector } from '../schedule';
 import { buildDensityMap } from './services/group-scheduler';
 import type { ClassPreferenceLevel, ClassPreferenceSelection, CourseSharingMap, GroupMemberToken } from './types';
-import { parseCourseInput, useGroupScheduler } from './hooks/use-group-scheduler';
+import { useGroupScheduler } from './hooks/use-group-scheduler';
 import { readFromStorage, saveToStorage } from '../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../config';
 import type { Course, SavedSchedule } from '../../types';
@@ -27,10 +28,29 @@ import type { SolverPreferences } from '../study-roadmap';
 import courseDbJson from '../../logic/scheduler/Course_db.json';
 import { cycleDayOffSession, formatDayOffSession, formatDaysOff, getDayOffSession } from '../../utils/dayOffPreferences';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../components/course';
-import { ScheduleOptionSelector } from '../schedule';
 import { useCampus } from '../../context/CampusContext';
 
 type GroupScheduleStep = 1 | 2 | 3;
+
+type CourseEditorView = 'overview' | 'classes' | 'sharing';
+
+function CoursePreferenceAction({ icon: Icon, title, summary, onClick }: {
+    icon: LucideIcon;
+    title: string;
+    summary: string;
+    onClick: () => void;
+}) {
+    return (
+        <button type="button" onClick={onClick} className="flex min-h-14 w-full min-w-0 items-center gap-3 px-3 py-2.5 text-left hover:bg-blue-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-500">
+            <Icon aria-hidden="true" className="size-5 shrink-0 text-[#004A98]" />
+            <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-slate-900">{title}</span>
+                <span className="mt-0.5 block text-xs leading-5 text-slate-600">{summary}</span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-slate-500" />
+        </button>
+    );
+}
 
 const defaultSolverPreferences: SolverPreferences = {
     daysOff: [],
@@ -46,12 +66,7 @@ const stepItems: Array<{ id: GroupScheduleStep; label: string }> = [
 ];
 
 interface GroupSchedulePageProps {
-    onPageChange?: (page: string) => void;
-    selectedCourseIds?: Set<string>;
     allCourses?: Course[];
-    allowedClassesMap?: Record<string, string[]>;
-    setAllowedClassesMap?: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
-    onRemoveSelectedCourse?: (courseId: string) => void;
     embedded?: boolean;
     modeSwitch?: React.ReactNode;
 }
@@ -128,15 +143,15 @@ function loadClassOptionsByCourse(): Record<string, GroupClassOption[]> {
 }
 
 export function GroupSchedulePage({
-    selectedCourseIds,
     allCourses = [],
-    onRemoveSelectedCourse,
     embedded = false,
     modeSwitch,
 }: GroupSchedulePageProps) {
     const { defaultCampusId } = useCampus();
     const {
         members,
+        shareUrl,
+        urlWarning,
         decodeError,
         solving,
         result,
@@ -148,7 +163,7 @@ export function GroupSchedulePage({
         addMember,
         replaceMembers,
         solve,
-        validateConfiguration,
+        cancelSolve,
         setShareConfig,
         analyzeTradeoff,
         clearResult,
@@ -159,13 +174,12 @@ export function GroupSchedulePage({
         return readFromStorage(STORAGE_KEYS.GROUP_SCHEDULE_UI_STATE, {
             activeStep: 1 as GroupScheduleStep,
             resultViewMode: 'course' as GroupScheduleResultViewMode,
-            isAdvancedOpen: false,
-            showMembersPanel: false,
             showGroupCalendarPreview: false,
         });
     }, []);
 
     const [activeStep, setActiveStep] = useState<GroupScheduleStep>(savedUIState.activeStep);
+    const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [activeResultIndex, setActiveResultIndex] = useState(0);
     const [activePreviewMemberIndex, setActivePreviewMemberIndex] = useState(0);
     const [showGroupCalendarPreview, setShowGroupCalendarPreview] = useState(savedUIState.showGroupCalendarPreview);
@@ -173,7 +187,7 @@ export function GroupSchedulePage({
     const [groupScheduleName, setGroupScheduleName] = useState('');
     const [resultViewMode, setResultViewMode] = useState<GroupScheduleResultViewMode>(savedUIState.resultViewMode);
     const [draft, setDraft] = useState<GroupMemberToken>(makeDraft);
-    const [manualCourseInput, setManualCourseInput] = useState('');
+    const [draftCourseIds, setDraftCourseIds] = useState<string[]>([]);
     const [localNotice, setLocalNotice] = useState<string | null>(null);
 
     const [showListModal, setShowListModal] = useState(false);
@@ -211,10 +225,9 @@ export function GroupSchedulePage({
             groupPreferences: groupPrefs,
         });
     }, [courseSharing, groupPreferredClasses, groupPrefs, setShareConfig]);
-    const [expandedClassCourseId, setExpandedClassCourseId] = useState<string | null>(null);
-    const [isAdvancedOpen] = useState(savedUIState.isAdvancedOpen);
-    const [showMembersPanel, setShowMembersPanel] = useState(savedUIState.showMembersPanel);
-    const [filterModalCourse, setFilterModalCourse] = useState<Course | null>(null);
+    const [courseEditor, setCourseEditor] = useState<{ courseId: string; view: CourseEditorView } | null>(null);
+    const [memberFormOpen, setMemberFormOpen] = useState(false);
+    const [filterCourseId, setFilterCourseId] = useState<string | null>(null);
     const [editingMemberIndex, setEditingMemberIndex] = useState<number | null>(null);
     const [openClassDetails, setOpenClassDetails] = useState<OpenClassDetailTarget | null>(null);
 
@@ -222,11 +235,9 @@ export function GroupSchedulePage({
         saveToStorage(STORAGE_KEYS.GROUP_SCHEDULE_UI_STATE, {
             activeStep,
             resultViewMode,
-            isAdvancedOpen,
-            showMembersPanel,
             showGroupCalendarPreview,
         });
-    }, [activeStep, resultViewMode, isAdvancedOpen, showMembersPanel, showGroupCalendarPreview]);
+    }, [activeStep, resultViewMode, showGroupCalendarPreview]);
 
     useEffect(() => {
         const onHashChange = () => setMembersFromURL(window.location.hash);
@@ -238,45 +249,33 @@ export function GroupSchedulePage({
         saveToStorage(STORAGE_KEYS.SOLVER_PREFERENCES, groupPrefs);
     }, [groupPrefs]);
 
+    const firstResultMember = result?.solutions[0]?.schedules[0]?.memberIndex;
     useEffect(() => {
-        if (result?.solutions.length) {
+        if (firstResultMember !== undefined) {
             setActiveStep(3);
             setActiveResultIndex(0);
-            setActivePreviewMemberIndex(result.solutions[0]?.schedules[0]?.memberIndex ?? 0);
+            setActivePreviewMemberIndex(firstResultMember);
             setShowGroupCalendarPreview(true);
         }
-    }, [result]);
+    }, [firstResultMember, result?.density]);
 
     const knownCourseIds = useMemo(() => new Set(availableCourses.map((course) => course.id)), [availableCourses]);
-    const basketCourses = useMemo(() => {
-        if (!selectedCourseIds || selectedCourseIds.size === 0) return [];
-        return allCourses.filter((course) => selectedCourseIds.has(course.id) || selectedCourseIds.has(course.code));
-    }, [allCourses, selectedCourseIds]);
+    const courseCatalog = useMemo(() => {
+        const names = new Map(availableCourses.map(({ id, name }) => [id, name]));
+        for (const course of allCourses) {
+            const id = getCourseCode(course);
+            const name = course.nameVi || course.name;
+            if (name || !names.has(id)) names.set(id, name || id);
+        }
+        return names;
+    }, [allCourses, availableCourses]);
     const editingMember = editingMemberIndex === null ? null : members[editingMemberIndex] ?? null;
-    const draftCourseIds = useMemo(() => {
-        if (editingMember) {
-            return Array.from(new Set([...editingMember.sharedCourses, ...editingMember.personalCourses]));
-        }
-        if (basketCourses.length > 0) {
-            return Array.from(new Set(basketCourses.map(getCourseCode)));
-        }
-        return parseCourseInput(manualCourseInput);
-    }, [basketCourses, editingMember, manualCourseInput]);
-    const draftCourses = useMemo(() => {
-        if (!editingMember) return basketCourses;
-        const courseIds = new Set(draftCourseIds);
-        return allCourses.filter((course) => courseIds.has(getCourseCode(course)) || courseIds.has(course.id));
-    }, [allCourses, basketCourses, draftCourseIds, editingMember]);
-    const courseNames = useMemo(() => {
-        return Object.fromEntries(allCourses.map((c) => [c.code || c.id, c.name]));
-    }, [allCourses]);
-
     const groupCourses = useMemo(() => buildDensityMap(members), [members]);
     const classOptionsByCourse = useMemo(() => loadClassOptionsByCourse(), []);
     const selectedOption = result?.solutions[activeResultIndex] ?? result?.solutions[0];
     const buildDraftClassPreferences = (): Record<string, ClassPreferenceSelection> => {
         const next = Object.fromEntries(
-            Object.entries(personalClassPreferences).map(([courseId, selection]) => [
+            Object.entries(personalClassPreferences).filter(([courseId]) => draftCourseIds.includes(courseId)).map(([courseId, selection]) => [
                 courseId,
                 {
                     excluded: [...(selection.excluded ?? [])],
@@ -305,14 +304,17 @@ export function GroupSchedulePage({
     };
 
     const resetMemberDraft = () => {
+        setMemberFormOpen(false);
         setDraft(makeDraft());
-        setManualCourseInput('');
+        setDraftCourseIds([]);
         setPersonalAllowedClasses({});
         setPersonalClassPreferences({});
         setEditingMemberIndex(null);
     };
 
     const startEditingMember = (member: GroupMemberToken, index: number) => {
+        setMemberFormOpen(true);
+        if (editingMemberIndex === index) return;
         const preferenceMap = Object.fromEntries(
             Object.entries(member.preferredClasses ?? {}).map(([courseId, selection]) => [
                 courseId,
@@ -336,7 +338,7 @@ export function GroupSchedulePage({
             preferredClasses: preferenceMap,
             personalConfig: member.personalConfig ? { ...member.personalConfig, daysOff: [...(member.personalConfig.daysOff ?? [])] } : undefined,
         });
-        setManualCourseInput([...member.sharedCourses, ...member.personalCourses].join(', '));
+        setDraftCourseIds([...new Set([...member.sharedCourses, ...member.personalCourses])]);
         setPersonalAllowedClasses({});
         setPersonalClassPreferences(preferenceMap);
     };
@@ -355,6 +357,7 @@ export function GroupSchedulePage({
         const unknownCourses = draftCourseIds.filter((course) => knownCourseIds.size > 0 && !knownCourseIds.has(course));
         setLocalNotice(unknownCourses.length > 0 ? `Các môn chưa có trong dữ liệu lớp học: ${unknownCourses.join(', ')}.` : null);
 
+        if (!draftCourseIds.length) { setLocalNotice("Hãy chọn ít nhất một môn."); return; }
         if (editingMemberIndex !== null) {
             replaceMembers(members.map((member, index) => index === editingMemberIndex ? nextDraft : member));
             resetMemberDraft();
@@ -409,11 +412,7 @@ export function GroupSchedulePage({
         return null;
     };
 
-    const getGroupCourseName = (courseId: string): string => {
-        const course = allCourses.find((item) => item.id === courseId || item.code === courseId);
-        const availableCourse = availableCourses.find((item) => item.id === courseId);
-        return course?.nameVi || course?.name || availableCourse?.name || courseId;
-    };
+    const getGroupCourseName = (courseId: string): string => courseCatalog.get(courseId) ?? courseId;
 
     const setGroupClassPreferenceLevel = (courseId: string, classId: string, level: ClassPreferenceLevel | null) => {
         const target = classPreferenceTargetByCourse[courseId] ?? 'global';
@@ -479,16 +478,11 @@ export function GroupSchedulePage({
         });
     };
 
-    const runGroupSolve = () => {
+    const runGroupSolve = async () => {
         const config = { ...groupPrefs, groupPreferredClasses, courseSharing };
-        const issues = validateConfiguration(config);
-        if (issues.some((issue) => issue.severity === 'error')) {
-            setActiveStep(2);
-            return;
-        }
         setActiveStep(3);
         setShowGroupCalendarPreview(true);
-        solve(config);
+        if (await solve(config) === 'invalid') setActiveStep(2);
     };
 
 
@@ -540,52 +534,19 @@ export function GroupSchedulePage({
         return !!result?.solutions.length;
     };
 
-    const renderDraftCourseList = () => (
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <div className="divide-y divide-slate-100">
-                {draftCourses.map((course) => (
-                    <div key={course.id} className="flex items-center gap-3 px-3 py-3">
-                        <div className="min-w-0 flex-1">
-                            <div className="flex min-w-0 items-center gap-2">
-                                <span className="shrink-0 text-xs font-semibold uppercase text-slate-500">{course.code || course.id}</span>
-                                <span className="min-w-0 truncate text-sm font-medium text-slate-900">{course.nameVi || course.name}</span>
-                            </div>
-                            <p className="mt-0.5 text-xs text-slate-500">{course.credits} tín chỉ</p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1">
-                            <button
-                                type="button"
-                                onClick={() => setFilterModalCourse(course)}
-                                className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-blue-50 hover:text-[#004A98]"
-                                title="Lọc lớp học cho thành viên này"
-                            >
-                                <Settings className="h-4 w-4" />
-                            </button>
-                            {onRemoveSelectedCourse && (
-                                <button
-                                    type="button"
-                                    onClick={() => onRemoveSelectedCourse(course.id)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
-                                    title="Xóa khỏi giỏ"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+    const openStep = (step: GroupScheduleStep) => {
+        if (step !== 3) cancelSolve();
+        setActiveStep(step);
+    };
 
     const renderStepper = () => (
-        <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-3 md:flex-row md:items-center md:gap-4">
+        <div role="group" aria-label="Thanh xếp lịch" className="ustudy-card flex flex-col gap-3 p-3 md:flex-row md:items-center md:gap-4">
             {modeSwitch && (
                 <div className="w-full shrink-0 border-b border-gray-100 pb-3 md:w-auto md:border-b-0 md:border-r md:pb-0 md:pr-4">
                     {modeSwitch}
                 </div>
             )}
-            <div className="flex min-w-0 flex-1 items-center justify-between gap-1 px-1">
+            <div className="hidden min-w-0 flex-1 items-center justify-between gap-1 px-1 md:flex">
                 {stepItems.map((step, index) => {
                     const isActive = activeStep === step.id;
                     const isDone = activeStep > step.id || (step.id === 3 && !!result?.solutions.length);
@@ -597,7 +558,7 @@ export function GroupSchedulePage({
                             <button
                                 type="button"
                                 disabled={!isClickable}
-                                onClick={() => isClickable && setActiveStep(step.id)}
+                                onClick={() => openStep(step.id)}
                                 aria-label={`Bước ${step.id}: ${step.label}`}
                                 aria-current={isActive ? 'step' : undefined}
                                 className="group relative z-10 flex min-h-11 min-w-0 items-center gap-2 text-left transition-opacity focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-45"
@@ -613,9 +574,6 @@ export function GroupSchedulePage({
                                 <span className={`hidden text-sm transition-colors md:block ${isActive ? 'text-[#004A98] font-bold' : isDone ? 'text-emerald-700 font-bold' : 'text-gray-500 font-medium'
                                     }`}>
                                     {step.label}
-                                    <span className="mt-0.5 block text-xs font-normal text-gray-400">
-                                        {step.id === 1 ? 'Thêm thành viên' : step.id === 2 ? 'Tùy chỉnh ưu tiên' : 'Xem & lưu lịch'}
-                                    </span>
                                 </span>
                             </button>
 
@@ -627,229 +585,73 @@ export function GroupSchedulePage({
                     );
                 })}
             </div>
-            <p className="text-sm font-medium text-[#004A98] md:hidden">Bước {activeStep}/3 · {stepItems.find(step => step.id === activeStep)?.label}</p>
+            <select aria-label="Bước xếp lịch nhóm" className="h-11 rounded-lg bg-white px-2 text-sm font-semibold text-[#004A98] md:hidden" value={activeStep} onChange={event => openStep(Number(event.target.value) as GroupScheduleStep)}>
+                {stepItems.map(step => <option key={step.id} value={step.id} disabled={!canOpenStep(step.id)}>Bước {step.id}/3 · {step.label}</option>)}
+            </select>
         </div>
     );
 
-    const renderMembersPanel = () => (
-        <aside className="lg:sticky lg:top-4 lg:self-start">
-            <div className="ustudy-card overflow-hidden p-0">
-                <div className="border-b border-slate-100 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                        <div>
-                            <h2 className="text-base font-semibold text-slate-900">Thành viên nhóm</h2>
-                            <div className="mt-1 flex items-center gap-2 text-xs font-medium">
-                                <span className={`h-2 w-2 rounded-full ${members.length >= 2 ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                                <span className={members.length >= 2 ? 'text-emerald-700' : 'text-amber-700'}>
-                                    {members.length >= 2 ? 'Đã đủ điều kiện xếp lịch' : `Cần thêm ${2 - members.length} thành viên`}
-                                </span>
-                            </div>
-                        </div>
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                            {members.length} người
-                        </span>
-                    </div>
-                </div>
-                <div className="divide-y divide-slate-100 p-1">
-                    {members.length === 0 ? (
-                        <div className="px-4 py-5 text-sm text-slate-500">Chưa có thành viên nào.</div>
-                    ) : (
-                        members.map((member, index) => (
-                            <div key={`${member.nickname || 'member'}-${index}`}>
-                                <GroupMemberCard
-                                    member={member}
-                                    index={index}
-                                    courseNames={courseNames}
-                                    onEdit={() => startEditingMember(member, index)}
-                                    onRemove={() => removeMember(index)}
-                                />
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-            {/* <GroupURLShare url={shareUrl} warning={urlWarning} /> */}
-        </aside>
+    const memberFields = (
+        <div className="space-y-3">
+            <label className="block text-sm font-medium">Tên hiển thị
+                <Input
+                    className="mt-1 h-11 border-slate-300 bg-white focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-200"
+                    placeholder="Bạn A"
+                    value={draft.nickname ?? ''}
+                    onChange={event => setDraft({ ...draft, nickname: event.target.value })}
+                />
+            </label>
+            <GroupMemberCoursePicker
+                catalog={courseCatalog}
+                selectedIds={draftCourseIds}
+                onChange={setDraftCourseIds}
+                canFilterClasses={id => (classOptionsByCourse[id]?.length ?? 0) > 0}
+                onFilterClasses={setFilterCourseId}
+            />
+            {(editingMember || members.length > 0) && <details className="group">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
+                    <ChevronDown aria-hidden="true" className="size-4 -rotate-90 text-slate-500 group-open:rotate-0" />
+                    Ngày muốn nghỉ
+                </summary>
+                <DayOffFields label="Thành viên muốn nghỉ" value={draft.personalConfig?.daysOff} onChange={daysOff => setDraft({ ...draft, personalConfig: { ...draft.personalConfig, daysOff } })} />
+            </details>}
+        </div>
     );
+    const memberSubmit = <button type="button" disabled={!draftCourseIds.length} className="ustudy-button-primary min-h-11" onClick={submitDraft}>
+        {editingMember ? 'Lưu thay đổi' : members.length ? 'Thêm vào nhóm' : 'Tạo liên kết nhóm'}
+    </button>;
 
     const renderMemberStep = () => (
-        <div
-            className={`grid gap-4 ${showMembersPanel ? 'lg:grid-cols-[minmax(0,1fr)_360px]' : 'lg:grid-cols-1'
-                }`}
-        >
-            <section className="ustudy-card space-y-6 p-5 sm:p-7">
-                {/* Header */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex min-w-0 items-start gap-3">
-                        <span className="mt-1 h-6 w-[3px] rounded-full bg-[#004A98]" aria-hidden="true" />
-                        <div className="min-w-0">
-                            <p className="text-xs font-semibold text-slate-400 sm:text-[11px] sm:uppercase sm:tracking-[0.14em]">
-                                {editingMember ? 'Đang chỉnh sửa thành viên' : 'Bước thêm thành viên'}
-                            </p>
-                            <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
-                                {editingMember ? (editingMember.nickname || `Thành viên ${editingMemberIndex! + 1}`) : 'Nhóm của bạn'}
-                            </h2>
-                        </div>
-                    </div>
-
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-center border-slate-200 text-slate-600 hover:bg-slate-50 sm:w-auto sm:shrink-0"
-                        onClick={() => setShowMembersPanel(!showMembersPanel)}
-                    >
-                        <Users className="mr-2 h-4 w-4 text-slate-400" />
-                        <span className="sm:hidden">
-                            {showMembersPanel ? 'Ẩn thành viên' : `Hiện thành viên (${members.length})`}
-                        </span>
-                        <span className="hidden sm:inline">
-                            {showMembersPanel ? 'Ẩn danh sách thành viên' : `Hiện danh sách thành viên (${members.length})`}
-                        </span>
-                    </Button>
+        <section className="ustudy-card space-y-3 p-4 sm:p-5">
+            <h2 className="text-base font-semibold">Nhóm của bạn</h2>
+            {!members.length ? <>{memberFields}{memberSubmit}</> : <>
+                <ul className="divide-y divide-gray-200">
+                    {members.map((member, index) => <li key={member.id ?? index}>
+                        <button className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-sm hover:text-[#004A98]" onClick={() => startEditingMember(member, index)}>
+                            <span className="min-w-0 truncate font-medium">{member.nickname || 'Thành viên ' + (index + 1)}</span>
+                            <span className="shrink-0 text-gray-500">{new Set([...member.sharedCourses, ...member.personalCourses]).size} môn ›</span>
+                        </button>
+                    </li>)}
+                </ul>
+                <div className="flex flex-wrap items-start gap-2">
+                    <GroupURLShare url={shareUrl} warning={urlWarning} />
+                    <button className="ustudy-button-outline min-h-11" onClick={() => { if (editingMemberIndex !== null) resetMemberDraft(); setMemberFormOpen(true); }}>Thêm thành viên</button>
                 </div>
-
-                {/* Collapsed member chips */}
-                {!showMembersPanel && members.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                        {members.slice(0, 5).map((member, index) => (
-                            <span
-                                key={`${member.nickname || 'member'}-${index}`}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700"
-                            >
-                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[10px] font-bold text-white">
-                                    {(member.nickname || String(index + 1)).slice(0, 1).toUpperCase()}
-                                </span>
-                                {member.nickname || `Thành viên ${index + 1}`}
-                            </span>
-                        ))}
-                        {members.length > 5 && (
-                            <span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold text-white">
-                                +{members.length - 5}
-                            </span>
-                        )}
-                    </div>
-                )}
-
-                {/* Nickname */}
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-800">
-                        Nickname
-                    </label>
-
-                    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
-                        <Input
-                            value={draft.nickname || ""}
-                            onChange={(event) =>
-                                setDraft((current) => ({
-                                    ...current,
-                                    nickname: event.target.value,
-                                }))
-                            }
-                            placeholder="Bạn A"
-                            className="min-w-0 flex-1 border-slate-200 focus-visible:ring-[#004A98]/25"
-                        />
-
-                        <Button
-                            type="button"
-                            onClick={submitDraft}
-                            className="w-full bg-[#004A98] text-white hover:bg-[#003d7a] sm:w-auto sm:shrink-0"
-                        >
-                            <Plus className="h-4 w-4" />
-                            <span className="truncate">
-                                {editingMember ? 'Lưu thay đổi' : members.length === 0 ? 'Tạo link nhóm' : 'Thêm thành viên'}
-                            </span>
-                        </Button>
-                        {editingMember && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={resetMemberDraft}
-                                className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 sm:w-auto sm:shrink-0"
-                            >
-                                Hủy
-                            </Button>
-                        )}
-                    </div>
-                    {!editingMember && members.length > 0 && (
-                        <p className="text-xs leading-relaxed text-slate-500">
-                            Muốn thêm thành viên nữa? Quay về tab <span className="font-medium text-slate-700">Chọn môn</span> để chọn môn cho người tiếp theo.
-                        </p>
-                    )}
-                </div>
-
-                {/* Courses */}
-                <div className="space-y-3 border-t border-slate-100 pt-6">
-                    <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold text-slate-800">Môn đăng ký</label>
-                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
-                            {draftCourseIds.length} môn
-                        </span>
-                    </div>
-
-                    {draftCourses.length > 0 ? (
-                        <div>
-                            {renderDraftCourseList()}
-                            <p className="mt-3 text-xs leading-relaxed text-slate-400">
-                                Môn trùng giữa các thành viên sẽ được ưu tiên xếp cùng lớp. Dùng nút lọc trong giỏ
-                                để chọn lớp cấm, ưu tiên hoặc bắt buộc cho cá nhân.
-                            </p>
-                        </div>
-                    ) : (
-                        <Textarea
-                            value={manualCourseInput}
-                            onChange={(event) => setManualCourseInput(event.target.value)}
-                            placeholder='CSC10001, MTH00003, PHY00001, hoặc chọn môn tại "Chọn môn & học phí"'
-                            className="min-h-28 border-slate-200 focus-visible:ring-[#004A98]/25"
-                        />
-                    )}
-                </div>
-
-                <div className="space-y-3 border-t border-slate-100 pt-5">
-                    <div className="flex items-start justify-between gap-3">
-                        <div>
-                            <label className="text-sm font-semibold text-slate-800">Ngày không muốn học</label>
-                            <p className="mt-0.5 text-xs text-slate-500">Chỉ trừ điểm trên lịch của thành viên này.</p>
-                        </div>
-                        <span className="shrink-0 text-xs font-medium text-slate-400">
-                            {formatDaysOff(draft.personalConfig?.daysOff)}
-                        </span>
-                    </div>
-                    <DayOffFields label="Thành viên muốn nghỉ" value={draft.personalConfig?.daysOff} onChange={daysOff => setDraft(current => ({ ...current, personalConfig: { ...current.personalConfig, daysOff } }))} />
-                </div>
-
-                {/* Footer: notice + submit */}
-                {/* <div className="bottom-0 -mx-5 -mb-5 flex flex-col gap-3 border-t border-slate-100 bg-white/95 rounded-b-xl px-5 py-4 backdrop-blur sm:-mx-7 sm:-mb-7 sm:flex-row sm:items-center sm:justify-between sm:px-7">
-                    {members.length === 1 ? (
-                        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                            <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                            <span className="font-medium">Cần ít nhất 2 thành viên để xếp lịch nhóm.</span>
-                        </div>
-                    ) : (
-                        <span className="text-sm text-slate-400">
-                            {draftCourseIds.length} môn trong form hiện tại
-                        </span>
-                    )}
-                </div> */}
-
-                {/* <div className="border-t border-slate-100 pt-4">
-                    <label className="mb-1 block text-sm font-medium text-slate-700">Gộp từ link nhóm khác</label>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                    <Input value={mergeInput} onChange={(event) => setMergeInput(event.target.value)} placeholder="Dán URL hoặc #v1_..." />
-                    <Button type="button" variant="outline" onClick={mergeMembersFromLink}>
-                        <Link2 className="h-4 w-4" />
-                        Gộp link
-                    </Button>
-                    </div>
-                </div> */}
-            </section>
-
-            {filterModalCourse && (
+                {memberFormOpen && !filterCourseId && <RoadmapDialog title={editingMember ? 'Chỉnh sửa thành viên' : 'Thêm thành viên'} focusTitleOnOpen onClose={() => setMemberFormOpen(false)}
+                    footer={<div className="flex w-full items-center justify-between gap-3">
+                        {editingMemberIndex !== null && <button className="min-h-11 text-sm text-red-700" onClick={() => { removeMember(editingMemberIndex); resetMemberDraft(); }}>Xóa thành viên</button>}
+                        {memberSubmit}
+                    </div>}>
+                    {memberFields}
+                    {solveError && <p role="alert" className="text-sm text-amber-800">{solveError}</p>}
+                </RoadmapDialog>}
+            </>}
+            {filterCourseId && (
                 <CourseClassFilterModal
-                    courseCode={filterModalCourse.id}
-                    courseNameVi={filterModalCourse.nameVi}
-                    isOpen={!!filterModalCourse}
-                    onClose={() => setFilterModalCourse(null)}
+                    courseCode={filterCourseId}
+                    courseNameVi={getGroupCourseName(filterCourseId)}
+                    isOpen
+                    onClose={() => setFilterCourseId(null)}
                     allowedClassesMap={personalAllowedClasses}
                     setAllowedClassesMap={setPersonalAllowedClasses}
                     classPreferenceMap={personalClassPreferences}
@@ -857,49 +659,26 @@ export function GroupSchedulePage({
                 />
             )}
 
-            {showMembersPanel && renderMembersPanel()}
-        </div>
+        </section>
     );
 
+    const configuredCourses = groupCourses.filter(({ courseId }) => {
+        const classes = groupPreferredClasses[courseId];
+        const sharing = courseSharing[courseId];
+        return classes?.excluded?.length || classes?.preferred?.length || classes?.required?.length
+            || (sharing && sharing.mode !== 'required') || sharing?.groups?.length || Object.keys(sharing?.groupClassPreferences ?? {}).length;
+    }).length;
+    const preferenceSummary = [
+        groupPrefs.strategy === 'spread' && 'Trải đều',
+        groupPrefs.noGaps && 'Tránh tiết trống',
+        groupPrefs.daysOff?.length && 'Nghỉ ' + formatDaysOff(groupPrefs.daysOff),
+        configuredCourses && configuredCourses + ' môn có ưu tiên riêng',
+    ].filter(Boolean).join(' · ');
+
     const renderGroupConfigStep = () => (
-        <section className="space-y-4">
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Ưu tiên tùy chọn</h2>
-                    <p className="mt-1 text-sm text-gray-500">Các thiết lập hiện tại được gửi kèm khi bạn chia sẻ link nhóm.</p>
-                </div>
-            </div>
-
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <div className="flex w-full flex-col gap-3 sm:m-2 sm:flex-row sm:items-start sm:justify-between">
-                    {/* Phần tiêu đề bên trái */}
-                    <div className="flex min-w-0 items-start gap-3 sm:pb-4">
-                        <span className="mt-1 h-6 w-[3px] rounded-full bg-[#004A98]" aria-hidden="true" />
-                        <div className="min-w-0">
-                            <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
-                                Cài đặt ưu tiên
-                            </h2>
-                            <p className="hidden text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400 sm:block">
-                                Có thể bỏ qua bước này. Các ưu tiên dưới đây chỉ giúp solver chọn lịch hợp gu nhóm hơn.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Button tự động bị đẩy sang phải nhờ justify-between */}
-                    <Button
-                        type="button"
-                        disabled={members.length < 2 || solving}
-                        onClick={runGroupSolve}
-                        className="w-full shrink-0 bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto"
-                    >
-                        <Calendar className="h-4 w-4" />
-                        {solving ? 'Đang xếp lịch...' : result?.solutions.length ? 'Tạo phương án mới' : 'Xếp lịch nhóm'}
-                    </Button>
-                </div>
-
-                {/* Mobile: 1 cột - Laptop: 2 cột */}
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <section className="ustudy-card space-y-4 p-4 sm:p-5">
+            <h2 className="text-base font-semibold">Ưu tiên của nhóm</h2>
+            <div className="max-w-md">
                     {/* Buổi ưu tiên */}
                     <div>
                         <div className="mb-3 flex items-center gap-2">
@@ -912,12 +691,13 @@ export function GroupSchedulePage({
 
                         <div className="flex rounded-lg bg-gray-100 p-1">
                             {[
-                                { id: "0", label: "Tự do", icon: Zap },
+                                { id: "0", label: "Bất kỳ", icon: Zap },
                                 { id: "1", label: "Sáng", icon: Sun },
                                 { id: "2", label: "Chiều", icon: Moon },
                             ].map((item) => (
                                 <button
                                     key={item.id}
+                                    aria-pressed={groupPrefs.session === item.id}
                                     type="button"
                                     onClick={() =>
                                         setGroupPrefs((current) => ({
@@ -938,6 +718,10 @@ export function GroupSchedulePage({
                         </div>
                     </div>
 
+            </div>
+            <details className="border-y border-gray-200">
+                <summary className="cursor-pointer py-3 text-sm font-semibold">Tùy chỉnh thêm</summary>
+                <div className="space-y-4 pb-4">
                     {/* Chiến thuật */}
                     <div>
                         <div className="mb-3 flex items-center gap-2">
@@ -1038,8 +822,131 @@ export function GroupSchedulePage({
                         </div>
                     </div>
                 </div>
-            </div>
 
+            <div className="space-y-2 pb-4">
+                <div>
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900"><Settings className="h-4 w-4 text-[#004A98]" />Ưu tiên theo môn</h3>
+                    <p className="mt-1 text-xs text-gray-500">Chỉnh ưu tiên lớp và cách học cùng cho từng môn.</p>
+                </div>
+                <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+                    {groupCourses.length === 0 ? (
+                        <div className="ustudy-muted-panel text-sm text-gray-500">Chưa có môn nào trong nhóm.</div>
+                    ) : (
+                        groupCourses.map((course) => {
+                            const courseName = getGroupCourseName(course.courseId);
+                            const hasDistinctCourseName = courseName !== course.courseId;
+                            const classOptions = classOptionsByCourse[course.courseId] ?? [];
+                            const hasSharing = course.subscribers.length >= 2;
+                            const sharing = courseSharing[course.courseId];
+                            const view = courseEditor?.courseId === course.courseId ? courseEditor.view : null;
+                            const setView = (next: CourseEditorView) => setCourseEditor({ courseId: course.courseId, view: next });
+                            const backToOverview = () => setView('overview');
+                            const targetSelection = getTargetSelection(course.courseId);
+                            const preferenceTargets = getClassPreferenceTargets(course.courseId, course.subscribers);
+                            const globalSelection = groupPreferredClasses[course.courseId];
+                            const groupPreferenceCount = preferenceTargets.filter(target => target.id !== 'global'
+                                && sharing?.groupClassPreferences?.[target.id]).length;
+                            const classSummary = [
+                                globalSelection?.excluded?.length && `${globalSelection.excluded.length} lớp bị loại`,
+                                globalSelection?.preferred?.length && `${globalSelection.preferred.length} lớp ưu tiên`,
+                                globalSelection?.required?.length && `${globalSelection.required.length} lớp bắt buộc`,
+                                groupPreferenceCount && `${groupPreferenceCount} thiết lập riêng`,
+                            ].filter(Boolean).join(' · ');
+
+                            return (
+                                <div key={course.courseId} className="min-w-0">
+                                    <button type="button" className="w-full border-b border-gray-200 py-3 text-left text-sm font-medium" onClick={() => setView('overview')}>
+                                        {courseName} <span className="text-xs text-gray-500">{hasDistinctCourseName && `${course.courseId} · `}{course.subscribers.length} người</span>
+                                    </button>
+                                    {view && <RoadmapDialog
+                                        key={view}
+                                        title={view === 'classes' ? 'Ưu tiên lớp' : view === 'sharing' ? 'Học cùng nhau' : courseName}
+                                        description={view === 'overview' && !hasDistinctCourseName ? undefined
+                                            : view !== 'overview' && hasDistinctCourseName ? `${course.courseId} · ${courseName}` : course.courseId}
+                                        focusTitleOnOpen
+                                        onClose={view === 'overview' ? () => setCourseEditor(null) : backToOverview}
+                                        footer={view !== 'overview' && <button type="button" onClick={backToOverview} className="ustudy-button-primary min-h-11 justify-center">Quay lại</button>}
+                                    >
+                                        {view === 'overview' && <div className="space-y-3">
+                                            <GroupCourseMemberNames names={course.subscribers.map(index => members[index]?.nickname || `Thành viên ${index + 1}`)} />
+                                            {classOptions.length > 0 || hasSharing ? (
+                                                <div className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200">
+                                                    {classOptions.length > 0 && <CoursePreferenceAction icon={ListFilter} title="Ưu tiên lớp" summary={classSummary || 'Chưa đặt ưu tiên'} onClick={() => setView('classes')} />}
+                                                    {hasSharing && <CoursePreferenceAction icon={Users} title="Học cùng nhau" summary={getCourseSharingSummary(sharing)} onClick={() => setView('sharing')} />}
+                                                </div>
+                                            ) : <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">Chưa có dữ liệu lớp cho môn này.</p>}
+                                        </div>}
+                                        {view === 'sharing' && <CourseSharingForm
+                                            courseId={course.courseId}
+                                            subscribers={course.subscribers}
+                                            members={members}
+                                            value={sharing}
+                                            onChange={(nextRule) => {
+                                                setCourseSharing(current => ({ ...current, [course.courseId]: nextRule }));
+                                                setClassPreferenceTargetByCourse(current => ({ ...current, [course.courseId]: 'global' }));
+                                            }}
+                                        />}
+                                        {view === 'classes' && (
+                                            <div className="space-y-2">
+                                                <div className="flex flex-wrap items-center justify-between gap-2 bg-white pb-1">
+                                                    <span className="text-xs font-medium text-gray-500">Áp dụng cho</span>
+                                                    <AppSelect value={classPreferenceTargetByCourse[course.courseId] ?? 'global'} onChange={(value) => setClassPreferenceTargetByCourse((current) => ({ ...current, [course.courseId]: value }))} options={preferenceTargets} ariaLabel={`Chọn nhóm áp dụng ưu tiên lớp cho ${course.courseId}`} className="w-44" triggerClassName="h-8 px-2.5 text-xs" menuClassName="right-0 left-auto w-48" />
+                                                </div>
+                                                {classOptions.map((classOption) => {
+                                                    const selectedLevel = getGroupClassPreferenceLevel(course.courseId, classOption.id);
+
+                                                    return (
+                                                        <div
+                                                            key={classOption.id}
+                                                            className={`flex w-full flex-col gap-3 rounded-lg border p-2 text-left transition-colors sm:flex-row sm:items-start sm:justify-between ${selectedLevel === 'excluded' ? 'border-rose-300 bg-rose-50 text-rose-950' : selectedLevel === 'required' ? 'border-red-300 bg-red-50 text-red-950' : selectedLevel === 'preferred' ? 'border-[#004A98] bg-blue-50 text-blue-950' : 'border-gray-200 bg-white text-gray-700'}`}
+                                                        >
+                                                            <span className="min-w-0 flex-1">
+                                                                <span className="block font-mono text-sm font-semibold">{classOption.id.replace(/_/g, ' ')}</span>
+                                                                <span className={`mt-1 block text-xs leading-relaxed ${selectedLevel === 'excluded' ? 'text-rose-700' : selectedLevel === 'required' ? 'text-red-700' : selectedLevel === 'preferred' ? 'text-blue-700' : 'text-gray-500'}`}>
+                                                                    {classOption.schedule.length > 0 ? classOption.schedule.join(', ') : 'Chưa có lịch học'}
+                                                                </span>
+                                                            </span>
+                                                            <span className="grid grid-cols-2 gap-1 rounded-lg bg-white p-1 sm:w-[300px] sm:grid-cols-4">
+                                                                {[
+                                                                    { value: 'excluded' as const, label: 'Cấm' },
+                                                                    { value: null, label: 'Chọn' },
+                                                                    { value: 'preferred' as const, label: 'Ưu tiên' },
+                                                                    { value: 'required' as const, label: 'Bắt buộc' },
+                                                                ].map((item) => (
+                                                                    <button
+                                                                        key={item.label}
+                                                                        type="button"
+                                                                        onClick={() => setGroupClassPreferenceLevel(course.courseId, classOption.id, item.value)}
+                                                                        className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${selectedLevel === item.value ? item.value === 'excluded' ? 'bg-rose-600 text-white' : item.value === 'required' ? 'bg-red-600 text-white' : item.value === 'preferred' ? 'bg-[#004A98] text-white' : 'bg-gray-700 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                                                                    >
+                                                                        {item.label}
+                                                                    </button>
+                                                                ))}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                                {((targetSelection?.excluded?.length ?? 0) + (targetSelection?.preferred?.length ?? 0) + (targetSelection?.required?.length ?? 0)) > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => clearGroupClassPreference(course.courseId)}
+                                                        className="text-xs font-medium text-gray-500 hover:text-red-600"
+                                                    >
+                                                        Bỏ ưu tiên lớp
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </RoadmapDialog>}
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+
+            </div>
+            </details>
+            {preferenceSummary && <p className="text-xs text-slate-600">{preferenceSummary}</p>}
             {validationIssues.length > 0 ? (
                 <div className="overflow-hidden rounded-xl border border-amber-200 bg-amber-50">
                     <div className="flex items-start gap-2 px-4 py-3"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" /><div><p className="text-sm font-semibold text-amber-950">Kiểm tra cấu hình trước khi xếp</p><p className="mt-0.5 text-xs text-amber-800">Các lý do dưới đây được đối chiếu trực tiếp với lớp mở, lịch bận và bộ lọc hiện tại.</p></div></div>
@@ -1049,170 +956,69 @@ export function GroupSchedulePage({
                 </div>
             ) : null}
 
-            <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <div>
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900"><Settings className="h-4 w-4 text-[#004A98]" />Ưu tiên theo môn</h3>
-                    <p className="mt-1 text-xs text-gray-500">Đặt lớp ưu tiên hoặc bắt buộc, sau đó chọn các thành viên cần học cùng nhau.</p>
-                </div>
-                <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-                    {groupCourses.length === 0 ? (
-                        <div className="ustudy-muted-panel text-sm text-gray-500">Chưa có môn nào trong nhóm.</div>
-                    ) : (
-                        groupCourses.map((course) => {
-                            const targetSelection = getTargetSelection(course.courseId);
-                            const preferenceTargets = getClassPreferenceTargets(course.courseId, course.subscribers);
-                            return (
-                                <details key={course.courseId} className="min-w-0 rounded-lg border border-gray-200">
-                                    <summary className="min-h-11 cursor-pointer px-3 py-3 text-sm font-medium text-gray-900">{getGroupCourseName(course.courseId)}<span className="ml-2 text-xs text-gray-500">{course.courseId} · {course.subscribers.length} người</span></summary>
-                                    <div className="min-w-0 space-y-3 border-t border-gray-200 p-3">
-                                        <GroupCourseMemberNames names={course.subscribers.map((index) => members[index]?.nickname || `Thành viên ${index + 1}`)} />
-                                        <div className="grid min-w-0 grid-cols-2 items-stretch gap-3">
-                                            <div className="flex min-w-0 flex-col items-start justify-between gap-2 rounded-lg bg-gray-50 p-3">
-                                                <div className="flex flex-wrap gap-1.5 text-xs">
-                                                    {(targetSelection?.excluded?.length ?? 0) > 0 && <span className="rounded-full bg-rose-100 px-2 py-1 font-medium text-rose-700">{targetSelection?.excluded?.length} cấm</span>}
-                                                    {(targetSelection?.preferred?.length ?? 0) > 0 && <span className="rounded-full bg-blue-100 px-2 py-1 font-medium text-[#004A98]">{targetSelection?.preferred?.length} ưu tiên</span>}
-                                                    {(targetSelection?.required?.length ?? 0) > 0 && <span className="rounded-full bg-red-100 px-2 py-1 font-medium text-red-700">{targetSelection?.required?.length} bắt buộc</span>}
-                                                    {((targetSelection?.excluded?.length ?? 0) + (targetSelection?.preferred?.length ?? 0) + (targetSelection?.required?.length ?? 0)) === 0 && <span className="text-gray-500">Chưa chọn lớp ưu tiên</span>}
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-auto min-h-11 w-full min-w-0 whitespace-normal px-2 text-xs"
-                                                    onClick={() => setExpandedClassCourseId(course.courseId)}
-                                                    disabled={(classOptionsByCourse[course.courseId] ?? []).length === 0}
-                                                >
-                                                    Chọn lớp ưu tiên
-                                                </Button>
-                                            </div>
-
-                                            {expandedClassCourseId === course.courseId && (
-                                                <RoadmapDialog title="Chọn lớp ưu tiên" description={`${course.courseId} · ${getGroupCourseName(course.courseId)}`} onClose={() => setExpandedClassCourseId(null)} footer={<button type="button" onClick={() => setExpandedClassCourseId(null)} className="ustudy-button-primary min-h-11 w-full justify-center">Xong</button>}>
-                                                    <div className="space-y-2">
-                                                        <div className="flex flex-wrap items-center justify-between gap-2 bg-white pb-1">
-                                                            <span className="text-xs font-medium text-gray-500">Áp dụng cho</span>
-                                                            <AppSelect value={classPreferenceTargetByCourse[course.courseId] ?? 'global'} onChange={(value) => setClassPreferenceTargetByCourse((current) => ({ ...current, [course.courseId]: value }))} options={preferenceTargets} ariaLabel={`Chọn nhóm áp dụng ưu tiên lớp cho ${course.courseId}`} className="w-44" triggerClassName="h-8 px-2.5 text-xs" menuClassName="right-0 left-auto w-48" />
-                                                        </div>
-                                                        {(classOptionsByCourse[course.courseId] ?? []).length === 0 ? (
-                                                            <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-500">
-                                                                Chưa có dữ liệu lớp cho môn này.
-                                                            </div>
-                                                        ) : (
-                                                            (classOptionsByCourse[course.courseId] ?? []).map((classOption) => {
-                                                                const selectedLevel = getGroupClassPreferenceLevel(course.courseId, classOption.id);
-
-                                                                return (
-                                                                    <div
-                                                                        key={classOption.id}
-                                                                        className={`flex w-full flex-col gap-3 rounded-lg border p-2 text-left transition-colors sm:flex-row sm:items-start sm:justify-between ${selectedLevel === 'excluded' ? 'border-rose-300 bg-rose-50 text-rose-950' : selectedLevel === 'required' ? 'border-red-300 bg-red-50 text-red-950' : selectedLevel === 'preferred' ? 'border-[#004A98] bg-blue-50 text-blue-950' : 'border-gray-200 bg-white text-gray-700'}`}
-                                                                    >
-                                                                        <span className="min-w-0 flex-1">
-                                                                            <span className="block font-mono text-sm font-semibold">{classOption.id.replace(/_/g, ' ')}</span>
-                                                                            <span className={`mt-1 block text-xs leading-relaxed ${selectedLevel === 'excluded' ? 'text-rose-700' : selectedLevel === 'required' ? 'text-red-700' : selectedLevel === 'preferred' ? 'text-blue-700' : 'text-gray-500'}`}>
-                                                                                {classOption.schedule.length > 0 ? classOption.schedule.join(', ') : 'Chưa có lịch học'}
-                                                                            </span>
-                                                                        </span>
-                                                                        <span className="grid grid-cols-2 gap-1 rounded-lg bg-white p-1 sm:w-[300px] sm:grid-cols-4">
-                                                                            {[
-                                                                                { value: 'excluded' as const, label: 'Cấm' },
-                                                                                { value: null, label: 'Chọn' },
-                                                                                { value: 'preferred' as const, label: 'Ưu tiên' },
-                                                                                { value: 'required' as const, label: 'Bắt buộc' },
-                                                                            ].map((item) => (
-                                                                                <button
-                                                                                    key={item.label}
-                                                                                    type="button"
-                                                                                    onClick={() => setGroupClassPreferenceLevel(course.courseId, classOption.id, item.value)}
-                                                                                    className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${selectedLevel === item.value ? item.value === 'excluded' ? 'bg-rose-600 text-white' : item.value === 'required' ? 'bg-red-600 text-white' : item.value === 'preferred' ? 'bg-[#004A98] text-white' : 'bg-gray-700 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
-                                                                                >
-                                                                                    {item.label}
-                                                                                </button>
-                                                                            ))}
-                                                                        </span>
-                                                                    </div>
-                                                                );
-                                                            })
-                                                        )}
-                                                        {((targetSelection?.excluded?.length ?? 0) + (targetSelection?.preferred?.length ?? 0) + (targetSelection?.required?.length ?? 0)) > 0 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => clearGroupClassPreference(course.courseId)}
-                                                                className="text-xs font-medium text-gray-500 hover:text-red-600"
-                                                            >
-                                                                Bỏ ưu tiên lớp
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </RoadmapDialog>
-                                            )}
-                                            {course.subscribers.length >= 2 ? (
-                                                <CourseSharingEditor
-                                                    courseId={course.courseId}
-                                                    subscribers={course.subscribers}
-                                                    members={members}
-                                                    value={courseSharing[course.courseId]}
-                                                    onChange={(nextRule) => {
-                                                        setCourseSharing((current) => ({ ...current, [course.courseId]: nextRule }));
-                                                        setClassPreferenceTargetByCourse((current) => ({ ...current, [course.courseId]: 'global' }));
-                                                    }}
-                                                />
-                                            ) : null}
-                                        </div>
-                                    </div>
-                                </details>
-                            );
-                        })
-                    )}
-                </div>
-
-            </div>
+            <button type="button" className="ustudy-button-primary min-h-11" disabled={members.length < 2 || solving} onClick={runGroupSolve}>
+                {solving ? 'Đang xếp lịch…' : 'Xếp lịch nhóm'}
+            </button>
+            {members.length < 2 && <p className="text-xs text-slate-600">Cần thêm một thành viên để xếp lịch.</p>}
         </section>
     );
 
-    const renderResultToolbar = (imageActions?: React.ReactNode) => (
-        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div>
-                <h2 className="text-lg font-semibold text-gray-900">Kết quả xếp lịch nhóm</h2>
-                <p className="mt-1 text-sm text-gray-500">{result?.solutions.length || 0} phương án khả dụng.</p>
+    const openSavedSchedules = () => {
+        setSavedSchedules(readFromStorage<SavedSchedule[]>(STORAGE_KEYS.SAVED_SCHEDULES, []));
+        setShowListModal(true);
+    };
+    const renderResultToolbar = (moreActions?: React.ReactNode, memberControl?: React.ReactNode) => {
+        const options = result?.solutions ?? [];
+        return (
+            <div className="space-y-3">
+                <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+                    <div className="col-start-1 row-start-1 min-w-0">
+                        {options.length > 1 ? <GroupScheduleOptionJump
+                            current={activeResultIndex + 1}
+                            total={options.length}
+                            onChange={setActiveResultIndex}
+                        /> : selectedOption && <span className="text-xs font-medium text-slate-600">Phương án {selectedOption.option}</span>}
+                    </div>
+                    {options.length > 1 && <div className="col-span-2 col-start-1 row-start-2 min-w-0 lg:col-span-1 lg:col-start-2 lg:row-start-1">
+                        <ScheduleOptionSelector
+                            compact
+                            options={options.map(option => ({ id: option.option, label: String(option.option) }))}
+                            activeIndex={activeResultIndex}
+                            onChange={setActiveResultIndex}
+                            className="mx-auto w-fit lg:mx-0"
+                        />
+                    </div>}
+                    <div className="col-start-2 row-start-1 flex items-center justify-end gap-1.5 sm:gap-2 lg:col-start-3">
+                        <button type="button" className="ustudy-button-primary h-11 whitespace-nowrap px-2.5 py-0 text-xs sm:h-8" disabled={!selectedOption} onClick={() => setShowSaveGroupScheduleModal(true)}>Lưu lịch</button>
+                        {moreActions ?? <AppSelect ariaLabel="Tùy chọn lịch nhóm" value="" menuClassName="right-0 min-w-44"
+                            triggerClassName="h-11 justify-center px-2 py-0 sm:h-8" triggerContent={<MoreHorizontal aria-hidden="true" className="size-4" />}
+                            options={[{ id: 'saved', name: 'Lịch đã lưu' }, { id: 'image', name: 'Tạo ảnh tùy chỉnh', disabled: !selectedOption }]}
+                            onChange={action => {
+                                if (action === 'saved') openSavedSchedules();
+                                else { setShowGroupCalendarPreview(true); setIsImageDialogOpen(true); }
+                            }} />}
+                    </div>
+                </div>
+                {selectedOption && renderResultNotices()}
+                {selectedOption && <div className="flex min-w-0 items-center gap-2 border-b border-slate-200 pb-3 sm:gap-3">
+                    <GroupScheduleResultViewTabs
+                        value={showGroupCalendarPreview ? 'calendar' : resultViewMode}
+                        onChange={view => {
+                            setShowGroupCalendarPreview(view === 'calendar');
+                            if (view !== 'calendar') setResultViewMode(view);
+                        }}
+                    />
+                    {memberControl}
+                </div>}
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2">
-                {imageActions}
-                <AppSelect
-                    value=""
-                    ariaLabel="Lưu và mở lịch nhóm"
-                    triggerContent={<><Save className="h-4 w-4" /><span>Lưu & mở lịch</span></>}
-                    triggerClassName="min-h-11 gap-2 px-3 text-sm font-medium"
-                    options={[
-                        { id: 'save', name: 'Lưu lịch', disabled: !selectedOption },
-                        { id: 'saved', name: `Lịch đã lưu (${savedSchedules.length})` },
-                    ]}
-                    onChange={(action) => {
-                        if (action === 'save' && selectedOption) setShowSaveGroupScheduleModal(true);
-                        if (action === 'saved') {
-                            setSavedSchedules(readFromStorage<SavedSchedule[]>(STORAGE_KEYS.SAVED_SCHEDULES, []));
-                            setShowListModal(true);
-                        }
-                    }}
-                />
-            </div>
-        </div>
-    );
+        );
+    };
 
-    const renderResultViewControls = () => (
-        <>
-            <GroupScheduleResultViewTabs
-                value={showGroupCalendarPreview ? 'calendar' : resultViewMode}
-                onChange={(view) => {
-                    if (view === 'calendar') {
-                        setShowGroupCalendarPreview(true);
-                        return;
-                    }
-
-                    setShowGroupCalendarPreview(false);
-                    setResultViewMode(view);
-                }}
-            />
-
+    const missingCourses = (result?.density ?? []).filter(course => selectedOption && course.subscribers.some(index =>
+        !selectedOption.schedules.find(schedule => schedule.memberIndex === index)?.items.some(item => item.courseId === course.courseId)));
+    const renderResultNotices = () => (missingCourses.length > 0 || result?.warnings.length ? (
+        <div className="space-y-2">
+            {missingCourses.length > 0 && <p role="status" className="text-sm text-amber-800">Chưa xếp đủ môn: {missingCourses.map(course => course.courseId).join(', ')}</p>}
             {result?.warnings.length ? (
                 <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                     {result.warnings.map((warning) => (
@@ -1220,17 +1026,19 @@ export function GroupSchedulePage({
                     ))}
                 </div>
             ) : null}
-        </>
-    );
+        </div>
+    ) : null);
 
     const renderResultStep = () => (
-        <section className="ustudy-card p-4 sm:p-5">
-            {(!showGroupCalendarPreview || !result?.solutions.length) && <>{renderResultToolbar()}{renderResultViewControls()}</>}
+        <section className="ustudy-card space-y-3 p-4 sm:p-5">
+            {(!showGroupCalendarPreview || !result?.solutions.length) && <>{renderResultToolbar()}{!selectedOption && result?.warnings.map(warning => <p key={warning} className="text-sm text-amber-800">{warning}</p>)}</>}
             {result?.solutions.length ? (
                 showGroupCalendarPreview ? (
                     <GroupScheduleCalendarPreview
+                        isImageDialogOpen={isImageDialogOpen}
+                        setIsImageDialogOpen={setIsImageDialogOpen}
+                        onOpenSaved={openSavedSchedules}
                         renderToolbar={renderResultToolbar}
-                        beforeControls={renderResultViewControls()}
                         options={result.solutions}
                         activeOptionIndex={activeResultIndex}
                         activeMemberIndex={activePreviewMemberIndex}
@@ -1242,14 +1050,6 @@ export function GroupSchedulePage({
                     />
                 ) : (
                     <>
-                        <ScheduleOptionSelector
-                            className="mb-4 border-b border-gray-200 pb-3"
-                            options={result.solutions.map((option) => ({ id: option.option, label: `PA ${option.option}` }))}
-                            activeIndex={activeResultIndex}
-                            onChange={setActiveResultIndex}
-                        />
-
-
                         {selectedOption && (
                             <GroupScheduleResult
                                 option={selectedOption}
@@ -1261,7 +1061,9 @@ export function GroupSchedulePage({
                     </>
                 )
             ) : (
-                <div className="rounded-md bg-gray-50 p-4 text-sm text-gray-500">Chưa có kết quả. Hãy chạy xếp lịch trước.</div>
+                <div className="rounded-md bg-gray-50 p-4 text-sm text-gray-500">{solving ? <div className="flex items-center justify-between gap-2"><span role="status">Đang xếp lịch…</span>
+                    <button type="button" className="ustudy-button-outline min-h-11" onClick={() => openStep(2)}>Dừng xếp lịch</button>
+                </div> : 'Chưa có kết quả. Hãy kiểm tra lại ưu tiên của nhóm.'}</div>
             )}
 
             {result?.solutions.length ? <details className="mt-4 border-t border-gray-200 pt-3"><summary className="min-h-11 cursor-pointer text-sm font-medium text-[#004A98]">So sánh các phương án</summary><GroupScheduleComparison options={result.solutions} activeIndex={activeResultIndex} /></details> : null}
@@ -1305,57 +1107,13 @@ export function GroupSchedulePage({
                             onChange={(event) => setGroupScheduleName(event.target.value)}
                             placeholder={`Ví dụ: Nhóm - PA ${selectedOption.option}`}
                             className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#004A98] focus:ring-2 focus:ring-[#004A98]/15"
-                            onKeyDown={(event) => event.key === 'Enter' && saveSelectedGroupSchedule()}
+                            onKeyDown={(event) => event.key === 'Enter' && groupScheduleName.trim() && saveSelectedGroupSchedule()}
                         />
                     </div>
                     <p className="border-l-2 border-[#004A98] bg-blue-50 px-3 py-2 text-xs leading-5 text-slate-600">
                         Lưu cả nhóm và các lớp của phương án đang xem. Khi mở lại, bạn vẫn có thể đổi thành viên để xem lịch riêng từng người.
                     </p>
                 </RoadmapDialog>
-            )}
-
-            {false && showSaveGroupScheduleModal && selectedOption && (
-                <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-                    <div className="w-full overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl">
-                        <div className="flex items-center justify-between border-b border-gray-100 p-4 md:p-5">
-                            <h3 className="flex items-center gap-2 text-base font-bold text-gray-900">
-                                <Save className="h-4 w-4 text-emerald-600" />
-                                Lưu lịch nhóm
-                            </h3>
-                            <button type="button" onClick={() => setShowSaveGroupScheduleModal(false)} className="rounded-full p-1 transition-colors hover:bg-gray-100">
-                                <X className="h-5 w-5 text-gray-400" />
-                            </button>
-                        </div>
-                        <div className="p-4 md:p-6">
-                            <label className="mb-2 block text-sm font-bold text-gray-700">Tên gợi nhớ cho lịch này</label>
-                            <input
-                                autoFocus
-                                type="text"
-                                value={groupScheduleName}
-                                onChange={(event) => setGroupScheduleName(event.target.value)}
-                                placeholder={`VD: Nhóm - PA ${selectedOption?.option ?? 1}`}
-                                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
-                                onKeyDown={(event) => event.key === 'Enter' && saveSelectedGroupSchedule()}
-                            />
-                            <p className="mt-3 text-xs italic text-gray-400">
-                                Lưu toàn bộ thành viên trong phương án hiện tại. Khi mở lại ở tab lịch dự kiến, bạn có thể chuyển qua lại giữa các thành viên.
-                            </p>
-                        </div>
-                        <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4 md:p-5">
-                            <button type="button" onClick={() => setShowSaveGroupScheduleModal(false)} className="px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-800">
-                                Hủy
-                            </button>
-                            <button
-                                type="button"
-                                onClick={saveSelectedGroupSchedule}
-                                disabled={!groupScheduleName.trim()}
-                                className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow transition-all hover:bg-emerald-700 disabled:opacity-50"
-                            >
-                                Xác nhận lưu
-                            </button>
-                        </div>
-                    </div>
-                </div>
             )}
 
             <SavedSchedulesModal

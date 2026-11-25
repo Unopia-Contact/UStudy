@@ -371,15 +371,7 @@ export function StudyRoadmapFeature() {
                                 setAllowedClassesMap={setAllowedClassesMap}
                                 setOptions={setOptions}
                                 groupScheduleContent={(
-                                    <GroupSchedulePage
-                                        embedded
-                                        selectedCourseIds={pendingSelectedCourses}
-                                        allCourses={globalAllCourses as Course[]}
-                                        allowedClassesMap={allowedClassesMap}
-                                        setAllowedClassesMap={setAllowedClassesMap}
-                                        onRemoveSelectedCourse={handleCourseToggle}
-                                        onPageChange={() => undefined}
-                                    />
+                                    <GroupSchedulePage embedded allCourses={globalAllCourses as Course[]} />
                                 )}
                             />
                         )}

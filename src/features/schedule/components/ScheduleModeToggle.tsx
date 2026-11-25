@@ -10,6 +10,7 @@ export function ScheduleModeToggle({ mode, onChange }: ScheduleModeToggleProps) 
     <div className="flex w-full shrink-0 items-center rounded-lg border border-gray-200 bg-slate-50 p-1 md:inline-flex md:w-auto">
       <button
         type="button"
+        aria-pressed={mode === 'personal'}
         onClick={() => onChange('personal')}
         className={`min-h-11 flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors md:min-h-0 md:flex-none ${
           mode === 'personal'
@@ -21,6 +22,7 @@ export function ScheduleModeToggle({ mode, onChange }: ScheduleModeToggleProps) 
       </button>
       <button
         type="button"
+        aria-pressed={mode === 'group'}
         onClick={() => onChange('group')}
         className={`min-h-11 flex-1 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors md:min-h-0 md:flex-none ${
           mode === 'group'

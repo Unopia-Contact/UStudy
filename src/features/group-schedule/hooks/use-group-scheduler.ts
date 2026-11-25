@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { STORAGE_KEYS } from '../../../config';
 import { readFromStorage, saveToStorage } from '../../../helpers/localStorage/save';
@@ -7,13 +7,11 @@ import {
   decodeGroupURL,
   encodeGroupURL,
   GroupURLDecodeError,
-  analyzeGroupScheduleTradeoff,
   isDuplicateMember,
-  runGroupScheduleSolver,
   sanitizeGroupMember,
-  validateGroupScheduleConfiguration,
 } from '../services/group-scheduler';
 import type { GroupConfigurationIssue, GroupFitnessConfig, GroupMemberToken, GroupScheduleOption, GroupScheduleRunResult, GroupScheduleTradeoff, GroupShareConfig, GroupSharePayload } from '../types';
+import type { GroupWorkerReply, GroupWorkerRequest } from '../services/group-scheduler.worker';
 import courseDbJson from '../../../logic/scheduler/Course_db.json';
 import { useCampus } from '../../../context/CampusContext';
 
@@ -108,12 +106,31 @@ export function parseCourseInput(value: string): string[] {
   );
 }
 
+function runWorker(request: GroupWorkerRequest, signal: AbortSignal): Promise<GroupWorkerReply> {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL('../services/group-scheduler.worker.ts', import.meta.url), { type: 'module' });
+    const cleanup = () => {
+      worker.terminate();
+      window.clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+    };
+    const fail = (message: string) => { cleanup(); reject(new Error(message)); };
+    const abort = () => { cleanup(); reject(new DOMException('Đã dừng xếp lịch.', 'AbortError')); };
+    const timer = window.setTimeout(() => fail('Đã hết thời gian xếp lịch. Hãy thử thu hẹp lựa chọn lớp.'), 20_000);
+    signal.addEventListener('abort', abort, { once: true });
+    worker.onmessage = ({ data }: MessageEvent<GroupWorkerReply>) => { cleanup(); resolve(data); };
+    worker.onerror = () => fail('Không chạy được bộ xếp lịch. Hãy thử lại.');
+    worker.onmessageerror = () => fail('Không đọc được kết quả xếp lịch.');
+    try { worker.postMessage(request); } catch (error) { cleanup(); reject(error); }
+  });
+}
+
 export function useGroupScheduler(): GroupSolverState & {
   setMembersFromURL: (hash?: string) => void;
   addMember: (member: GroupMemberToken) => boolean;
   replaceMembers: (members: GroupMemberToken[]) => void;
-  solve: (config?: Partial<GroupFitnessConfig>) => void;
-  validateConfiguration: (config?: Partial<GroupFitnessConfig>) => GroupConfigurationIssue[];
+  solve: (config?: Partial<GroupFitnessConfig>) => Promise<'invalid' | void>;
+  cancelSolve: () => void;
   setShareConfig: (config: GroupShareConfig) => void;
   analyzeTradeoff: (option: GroupScheduleOption, tradeoff: GroupScheduleTradeoff, config?: Partial<GroupFitnessConfig>) => Promise<GroupScheduleTradeoff>;
   clearResult: () => void;
@@ -209,83 +226,81 @@ export function useGroupScheduler(): GroupSolverState & {
     return true;
   }, [members, shareConfig, updateBrowserUrl]);
 
-  const validateConfiguration = useCallback((config: Partial<GroupFitnessConfig> = {}) => {
-    const issues = validateGroupScheduleConfiguration(dbData, members, config, defaultCampusId);
-    setValidationIssues(issues);
-    return issues;
-  }, [dbData, defaultCampusId, members]);
+  const activeJob = useRef<AbortController | null>(null);
+  const cancelSolve = useCallback(() => {
+    activeJob.current?.abort();
+    activeJob.current = null;
+    setSolving(false);
+  }, []);
+  useEffect(() => {
+    setSolving(false);
+    return () => { activeJob.current?.abort(); activeJob.current = null; };
+  }, [members, defaultCampusId, shareConfig]);
 
-  const solve = useCallback((config: Partial<GroupFitnessConfig> = {}) => {
+  const startJob = (config: Partial<GroupFitnessConfig>, tradeoff?: GroupScheduleTradeoff) => {
+    activeJob.current?.abort();
+    const controller = new AbortController();
+    activeJob.current = controller;
+    const ids = new Set(members.flatMap(member => [...member.sharedCourses, ...member.personalCourses].map(id => id.trim().toUpperCase())));
+    const db = dbData.filter(course => ids.has(getCourseId(course)));
+    return { controller, reply: runWorker({ db, members, config, campus: defaultCampusId, tradeoff }, controller.signal) };
+  };
+  const solve = async (config: Partial<GroupFitnessConfig> = {}): Promise<'invalid' | void> => {
+    if (members.length < 2) { setSolveError('Cần ít nhất 2 thành viên để xếp lịch nhóm.'); return 'invalid'; }
     setSolving(true);
     setSolveError(null);
     setResult(null);
-
-    window.setTimeout(() => {
-      try {
-        if (members.length < 2) {
-          setSolveError('Cần ít nhất 2 thành viên để xếp lịch nhóm.');
-          return;
-        }
-        if (dbData.length === 0) {
-          setSolveError('Chưa có dữ liệu lớp học offline. Hãy import dữ liệu Portal trước khi xếp lịch nhóm.');
-          return;
-        }
-
-        const issues = validateGroupScheduleConfiguration(dbData, members, config, defaultCampusId);
-        setValidationIssues(issues);
-        const blockingIssue = issues.find((issue) => issue.severity === 'error');
-        if (blockingIssue) {
-          setSolveError(blockingIssue.description);
-          return;
-        }
-
-        const nextResult = runGroupScheduleSolver(dbData, members, config, undefined, defaultCampusId);
-        if (nextResult.solutions.length === 0) {
-          const hintedCourse = nextResult.density[0]?.courseId;
-          setSolveError(`Không thể xếp lịch chung cho tất cả môn đã chọn.${hintedCourse ? ` Thử bỏ bớt môn ${hintedCourse} hoặc kiểm tra lại lớp của môn này.` : ' Thử giảm số môn chung hoặc kiểm tra lại dữ liệu lớp học.'}`);
-        } else {
-          saveToStorage<PersistedGroupScheduleResult>(STORAGE_KEYS.GROUP_SCHEDULE_LAST_RESULT, {
-            version: 1,
-            updatedAt: new Date().toISOString(),
-            memberSignature: getMemberSignature(members),
-            result: nextResult,
-          });
-        }
-        setResult(nextResult);
-      } catch (error) {
-        setSolveError(error instanceof Error ? error.message : 'Có lỗi khi xếp lịch nhóm.');
-      } finally {
-        setSolving(false);
+    setValidationIssues([]);
+    const { controller, reply } = startJob(config);
+    try {
+      const response = await reply;
+      if (controller.signal.aborted) return;
+      if (response.kind === 'error') throw new Error(response.message);
+      if (response.kind === 'analysis') return;
+      setValidationIssues(response.issues);
+      if (response.kind === 'invalid') return 'invalid';
+      const nextResult = response.result;
+      if (!nextResult.solutions.length) {
+        setSolveError(nextResult.trace?.some(stage => stage.reachedSearchBudget)
+          ? 'Đã đạt giới hạn tìm kiếm. Hãy giảm số lớp cần xét hoặc điều chỉnh ưu tiên.'
+          : 'Chưa tìm được lịch chung. Hãy kiểm tra các môn và điều kiện đã chọn.');
+      } else {
+        saveToStorage<PersistedGroupScheduleResult>(STORAGE_KEYS.GROUP_SCHEDULE_LAST_RESULT, {
+          version: 1, updatedAt: new Date().toISOString(), memberSignature: getMemberSignature(members), result: nextResult,
+        });
       }
-    }, 50);
-  }, [dbData, defaultCampusId, members]);
+      setResult(nextResult);
+    } catch (error) {
+      if (!controller.signal.aborted) setSolveError(error instanceof Error ? error.message : 'Có lỗi khi xếp lịch nhóm.');
+    } finally {
+      if (activeJob.current === controller) { activeJob.current = null; setSolving(false); }
+    }
+  };
 
   const clearResult = useCallback(() => {
+    cancelSolve();
     setResult(null);
     setSolveError(null);
-  }, []);
+  }, [cancelSolve]);
 
-  const analyzeTradeoff = useCallback((option: GroupScheduleOption, tradeoff: GroupScheduleTradeoff, config: Partial<GroupFitnessConfig> = {}) => {
-    return new Promise<GroupScheduleTradeoff>((resolve) => {
-      window.setTimeout(() => {
-        const analyzed = analyzeGroupScheduleTradeoff(dbData, members, config, tradeoff, defaultCampusId);
-        setResult((current) => {
-          if (!current) return current;
-          const solutions = current.solutions.map((candidate) => {
-            if (candidate.option !== option.option) return candidate;
-            return {
-              ...candidate,
-              tradeoffs: (candidate.tradeoffs ?? []).map((candidateTradeoff) => (
-                candidateTradeoff.id === analyzed.id ? analyzed : candidateTradeoff
-              )),
-            };
-          });
-          return { ...current, solutions };
-        });
-        resolve(analyzed);
-      }, 0);
-    });
-  }, [dbData, defaultCampusId, members]);
+  const analyzeTradeoff = async (option: GroupScheduleOption, tradeoff: GroupScheduleTradeoff, config: Partial<GroupFitnessConfig> = {}) => {
+    const { controller, reply } = startJob(config, tradeoff);
+    try {
+      const response = await reply;
+      if (response.kind === 'error') throw new Error(response.message);
+      if (response.kind !== 'analysis' || controller.signal.aborted) return tradeoff;
+      const analyzed = response.tradeoff;
+      setResult(current => current && { ...current, solutions: current.solutions.map(candidate => candidate !== option ? candidate : {
+        ...candidate, tradeoffs: candidate.tradeoffs?.map(item => item.id === analyzed.id ? analyzed : item),
+      }) });
+      return analyzed;
+    } catch (error) {
+      if (!controller.signal.aborted) setSolveError(error instanceof Error ? error.message : 'Không phân tích được phương án.');
+      return tradeoff;
+    } finally {
+      if (activeJob.current === controller) activeJob.current = null;
+    }
+  };
 
   const getOptionRegistrations = useCallback((option: GroupScheduleOption, memberIndex = 0) => {
     const memberSchedule = option.schedules.find((schedule) => schedule.memberIndex === memberIndex);
@@ -315,11 +330,11 @@ export function useGroupScheduler(): GroupSolverState & {
     addMember,
     replaceMembers,
     solve,
-    validateConfiguration,
+    cancelSolve,
     setShareConfig,
     analyzeTradeoff,
     clearResult,
-    setResult,
+    setResult: next => { cancelSolve(); setResult(next); },
     getOptionRegistrations,
   };
 }

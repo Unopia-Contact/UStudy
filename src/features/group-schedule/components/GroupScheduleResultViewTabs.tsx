@@ -1,4 +1,4 @@
-import { Calendar, LayoutList, UsersRound } from 'lucide-react';
+import { ChevronDown, Eye } from 'lucide-react';
 import type { GroupScheduleResultViewMode } from './GroupScheduleResult';
 import { AppSelect } from '../../../components/ui/form/app-select';
 
@@ -9,40 +9,28 @@ interface GroupScheduleResultViewTabsProps {
   onChange: (value: GroupScheduleDisplayMode) => void;
 }
 
-const views: Array<{
-  id: GroupScheduleDisplayMode;
-  label: string;
-  icon: typeof Calendar;
-}> = [
-  { id: 'calendar', label: 'Tổng quát', icon: Calendar },
-  { id: 'course', label: 'Theo môn', icon: LayoutList },
-  { id: 'member', label: 'Theo thành viên', icon: UsersRound },
+const views = [
+  { id: 'calendar', name: 'Tổng quát' },
+  { id: 'course', name: 'Theo môn' },
+  { id: 'member', name: 'Theo thành viên' },
 ];
 
 export function GroupScheduleResultViewTabs({ value, onChange }: GroupScheduleResultViewTabsProps) {
+  const currentView = views.find(view => view.id === value)?.name;
   return (
-    <>
-    <div className="mb-4 md:hidden"><AppSelect ariaLabel="Chế độ xem kết quả nhóm" value={value} options={views.map(view => ({ id: view.id, name: view.label }))} onChange={view => onChange(view as GroupScheduleDisplayMode)} triggerClassName="min-h-11" /></div>
-    <div className="mb-4 hidden md:flex overflow-x-auto rounded-xl bg-gray-100 p-1" aria-label="Chế độ xem kết quả">
-      {views.map((view) => {
-        const Icon = view.icon;
-        const isActive = value === view.id;
-
-        return (
-          <button
-            key={view.id}
-            type="button"
-            onClick={() => onChange(view.id)}
-            className={`flex min-w-max flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all sm:text-sm ${
-              isActive ? 'bg-white text-[#004A98] shadow-sm' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {view.label}
-          </button>
-        );
-      })}
-    </div>
-    </>
+    <AppSelect
+      ariaLabel="Cách xem"
+      value={value}
+      options={views}
+      onChange={view => onChange(view as GroupScheduleDisplayMode)}
+      className="shrink-0"
+      triggerClassName="group h-11 gap-1.5 px-2.5 py-0 text-xs font-medium sm:h-8"
+      menuClassName="right-0 min-w-40"
+      triggerContent={<>
+        <Eye aria-hidden="true" className="size-4 shrink-0 text-slate-500" />
+        <span className="whitespace-nowrap"><span className="hidden text-slate-500 sm:inline">Cách xem · </span>{currentView}</span>
+        <ChevronDown aria-hidden="true" className="size-3.5 shrink-0 text-slate-500 transition-transform group-aria-expanded:rotate-180" />
+      </>}
+    />
   );
 }

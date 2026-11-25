@@ -65,7 +65,7 @@ export function CalendarView({
     groupScheduleContent,
 }: CalendarViewProps) {
     const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(() => {
-        if (window.location.hash.startsWith('#v1_')) return 'group';
+        if (/^\/(?:study-roadmap\/)?group\/?$/.test(window.location.pathname) || /^#v[12]_/.test(window.location.hash)) return 'group';
         return readFromStorage<ScheduleMode>(STORAGE_KEYS.SCHEDULE_MODE, 'personal');
     });
 
@@ -163,8 +163,8 @@ export function CalendarView({
     const hasPersonalScheduleActions = selectedCourses.size > 0 || registeredCourses.length > 0 || savedSchedules.length > 0;
 
     const renderModeToolbar = () => (
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-3 md:gap-4">
-            <div className="min-w-[180px] flex-1 md:flex-none">{renderModeSwitch()}</div>
+        <div role="group" aria-label="Thanh xếp lịch" className="ustudy-card flex items-center gap-2 p-3 md:gap-4">
+            <div className="min-w-0 flex-1 md:flex-none">{renderModeSwitch()}</div>
             {scheduleMode === 'personal' && hasPersonalScheduleActions && (
                 <>
                     <div className="hidden h-6 w-px bg-gray-200 md:block" />

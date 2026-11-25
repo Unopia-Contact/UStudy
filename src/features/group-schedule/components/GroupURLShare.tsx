@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Copy, Link } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 
 import { Button } from '../../../components/ui/form/button';
 import { Input } from '../../../components/ui/form/input';
@@ -12,9 +12,11 @@ interface GroupURLShareProps {
 export function GroupURLShare({ url, warning }: GroupURLShareProps) {
   const [copied, setCopied] = useState(false);
 
+  const [manual, setManual] = useState(false);
   const handleCopy = async () => {
     if (!url) return;
-    await navigator.clipboard.writeText(url);
+    try { await navigator.clipboard.writeText(url); }
+    catch { setManual(true); return; }
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1400);
   };
@@ -22,20 +24,12 @@ export function GroupURLShare({ url, warning }: GroupURLShareProps) {
   if (!url) return null;
 
   return (
-    <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#004A98]">
-        <Link className="h-4 w-4" />
-        Link nhóm
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Input readOnly value={url} className="bg-white font-mono text-xs" />
-        <Button type="button" onClick={handleCopy} className="bg-[#004A98] hover:bg-[#003d7a] text-white">
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          {copied ? 'Đã copy' : 'Copy'}
-        </Button>
-      </div>
-      {warning && <p className="mt-2 text-xs text-amber-700">{warning}</p>}
-      <p className="mt-2 text-xs text-blue-700">Dữ liệu nằm trong hash fragment sau dấu #, không dùng query string.</p>
+    <div>
+      <Button type="button" onClick={handleCopy} className="ustudy-button-primary min-h-11">
+        {copied ? <Check /> : <Copy />}{copied ? 'Đã sao chép' : 'Sao chép liên kết'}
+      </Button>
+      {manual && <Input aria-label="Liên kết nhóm" readOnly value={url} onFocus={event => event.target.select()} />}
+      {warning && <p className="mt-1 text-xs text-amber-700">{warning}</p>}
     </div>
   );
 }

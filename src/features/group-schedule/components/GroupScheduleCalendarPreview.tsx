@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useMemo, useState, useRef } from 'react';
-import { AlertTriangle, Calendar, Clock, Camera, Loader2 } from 'lucide-react';
+import { AlertTriangle, Calendar, Clock, MoreHorizontal, Loader2 } from 'lucide-react';
 import { UI_COLORS } from '../../../config';
 import { getScheduleGridTemplate, getVisibleWeekDays } from '../../../constants';
 import { maskToSections } from '../../../logic/scheduler/ScheduleDecoder';
@@ -8,7 +8,6 @@ import type { GroupScheduleOption } from '../types';
 import type { ClassSection, SavedSchedule } from '../../../types';
 import type { OpenClassDetailTarget } from '../../../components/course';
 import { AppSelect } from '../../../components/ui/form';
-import { ScheduleOptionSelector } from '../../schedule';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { captureElementAsDataURL, slugify, downloadImage } from '../../../utils/export';
@@ -39,8 +38,10 @@ interface GroupScheduleCalendarPreviewProps {
   setActiveOptionIndex: (index: number) => void;
   setActiveMemberIndex: (index: number) => void;
   onOpenClassDetails: (target: OpenClassDetailTarget) => void;
-  renderToolbar?: (imageActions: ReactNode) => ReactNode;
-  beforeControls?: ReactNode;
+  renderToolbar: (imageActions: ReactNode, memberControl?: ReactNode) => ReactNode;
+  onOpenSaved: () => void;
+  isImageDialogOpen: boolean;
+  setIsImageDialogOpen: (open: boolean) => void;
 }
 
 const PALETTE = UI_COLORS.SCHEDULE_PALETTE;
@@ -160,7 +161,9 @@ export function GroupScheduleCalendarPreview({
   setActiveMemberIndex,
   onOpenClassDetails,
   renderToolbar,
-  beforeControls,
+  onOpenSaved,
+  isImageDialogOpen,
+  setIsImageDialogOpen,
 }: GroupScheduleCalendarPreviewProps) {
   const { defaultCampusId } = useCampus();
   const option = options[activeOptionIndex] ?? options[0];
@@ -185,7 +188,6 @@ export function GroupScheduleCalendarPreview({
   
   const calendarRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportTotal, setExportTotal] = useState(0);
 
@@ -261,17 +263,20 @@ export function GroupScheduleCalendarPreview({
   const imageActions = (
     <AppSelect
       value=""
-      ariaLabel="Tạo và xuất ảnh lịch nhóm"
-      triggerContent={<>{isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}<span>{isExporting ? `Đang xuất (${exportProgress}/${exportTotal})` : 'Ảnh lịch'}</span></>}
-      triggerClassName="min-h-11 gap-2 px-3 text-sm font-medium"
+      ariaLabel="Tùy chọn lịch nhóm"
+      menuClassName="right-0 min-w-48"
+      triggerContent={<>{isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal aria-hidden="true" className="size-4" />}{isExporting && <span>{exportProgress}/{exportTotal}</span>}</>}
+      triggerClassName="h-11 justify-center gap-1.5 px-2 py-0 text-xs font-medium sm:h-8"
       disabled={isExporting}
       options={[
+        { id: 'saved', name: 'Lịch đã lưu' },
         { id: 'create', name: 'Tạo ảnh tùy chỉnh', disabled: sections.length === 0 },
         { id: 'current', name: 'Xuất hiện tại (1 ảnh)', disabled: sections.length === 0 },
         { id: 'all', name: 'Xuất toàn bộ (ZIP)', disabled: options.length === 0 },
       ]}
       onChange={(action) => {
-        if (action === 'create') setIsImageDialogOpen(true);
+        if (action === 'saved') onOpenSaved();
+        else if (action === 'create') setIsImageDialogOpen(true);
         else if (action === 'current') void handleExportCurrent();
         else if (action === 'all') void handleExportAllZip();
       }}
@@ -281,8 +286,7 @@ export function GroupScheduleCalendarPreview({
   if (!option || !member) {
     return (
       <div className="space-y-4">
-        {renderToolbar?.(imageActions)}
-        {beforeControls}
+        {renderToolbar(imageActions)}
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
           Chưa có phương án lịch để xem.
         </div>
@@ -290,34 +294,25 @@ export function GroupScheduleCalendarPreview({
     );
   }
 
+  const memberControl = option.schedules.length > 1 ? (
+    <div className="ml-auto flex min-w-0 flex-1 items-center gap-2 sm:ml-0 sm:flex-none">
+      <span className="hidden shrink-0 text-xs font-medium text-slate-600 sm:inline">Thành viên</span>
+      <AppSelect
+        value={String(effectiveMemberIndex)}
+        options={option.schedules.map(schedule => ({ id: String(schedule.memberIndex), name: schedule.nickname }))}
+        onChange={value => setActiveMemberIndex(Number(value))}
+        ariaLabel="Chọn thành viên để xem lịch"
+        className="min-w-0 flex-1 sm:w-52 sm:flex-none"
+        triggerClassName="h-11 gap-1.5 px-2.5 py-0 text-xs font-medium sm:h-8"
+        menuClassName="right-0 min-w-40"
+        disabled={isExporting}
+      />
+    </div>
+  ) : null;
+
   return (
     <div className="space-y-4 rounded-lg">
-      {renderToolbar ? renderToolbar(imageActions) : imageActions}
-      {beforeControls}
-      <div className="flex flex-col gap-3 border-b border-gray-200 pb-3 lg:flex-row lg:items-center lg:justify-between">
-        <ScheduleOptionSelector
-          options={options.map((item) => ({ id: item.option, label: `PA ${item.option}` }))}
-          activeIndex={activeOptionIndex}
-          onChange={setActiveOptionIndex}
-        />
-
-        <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:border-l lg:border-gray-200 lg:pl-3">
-          <span className="text-xs font-medium text-gray-500">Thành viên</span>
-          <AppSelect
-            value={String(effectiveMemberIndex)}
-            options={option.schedules.map((schedule) => ({
-              id: String(schedule.memberIndex),
-              name: schedule.nickname,
-            }))}
-            onChange={(value) => setActiveMemberIndex(Number(value))}
-            ariaLabel="Chọn thành viên để xem lịch"
-            className="min-w-40"
-            triggerClassName="h-9 px-3 py-0 text-sm font-medium"
-            disabled={isExporting}
-          />
-          
-        </div>
-      </div>
+      {renderToolbar(imageActions, memberControl)}
       {isImageDialogOpen && <ScheduleImageDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen} lessons={fromClassSections(sections)} title={`Lịch của ${member.nickname}`} subtitle={`Phương án ${option.option}`} filename={`lich-nhom-${slugify(member.nickname || 'thanh-vien')}-pa${option.option}`} />}
 
       <div ref={calendarRef} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
