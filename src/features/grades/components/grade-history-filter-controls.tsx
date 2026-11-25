@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Filter, RotateCcw, X } from 'lucide-react';
 import { MobileBottomSheet } from '../../../components/ui/overlays/mobile-bottom-sheet';
-import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/overlays/popover';
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '../../../components/ui/overlays/dialog';
 import { AppSelect } from '../../../components/ui/form';
 import {
     applyGradeHistoryFilters,
@@ -71,7 +71,18 @@ export function GradeHistoryFilterControls({
     const [desktopOpen, setDesktopOpen] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [draftFilters, setDraftFilters] = useState<GradeHistoryFilters>(() => cloneFilters(filters));
+    const desktopTitle = useRef<HTMLHeadingElement>(null);
     const activeFilterCount = countActiveGradeHistoryFilterGroups(filters);
+
+    useEffect(() => {
+        const desktopLayout = window.matchMedia('(min-width: 64rem)');
+        const closeForLayoutChange = () => {
+            setDesktopOpen(false);
+            setMobileOpen(false);
+        };
+        desktopLayout.addEventListener('change', closeForLayoutChange);
+        return () => desktopLayout.removeEventListener('change', closeForLayoutChange);
+    }, []);
 
     const previewCount = useMemo(
         () => applyGradeHistoryFilters(semesterScopedHistory, draftFilters, categoryIndex).length,
@@ -174,14 +185,14 @@ export function GradeHistoryFilterControls({
                 />
 
                 <div className="hidden lg:block">
-                    <Popover
+                    <Dialog
                         open={desktopOpen}
                         onOpenChange={(open) => {
                             if (open) openFilter('desktop');
                             else setDesktopOpen(false);
                         }}
                     >
-                        <PopoverTrigger asChild>
+                        <DialogTrigger asChild>
                             <button
                                 type="button"
                                 className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors ${activeFilterCount > 0
@@ -197,16 +208,18 @@ export function GradeHistoryFilterControls({
                                     </span>
                                 )}
                             </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                            align="end"
-                            sideOffset={8}
-                            collisionPadding={16}
-                            className="flex h-[min(36rem,calc(100vh-8rem))] w-[440px] flex-col overflow-hidden rounded-xl border border-gray-200 !bg-white !text-gray-900 p-0 shadow-[0_18px_45px_rgba(15,23,42,0.16)]"
+                        </DialogTrigger>
+                        <DialogContent
+                            className="flex h-[min(36rem,calc(100dvh-2rem))] w-[440px] max-w-[calc(100vw-2rem)] flex-col gap-0 overflow-hidden rounded-xl border-gray-200 bg-white p-0 text-gray-900 shadow-[0_18px_45px_rgba(15,23,42,0.16)] outline-none sm:max-w-[calc(100vw-2rem)]"
+                            overlayClassName="bg-black/30"
+                            onOpenAutoFocus={event => {
+                                event.preventDefault();
+                                desktopTitle.current?.focus({ preventScroll: true });
+                            }}
                         >
-                            <div className="shrink-0 border-b border-gray-100 bg-white px-5 py-4">
-                                <h3 className="text-base font-semibold text-gray-900">Bộ lọc lịch sử điểm</h3>
-                                <p className="mt-1 text-xs leading-5 text-gray-500">Lọc trong phạm vi học kỳ đang chọn, rồi áp dụng khi đã xem xong.</p>
+                            <div className="shrink-0 border-b border-gray-100 bg-white px-5 py-4 pr-11">
+                                <DialogTitle ref={desktopTitle} tabIndex={-1} className="text-base leading-6 font-semibold text-gray-900 outline-none">Bộ lọc lịch sử điểm</DialogTitle>
+                                <DialogDescription className="mt-1 text-xs leading-5 text-gray-500">Lọc trong phạm vi học kỳ đang chọn, rồi áp dụng khi đã xem xong.</DialogDescription>
                             </div>
                             <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gray-50/70">
                                 <GradeHistoryFilterPanel
@@ -216,8 +229,8 @@ export function GradeHistoryFilterControls({
                                 />
                             </div>
                             <div className="shrink-0 border-t border-gray-100 bg-white p-4">{actions}</div>
-                        </PopoverContent>
-                    </Popover>
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
                 <button
@@ -268,9 +281,11 @@ export function GradeHistoryFilterControls({
                     eyebrow={selectedSemester === 'all' ? 'Tất cả học kỳ' : selectedSemester}
                     onClose={closeFilter}
                     className="lg:hidden"
+                    sheetClassName="h-[min(36rem,82dvh,calc(100dvh-var(--ustudy-mobile-nav-height)-1rem))]"
                     contentClassName="bg-white"
                     footer={actions}
                     sheetId="grade-history-filter"
+                    focusTitleOnOpen
                 >
                     <GradeHistoryFilterPanel
                         value={draftFilters}
