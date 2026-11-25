@@ -8,7 +8,7 @@ code tại `src/config/storageKeys.ts` và `src/helpers/localStorage/save.tsx`, 
 ## 1. Kiến trúc tổng quát
 
 ```text
-Portal / file import
+Portal / JSON / QR
         |
         v
 raw_student_db           Dữ liệu gốc, giữ nguyên mọi trường đã cào
@@ -32,6 +32,14 @@ Nguyên tắc nguồn dữ liệu:
 - Snapshot hoàn tác lưu nguyên chuỗi đang có trong `localStorage`, bao gồm cả
   ciphertext; không tự giải mã toàn bộ snapshot. Các key định danh analytics
   được loại khỏi snapshot và được giữ nguyên khi hoàn tác dữ liệu học tập.
+
+### Quy tắc đồng bộ nhiều nguồn
+
+- Portal, JSON từ Portal và QR dùng cùng phép đối chiếu khi xem trước và khi ghi. UStudy so MSSV khi có ở cả hai phía. Khi thiếu MSSV ở một trong hai hồ sơ, UStudy cho nhập trực tiếp nếu hai tên khớp sau khi chuẩn hóa.
+- Ứng dụng so thời điểm của từng nguồn và từng học kỳ. Gói cũ vẫn có thể bổ sung một học kỳ chưa từng lưu. Lần quét mới hơn có nội dung giống nhau chỉ cập nhật mốc quan sát.
+- Chỉ bản quét xác nhận đủ bảng và đúng phạm vi mới đề xuất xóa dòng vắng mặt. Lịch thi ghi riêng bảng giữa kỳ và cuối kỳ đã đọc đủ. QR chỉ gộp dữ liệu học tập. Khôi phục tệp sao lưu UStudy có thể thay toàn bộ mục đã chọn.
+- Hai buổi đăng ký khác lịch được lưu thành hai dòng. Bản gốc giữ các kỳ đã có. Thời khóa biểu, bộ xếp lịch và bản danh sách lớp đọc đúng kỳ cấu hình. Khi thiếu cấu hình, ứng dụng dùng kỳ mới nhất ghi trên các dòng.
+- Khi bản gốc vắng mặt, UStudy phục hồi các trường còn đọc được từ hai bản dẫn xuất. Những môn cũ chỉ còn định dạng cho bộ xếp lịch được giữ ở `_legacyCourses`.
 
 ### Dữ liệu thống kê installation
 
@@ -76,6 +84,7 @@ Không dùng `JSON.parse(localStorage.getItem(key))` cho một key secure.
 ```ts
 interface RawStudentDatabase {
   name?: string;
+  studentId?: string;
   grades?: Array<{
     semester: string;
     id: string;
@@ -90,6 +99,7 @@ interface RawStudentDatabase {
   exams?: Record<string, {
     midterm: RawExamEntry[];
     final: RawExamEntry[];
+    completeTables?: ('midterm' | 'final')[];
   }> | {
     midterm: RawExamEntry[];
     final: RawExamEntry[];
@@ -119,6 +129,7 @@ type RawExamEntry = {
 };
 
 type RawTuitionPeriod = {
+  snapshotComplete?: boolean;
   details: Array<{
     stt: string;
     semester: string;
@@ -180,7 +191,10 @@ type RawTuitionPeriod = {
   practicalGroupRaw: string;
   exerciseGroupRaw: string;
   location: string;
-  practicalClasses: Array<{
+  semester?: string;
+  practicalClassesComplete?: boolean;
+  exerciseClassesComplete?: boolean;
+  practicalClasses?: Array<{
     Nhom?: string;
     SiSo?: string;
     DaDK?: string;
@@ -189,7 +203,7 @@ type RawTuitionPeriod = {
     MaDiaDiem?: string;
     [portalField: string]: unknown;
   }>;
-  exerciseClasses: Array<{
+  exerciseClasses?: Array<{
     Nhom?: string;
     SiSo?: string;
     DaDK?: string;
@@ -211,7 +225,9 @@ hãy thêm dữ liệu dẫn xuất ở processor.
 
 ```ts
 {
-  name: string;
+  dataSchemaVersion: 2;
+  name?: string;
+  studentId?: string;
   grades: Array<{
     semester: string;
     id: string;
@@ -300,11 +316,13 @@ type ClassComponent = {
 {
   version?: string;
   scrapedAt?: string;
+  legacyScrapedAt?: string; // Mốc chung của phiên bản cũ cho các nguồn chưa có mốc riêng
   params?: Record<string, unknown>;
   sourceUpdatedAt?: Partial<Record<
-    'grades' | 'registrations' | 'exams' | 'courses' | 'tuition',
+    'grades' | 'registrations' | 'exams' | 'courses' | 'tuition' | 'profile',
     string
   >>;
+  periodUpdatedAt?: Partial<Record<PortalDataSource, Record<string, string>>>;
   [futureField: string]: unknown;
 }
 ```
@@ -344,7 +362,8 @@ dữ liệu học tập, kể cả khi các danh sách trong gói đều rỗng.
 | `allowed_classes_map` | `Record<courseId, classId[]>` |
 | `solver_preferences` | `{ daysOff?, session?, strategy?, noGaps? }` |
 | `saved_schedules` | `SavedSchedule[]` gồm tên, thời gian, sessions, môn và lớp đã chọn |
-| `schedule_overrides` | `{ sessionOverrides, weekOverrides, holidays }` |
+| `schedule_overrides` | Khóa dùng chung của phiên bản cũ |
+| `schedule_overrides:<năm>:<kỳ>` | Tùy chỉnh theo kỳ (ví dụ `schedule_overrides:26-27:1`). `sessionOverrides` lưu các trường sửa cho một buổi lặp (gồm `startWeek` và số tuần học `weekCount`; lịch cũ có thể dùng mốc kết thúc cố định `endWeek`), `weekOverrides` lưu ngoại lệ của một tuần, `holidays` lưu ngày nghỉ cá nhân. |
 | `schedule_workload_overrides` | `{ version: 1, programOverrides }`; quy tắc giờ học do người dùng chỉnh theo campus/khóa/khoa/ngành và mã môn |
 | `study_plan_draft` | `{ semesters: StudyPlanSemester[], plan: Record<semesterId, courseId[]> }` |
 | `study_plan_draft_layout` | `number` phần trăm chiều rộng panel trái |
@@ -356,6 +375,8 @@ dữ liệu học tập, kể cả khi các danh sách trong gói đều rỗng.
 | `group_schedule_ui_state` | Bước, chế độ xem và các panel đang mở |
 | `group_schedule_last_result` | `{ version: 1, updatedAt: string, memberSignature: string, result: GroupScheduleRunResult }`; toàn bộ phương án của lần xếp thành công gần nhất cho đúng nhóm hiện tại |
 | `schedule_mode` | `'personal' | 'group'` |
+
+Tuần bắt đầu và kết thúc là số tuần tính từ đầu học kỳ. Tuần kết thúc do người dùng chọn bao gồm cả tuần đó. Khi chưa đặt tuần kết thúc, buổi nghỉ có học bù được dời đến cuối lịch. QR gộp các chỉnh sửa theo kỳ, buổi và trường dữ liệu. Khi Portal đổi phòng mà môn, lớp, loại buổi và khung tiết vẫn khớp duy nhất, UStudy chuyển cả chỉnh sửa theo kỳ lẫn ngoại lệ theo tuần sang buổi mới. Nếu khung tiết đổi, người dùng có thể chọn lại buổi tương ứng trong tab thời khóa biểu.
 
 ### GPA, UI và tiện ích (plain theo code hiện tại)
 
@@ -395,6 +416,8 @@ interface ImportRollbackSnapshot {
   data: Record<string, string>; // dữ liệu ghi trực tiếp trong snapshot cũ
   storage?: 'indexeddb';
   snapshotId?: string; // ID trong kho snapshots của IndexedDB ustudy-import-rollback
+  writtenHashes?: Record<string, string | null>; // SHA-256 của giá trị đã ghi
+  academicHashes?: Record<string, string | null>; // Cùng phiên bản bản gốc, hai bản dẫn xuất và metadata
   details?: Array<{
     source: string;
     added: number;
@@ -405,6 +428,8 @@ interface ImportRollbackSnapshot {
   restoredSources?: string[];
 }
 ```
+
+Hoàn tác toàn bộ chỉ xét những khóa lần nhập đã ghi. Khóa cá nhân được sửa tiếp sẽ được giữ lại. Nếu một khóa trong nhóm học tập đã thay đổi, thao tác dừng để giữ nhất quán cả nhóm. Các lần quét chỉ cập nhật thời điểm giữ nguyên điểm hoàn tác nội dung gần nhất.
 
 ## 7. Các điểm lệch hiện có
 
