@@ -50,6 +50,21 @@ describe('Portal sync extension contract', () => {
       .toEqual(['1', '2']);
   });
 
+  it('resumes checkpoints only for the same verified Portal student and period', async () => {
+    const source = await readFile(resolve('extension/background.js'), 'utf8');
+    const event = { addListener() {} };
+    const resume = runInNewContext(source + '\ncanResumeSession', {
+      importScripts() {}, USTUDY_EXTENSION_CONFIG: await readJson('src/portal-sync/config.json'),
+      chrome: { tabs: { query: async () => [], onRemoved: event }, runtime: { onInstalled: event, onStartup: event, onMessage: event } },
+    });
+    const settings = { academicYear: '26-27', semester: '1' };
+    const session = { ...settings, updatedAt: new Date().toISOString(), studentId: 'A', selectedSources: ['grades'] };
+    expect(resume(session, 'A', settings, ['grades'])).toBe(true);
+    expect(resume(session, 'B', settings, ['grades'])).toBe(false);
+    expect(resume({ ...session, studentId: '' }, '', settings, ['grades'])).toBe(false);
+    expect(resume(session, 'A', { ...settings, semester: '2' }, ['grades'])).toBe(false);
+  });
+
   it('accepts only HTTPS Portal content origins', () => {
     expect(isSupportedPortalOrigin('https://new-portal.hcmus.edu.vn')).toBe(true);
     expect(isSupportedPortalOrigin('https://new-portal1.hcmus.edu.vn')).toBe(true);

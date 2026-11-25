@@ -366,7 +366,14 @@ function buildRunnerRuntime(requestId, settings, completedSources = []) {
   };
 }
 
-async function runPortalSync(sender, requestId, trigger = 'manual', documentInstanceId = '') {
+function canResumeSession(session, studentId, settings, selectedSources) {
+  return Boolean(session && studentId && studentId === session.studentId
+    && Date.now() - Date.parse(session.updatedAt) <= SYNC_SESSION_TIMEOUT_MS
+    && hasSameSourceSelection(session, selectedSources)
+    && session.academicYear === settings.academicYear && session.semester === settings.semester);
+}
+
+async function runPortalSync(sender, requestId, trigger = 'manual', documentInstanceId = '', studentId = '') {
   if (!sender.tab?.id || !isPortalUrl(sender.tab.url)) throw new Error('Chỉ có thể đồng bộ từ HCMUS Portal.');
   const tabId = sender.tab.id;
   const currentTab = await chrome.tabs.get(tabId);
@@ -380,9 +387,7 @@ async function runPortalSync(sender, requestId, trigger = 'manual', documentInst
     const cooldowns = trigger === 'auto' ? await readAutoCooldowns() : {};
     const sessions = await readSyncSessions();
     const existing = sessions[tabId];
-    const isExpired = existing && Date.now() - new Date(existing.updatedAt).getTime() > SYNC_SESSION_TIMEOUT_MS;
-    if (existing && !isExpired && hasSameSourceSelection(existing, selectedSources)
-      && existing.academicYear === state.settings.academicYear && existing.semester === state.settings.semester) {
+    if (canResumeSession(existing, studentId, state.settings, selectedSources)) {
       session = { ...existing, currentRequestId: requestId, updatedAt: new Date().toISOString() };
     } else {
       session = {
@@ -392,6 +397,7 @@ async function runPortalSync(sender, requestId, trigger = 'manual', documentInst
         academicYear: state.settings.academicYear,
         semester: state.settings.semester,
         completedSources: [],
+        studentId,
         partialRaw: {},
         partialMeta: { params: {} },
         startedAt: new Date().toISOString(),
@@ -460,12 +466,18 @@ async function saveSourceCheckpoint(sender, requestId, payload) {
     if (!session || session.currentRequestId !== requestId || !session.selectedSources.includes(source)) {
       return { ignored: true };
     }
+    if (source === 'grades' && session.studentId && payload.rawPatch?.studentId && session.studentId !== payload.rawPatch.studentId) {
+      throw new Error('Tài khoản Portal đã thay đổi. Hãy đồng bộ lại.');
+    }
     session.partialRaw = { ...session.partialRaw, ...(payload.rawPatch || {}) };
     session.partialMeta = {
       ...session.partialMeta,
       ...(payload.metaPatch || {}),
       params: { ...(session.partialMeta?.params || {}), ...(payload.metaPatch?.params || {}) },
     };
+    const capturedAt = new Date().toISOString();
+    session.partialMeta.sourceUpdatedAt = { ...session.partialMeta.sourceUpdatedAt, [source]: capturedAt,
+      ...(source === 'grades' ? { profile: capturedAt } : {}) };
     if (!session.completedSources.includes(source)) session.completedSources.push(source);
     session.updatedAt = new Date().toISOString();
     sessions[tabId] = session;
@@ -495,9 +507,12 @@ async function storeSyncResult(packet, trigger = 'manual', tabId, requestId) {
     if (!session || session.currentRequestId !== requestId) {
       throw new Error('Phiên đồng bộ đã thay đổi. Hãy đồng bộ lại.');
     }
+    if (session.studentId && packet?.raw?.studentId && session.studentId !== packet.raw.studentId) {
+      throw new Error('Tài khoản Portal đã thay đổi. Hãy đồng bộ lại.');
+    }
     const finalPacket = {
       ...packet,
-      raw: { ...(packet?.raw || {}), ...(session.partialRaw || {}) },
+      raw: { ...(packet?.raw || {}), ...(session.partialRaw || {}), ...(session.studentId ? { studentId: session.studentId } : {}) },
       meta: {
         ...(packet?.meta || {}),
         ...(session.partialMeta || {}),
@@ -553,7 +568,7 @@ async function handleMessage(message, sender) {
       await openPortalAndRequestSync();
       return { opened: true };
     case 'RUN_PORTAL_SYNC':
-      return runPortalSync(sender, message.requestId || crypto.randomUUID(), message.trigger, message.documentInstanceId);
+      return runPortalSync(sender, message.requestId || crypto.randomUUID(), message.trigger, message.documentInstanceId, message.studentId);
     case 'SYNC_SOURCE_COMPLETE':
       return saveSourceCheckpoint(sender, message.requestId, message.payload);
     case 'SYNC_HEARTBEAT':

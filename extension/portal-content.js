@@ -306,7 +306,11 @@ async function startSync(trigger = 'manual') {
   render();
 
   try {
-    const result = await callExtension('RUN_PORTAL_SYNC', undefined, { requestId: activeRequestId, trigger, documentInstanceId: DOCUMENT_INSTANCE_ID });
+    const studentElement = document.querySelector('[data-student-id], [id$="lblMSSV"], [id$="lblMaSV"], [name$="$txtMSSV"]');
+    const explicit = studentElement?.getAttribute('data-student-id') || studentElement?.value || studentElement?.textContent || '';
+    const studentId = explicit.trim().match(/^\d{7,12}$/)?.[0] ||
+      (explicit + ' ' + (document.getElementById('user_tools')?.textContent || '')).match(/(?:MSSV|Mã (?:số )?sinh viên)\s*[:#-]?\s*(\d{7,12})\b/i)?.[1] || '';
+    const result = await callExtension('RUN_PORTAL_SYNC', undefined, { requestId: activeRequestId, trigger, studentId, documentInstanceId: DOCUMENT_INSTANCE_ID });
     if (result?.skipped) {
       phase = 'idle';
       phaseMessage = '';

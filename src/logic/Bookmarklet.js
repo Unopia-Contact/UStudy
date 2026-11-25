@@ -78,7 +78,18 @@
     };
 
     // Helper: Chuyển text HTML thành DOM ảo để query
-    const parseHTML = (html) => new DOMParser().parseFromString(html, 'text/html');
+    const initialStudentId = portalStudentId(document);
+    const initialGreeting = document.getElementById('user_tools')?.textContent?.match(/Xin chào\s+([^|]+)/i)?.[1]?.trim();
+    const parseHTML = (html) => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const studentId = portalStudentId(doc);
+        const greeting = doc.getElementById('user_tools')?.textContent?.match(/Xin chào\s+([^|]+)/i)?.[1]?.trim();
+        if ((initialStudentId && studentId && studentId !== initialStudentId) ||
+            (initialGreeting && greeting && initialGreeting !== greeting)) {
+            throw new Error('Tài khoản Portal đã thay đổi trong lúc đọc dữ liệu.');
+        }
+        return doc;
+    };
     const PORTAL_CONCURRENCY = Math.max(1, Math.min(Number(CONFIG.CONCURRENCY || 3), 5));
 
     async function runWithConcurrency(items, limit, worker, onProgress) {
@@ -244,6 +255,22 @@
 
     // === 2. CÁC HÀM CÀO DỮ LIỆU ===
 
+    function portalStudentId(doc) {
+        const el = doc.querySelector('[data-student-id], [id$="lblMSSV"], [id$="lblMaSV"], [name$="$txtMSSV"]');
+        const explicit = el?.getAttribute('data-student-id') || el?.value || el?.textContent || '';
+        const label = doc.getElementById('user_tools')?.textContent || '';
+        return explicit.trim().match(/^\d{7,12}$/)?.[0]
+            || (explicit + ' ' + label).match(/(?:MSSV|Mã (?:số )?sinh viên)\s*[:#-]?\s*(\d{7,12})\b/i)?.[1] || '';
+    }
+
+    function completeTable(table, minimumCells) {
+        if (!table) return false;
+        const rows = Array.from(table.querySelectorAll('tr'));
+        return rows.length > 0 && rows.every(row => !row.querySelector('td')
+            || row.cells.length >= minimumCells || !row.textContent.trim()
+            || /(?:không (?:có|tìm thấy)|chưa có) (?:dữ liệu|kết quả|lịch|môn)/i.test(row.textContent));
+    }
+
     // Cào Bảng Điểm (Target: Virtual Document)
     function scrapeGrades(doc) {
         try {
@@ -273,7 +300,8 @@
 
                 if (id) grades.push({ semester, id, name: subjName, credits, class: classID, type, score, notes });
             });
-            return { name, grades };
+            const studentId = portalStudentId(doc) || portalStudentId(document);
+            return { name, grades, ...(studentId ? { studentId } : {}) };
         } catch (e) { console.error("Grade Error", e); return { name: "Error", grades: [] }; }
     }
 
@@ -389,7 +417,7 @@
 
         } catch (e) {
             console.error("Lỗi cào dữ liệu background: ", e);
-            return type === 'EXAM' ? { midterm: [], final: [] } : { details: [], totals: {}, year: "", sem: "" };
+            throw e;
         }
         return [];
     }
@@ -458,7 +486,7 @@
             return registrations;
         } catch (e) {
             console.error("Registration Error", e);
-            return [];
+            throw e;
         }
     }
 
@@ -470,13 +498,11 @@
             const json = await res.json();
 
             // Tùy thuộc vào loại API, nó sẽ trả về mảng nằm ở key khác nhau
-            if (type === 'LopThucHanh') return json.LopMoTHs || [];
-            if (type === 'LopBaiTap') return json.LopMoBTs || json.LopMoTHs || []; // Fallback
-
-            return [];
+            const items = type === 'LopThucHanh' ? json.LopMoTHs : json.LopMoBTs ?? json.LopMoTHs;
+            return res.ok && Array.isArray(items) ? items : null;
         } catch (e) {
             console.error(`Lỗi lấy dữ liệu ${type}:`, e);
-            return [];
+            return null;
         }
     }
 
@@ -574,6 +600,7 @@
 
             const thLink = cells[8]?.querySelector('a');
             if (thLink) {
+                practicalClasses = null;
                 const onclickText = thLink.getAttribute('onclick') || "";
                 const matchTH = onclickText.match(/showFormDKThucHanh\("(\d+)"/);
                 if (matchTH && matchTH[1]) {
@@ -585,6 +612,7 @@
 
             const btLink = cells[9]?.querySelector('a');
             if (btLink) {
+                exerciseClasses = null;
                 const onclickText = btLink.getAttribute('onclick') || "";
                 const matchBT = onclickText.match(/showFormDKBaiTap\("(\d+)"/);
                 const matchFallback = onclickText.match(/\("(\d+)"/);
@@ -613,8 +641,8 @@
                 practicalGroupRaw: cells[8]?.textContent.trim(),
                 exerciseGroupRaw: cells[9] ? cells[9].textContent.trim() : "",
                 location: cells[10] ? cells[10].textContent.trim() : "",
-                practicalClasses: practicalClasses,
-                exerciseClasses: exerciseClasses
+                ...(practicalClasses === null ? {} : { practicalClasses, practicalClassesComplete: true }),
+                ...(exerciseClasses === null ? {} : { exerciseClasses, exerciseClassesComplete: true })
             };
         }, (done, total) => {
             if (done % 3 === 0 || done === total) {
@@ -664,6 +692,7 @@
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
+        if (!res.ok) throw new Error('Portal không tải được học kỳ đã yêu cầu.');
         const text = await res.text();
         return parseHTML(text);
     }
@@ -677,7 +706,7 @@
         const viewStateGen = doc.getElementById('__VIEWSTATEGENERATOR')?.value;
         const eventValidation = doc.getElementById('__EVENTVALIDATION')?.value;
 
-        if (!viewState) return doc;
+        if (!viewState) return { doc, requestedAll: false };
 
         const formData = new URLSearchParams();
         formData.append('__EVENTTARGET', '');
@@ -697,8 +726,8 @@
             body: formData,
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
-        const text = await res.text();
-        return parseHTML(text);
+        if (!res.ok) throw new Error('Portal không tải được bảng điểm tất cả học kỳ.');
+        return { doc: parseHTML(await res.text()), requestedAll: true };
     }
 
     // === 3. MAIN RUNNER ===
@@ -723,6 +752,8 @@
         showLoading("Đang khởi tạo & Lấy dữ liệu cơ bản...");
 
         let gradeData = { name: "Unknown", grades: [] };
+        let gradeScope = null;
+        let classScope = null;
         let tuitionData = {};
         let examData = {};
         let courses = [];
@@ -731,12 +762,23 @@
 
         // 2. Lấy dữ liệu cơ bản (Điểm - Bắt buộc)
         if (config.getGrades !== false) {
-            const docDiemFull = await getFullGradesPage();
+            const { doc: docDiemFull, requestedAll } = await getFullGradesPage();
             gradeData = scrapeGrades(docDiemFull);
+            const allYears = docDiemFull.querySelector('input[name$="cboNamHoc_gvDKHPLichThiTB"]')?.value;
+            const allTerms = docDiemFull.querySelector('input[name$="cboHocKy_gvDKHPLichThiTB"]')?.value;
+            const gradeRows = Array.from(docDiemFull.querySelectorAll('#tbDiemThiGK tbody tr'))
+                .filter(row => row.cells.length >= 6 && row.querySelector('td'));
+            const emptyGradeNotice = /(?:không|chưa) có (?:dữ liệu|kết quả)/i.test(
+                docDiemFull.querySelector('#tbDiemThiGK tbody')?.textContent || '');
+            const allRowsRead = gradeData.grades.length > 0
+                ? gradeRows.length === gradeData.grades.length : emptyGradeNotice && gradeRows.length === 0;
+            gradeScope = { allSemesters: true, snapshotComplete: requestedAll && allRowsRead
+                && /tất cả/i.test(allYears || '') && (allTerms === '' || /tất cả/i.test(allTerms || ''))
+                && completeTable(docDiemFull.getElementById('tbDiemThiGK'), 6) };
             emitExtensionEvent('USTUDY_PORTAL_SYNC_SOURCE_RESULT', {
                 payload: {
                     source: 'grades',
-                    rawPatch: { name: gradeData.name, grades: gradeData.grades }
+                    rawPatch: gradeData, metaPatch: { params: { grades: gradeScope } }
                 }
             });
         }
@@ -808,9 +850,11 @@
                     const finalTuitionDoc = parseHTML(await postRes.text());
                     const periodData = scrapeBackgroundData(finalTuitionDoc, 'TUITION');
 
-                    if (periodData?.details?.length > 0 &&
-                        (!periodData.year || !periodData.sem || `${periodData.year}/${periodData.sem}` === period)) {
-                        allTuition[period] = periodData;
+                    const observedPeriod = periodData.year && periodData.sem && periodData.year + '/' + periodData.sem;
+                    const snapshotComplete = observedPeriod === period && completeTable(finalTuitionDoc.querySelector('.dkhp-table'), 10);
+                    const hasConfirmedTotal = snapshotComplete && /\d/.test(periodData.totals?.totalDue || periodData.totals?.fee || '');
+                    if ((!observedPeriod || observedPeriod === period) && (periodData.details.length || hasConfirmedTotal)) {
+                        allTuition[period] = { ...periodData, snapshotComplete };
                     }
 
                     // Cập nhật docHocPhiBase cho nhịp sau nếu cần (tùy portal có xoay ViewState không)
@@ -912,10 +956,17 @@
                     const finalDoc = parseHTML(await postRes.text());
                     const partialData = scrapeBackgroundData(finalDoc, 'EXAM');
 
-                    if (partialData.midterm.length > 0 || partialData.final.length > 0) {
+                    const selectedYear = finalDoc.querySelector('input[name$="cboNamHoc_gvDKHPLichThiTB"]')?.value?.trim();
+                    const selectedTerm = finalDoc.querySelector('input[name$="cboHocKy_gvDKHPLichThiTB"]')?.value?.trim();
+                    if ((selectedYear && selectedYear !== year) || (selectedTerm && selectedTerm !== sem)) return null;
+                    const completeTables = selectedYear === year && selectedTerm === sem
+                        ? [['midterm', 'tbLichThiGK'], ['final', 'tbLichThiCK']]
+                            .filter(([, id]) => completeTable(finalDoc.getElementById(id), 8)).map(([type]) => type)
+                        : [];
+                    if (completeTables.length || partialData.midterm.length > 0 || partialData.final.length > 0) {
                         partialData.midterm.forEach(item => { item.year = year; item.semester = sem; });
                         partialData.final.forEach(item => { item.year = year; item.semester = sem; });
-                        return { key: `${year}-${sem}`, data: { midterm: partialData.midterm, final: partialData.final } };
+                        return { key: `${year}-${sem}`, data: { midterm: partialData.midterm, final: partialData.final, completeTables } };
                     }
                     return null;
                 } catch (err) {
@@ -964,12 +1015,18 @@
 
             showLoading(`Đang cào dữ liệu lớp mở...`);
             courses = await scrapeOpenClassesRaw(docLopMo);
-            if (courses.length > 0) {
+            const observed = getRegistrationPeriod(docLopMo);
+            if (observed.year && observed.sem && (observed.year !== config.classYear || observed.sem !== config.classSem)) {
+                throw new Error('Portal trả về danh sách lớp mở khác học kỳ đã chọn.');
+            }
+            classScope = { year: config.classYear, sem: config.classSem, snapshotComplete:
+                observed.year === config.classYear && observed.sem === config.classSem && completeTable(docLopMo.getElementById('tbPDTKQ'), 9) };
+            if (courses.length > 0 || classScope.snapshotComplete) {
                 emitExtensionEvent('USTUDY_PORTAL_SYNC_SOURCE_RESULT', {
                     payload: {
                         source: 'courses',
                         rawPatch: { courses },
-                        metaPatch: { params: { class: { year: config.classYear, sem: config.classSem } } }
+                        metaPatch: { params: { class: classScope } }
                     }
                 });
             }
@@ -1015,12 +1072,13 @@
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
                 });
 
+                if (!res.ok) throw new Error('Portal không tải được học kỳ đăng ký.');
                 docDKHP = parseHTML(await res.text());
             }
 
             registrationPeriod = {
                 ...getRegistrationPeriod(docDKHP),
-                snapshotComplete: Boolean(docDKHP.getElementById('tbSVKQ')),
+                snapshotComplete: completeTable(docDKHP.getElementById('tbSVKQ'), 7),
             };
             registrations = scrapeRegisteredCourses(docDKHP, registrationPeriod.semester);
 
@@ -1048,14 +1106,14 @@
 
         hideLoading();
 
-        if (config.getClass && (!courses || courses.length === 0)) {
+        if (config.getClass && !courses.length && !classScope?.snapshotComplete) {
             alert("⚠️ Không lấy được danh sách lớp mở. Có thể do lỗi kết nối hoặc Portal bị đổi cấu trúc.");
             return;
         }
 
         // Raw data - nguyên vẹn từ Portal, không xử lý
         const rawData = {
-            ...(config.getGrades !== false ? { name: gradeData.name, grades: gradeData.grades } : {}),
+            ...(config.getGrades !== false ? gradeData : {}),
             ...(config.getExam ? { exams: examData } : {}),
             ...(config.getTuition ? { tuition: tuitionData } : {}),
             ...(config.getReg ? { registrations } : {}),
@@ -1069,9 +1127,10 @@
             source: IS_EXTENSION ? 'extension' : 'bookmarklet',
             scrapedAt: new Date().toISOString(),
             params: {
+                grades: gradeScope,
                 tuition: config.getTuition ? getLatestTuitionPeriod(tuitionData) : null,
                 exam: config.getExam ? { year: config.examYear, sem: config.examSem } : null,
-                class: config.getClass ? { year: config.classYear, sem: config.classSem } : null,
+                class: config.getClass ? classScope : null,
                 registration: config.getReg ? registrationPeriod : null,
             }
         };

@@ -84,7 +84,11 @@ export function isPortalSyncPacket(value: unknown): value is PortalSyncPacket {
   if (!value || typeof value !== 'object') return false;
   const packet = value as Partial<PortalSyncPacket>;
   if (!packet.raw || typeof packet.raw !== 'object' || Array.isArray(packet.raw)) return false;
-  return Array.isArray((packet.raw as { grades?: unknown }).grades);
+  const raw = packet.raw;
+  const hasProfile = typeof raw.studentId === 'string' && raw.studentId.trim() !== ''
+    && typeof raw.name === 'string' && raw.name.trim() !== '';
+  return hasProfile || ['grades', 'courses', 'registrations'].some(key => Array.isArray(raw[key]))
+    || ['exams', 'tuition'].some(key => raw[key] != null && typeof raw[key] === 'object' && !Array.isArray(raw[key]));
 }
 
 export function isSupportedPortalOrigin(origin: string): boolean {

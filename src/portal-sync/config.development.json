@@ -1,7 +1,7 @@
 {
   "protocolVersion": "1.0.0",
-  "scraperVersion": "0.2.2",
-  "extensionVersion": "0.2.10",
+  "scraperVersion": "0.2.3",
+  "extensionVersion": "0.2.11",
   "portalHostnamePattern": "^new-portal\\d*\\.hcmus\\.edu\\.vn$",
   "portalLogin": {
     "urlTemplate": "https://new-portal{shard}.hcmus.edu.vn/Login.aspx",
