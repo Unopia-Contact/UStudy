@@ -7,11 +7,12 @@ import { useVisualSchedule } from '../hooks/use-visual-schedule';
 import { NoDataCard } from '../../../components/feedback';
 import { PageHeader } from '../../../components/layout/page-header';
 import { PageShell } from '../../../components/layout/page-shell';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../components/ui/overlays/dropdown-menu';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ColorLegend } from './ColorLegend';
 import { HolidayManagerDialog } from './HolidayManagerDialog';
 import { CourseDetailCard } from './CourseDetailCard';
-import { CourseCard } from './EditSessionDialog';
+import { moveSessionEdits } from '../services/schedule-overrides';
+import { CourseCard, EditSessionDialog } from './EditSessionDialog';
 import { QuickStatsCard } from './QuickStatsCard';
 import { OpenClassDetailDialog, type OpenClassDetailTarget } from '../../../components/course';
 import { getOverlappingSessions } from '../services/schedule-helpers';
@@ -33,13 +34,17 @@ interface VisualScheduleMainProps {
   selectedSemester?: string;
 }
 
+const menuItemClass = "ustudy-dropdown-option flex min-h-11 items-center gap-3 outline-none data-[highlighted]:bg-gray-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 sm:min-h-10";
+
 export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps) {
   const { defaultCampusId } = useCampus();
   const [isHolidayManagerOpen, setIsHolidayManagerOpen] = useState(false);
-  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [imageScope, setImageScope] = useState<'week' | 'semester' | null>(null);
   const [isExportingCurrentImage, setIsExportingCurrentImage] = useState(false);
   const [imageExportError, setImageExportError] = useState('');
   const [openClassDetails, setOpenClassDetails] = useState<OpenClassDetailTarget | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [savedEnd, setSavedEnd] = useState<number | null>(null);
   const currentScheduleImageRef = useRef<HTMLDivElement>(null);
   const {
     isReady,
@@ -51,13 +56,21 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     displaySessions,
     stats,
     trends,
-    uniqueCourses,
+    calendar,
+    setCurrentWeek,
+    currentWeekHolidays,
     isToday,
     handlePreviousWeek,
     handleNextWeek,
     handleExport
   } = useVisualSchedule({ selectedSemester });
 
+  const editing = schedule.sessions.find(session => session.id === editingId);
+  const saveEdits = (next: typeof schedule.overrides, lastWeek?: number) => {
+    const ok = schedule.updateOverrides(next);
+    if (ok) setSavedEnd(lastWeek ?? null);
+    return ok;
+  };
   const scheduleAxis = useMemo(
     () => buildScheduleAxis(displaySessions, defaultCampusId),
     [displaySessions, defaultCampusId],
@@ -79,9 +92,15 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
     const visited = new Set<string>();
     return displaySessions.flatMap((session) => {
       if (visited.has(session.id)) return [];
-      const sessions = [session, ...getOverlappingSessions(session, displaySessions)]
-        .filter((candidate, index, values) => values.findIndex((value) => value.id === candidate.id) === index);
-      sessions.forEach((candidate) => visited.add(candidate.id));
+      const sessions = [session];
+      visited.add(session.id);
+      for (const member of sessions) {
+        for (const candidate of getOverlappingSessions(member, displaySessions)) {
+          if (visited.has(candidate.id)) continue;
+          visited.add(candidate.id);
+          sessions.push(candidate);
+        }
+      }
       return [{
         sessions,
         day: session.dayOfWeek,
@@ -155,30 +174,36 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
                 onSave={schedule.updateOverrides}
               />
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button type="button" className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50" aria-label="Mở tùy chọn thời khóa biểu" title="Tùy chọn thời khóa biểu">
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <button type="button" className="ustudy-dropdown-trigger h-11 min-w-11 w-auto justify-center gap-2 px-3 font-medium focus-visible:ring-2 focus-visible:ring-[#004A98]/30 data-[state=open]:border-[#004A98] data-[state=open]:bg-white data-[state=open]:ring-2 data-[state=open]:ring-[#004A98]/20 sm:h-10" aria-label="Mở tùy chọn thời khóa biểu" title="Tùy chọn thời khóa biểu">
                     <MoreHorizontal className="h-4 w-4" />
                     <span className="hidden sm:inline">Tùy chọn</span>
                     {schedule.overrides.holidays.length > 0 && <span className="ustudy-badge-count text-[10px] font-bold">{schedule.overrides.holidays.length}</span>}
                   </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-50 w-56 bg-white">
-                  <DropdownMenuItem onClick={() => setIsHolidayManagerOpen(true)} className="cursor-pointer hover:bg-gray-100">
-                    <Calendar className="mr-2 h-4 w-4" />Quản lý nghỉ lễ
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setIsImageDialogOpen(true)} className="cursor-pointer hover:bg-gray-100">
-                    <ImagePlus className="mr-2 h-4 w-4" />Tạo ảnh tổng quan
-                  </DropdownMenuItem>
-                  <DropdownMenuItem disabled={isExportingCurrentImage} onClick={() => void exportCurrentScheduleImage()} className="cursor-pointer hover:bg-gray-100">
-                    <ImageDown className="mr-2 h-4 w-4" />{isExportingCurrentImage ? 'Đang xuất ảnh…' : 'Xuất ảnh lịch hiện tại'}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExport} className="cursor-pointer hover:bg-gray-100">
-                    <Download className="mr-2 h-4 w-4" />Xuất lịch (.ics)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content align="end" sideOffset={4} collisionPadding={8} aria-label="Tùy chọn thời khóa biểu"
+                    className="ustudy-dropdown-menu static mt-0 w-60 max-w-[calc(100vw-1rem)] py-1 outline-none [--ustudy-dropdown-menu-max-height:var(--radix-dropdown-menu-content-available-height)]">
+                    <DropdownMenu.Item onSelect={() => setIsHolidayManagerOpen(true)} className={menuItemClass}>
+                      <Calendar aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-500" />Quản lý nghỉ lễ
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
+                    <DropdownMenu.Item onSelect={() => setImageScope('week')} className={menuItemClass}>
+                      <ImagePlus aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-500" />Tạo ảnh lịch tuần
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item onSelect={() => setImageScope('semester')} className={menuItemClass}>
+                      <ImagePlus aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-500" />Tạo ảnh tổng quan học kỳ
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item disabled={isExportingCurrentImage} onSelect={() => void exportCurrentScheduleImage()} className={menuItemClass}>
+                      <ImageDown aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-500" />{isExportingCurrentImage ? 'Đang xuất ảnh…' : 'Xuất ảnh lịch hiện tại'}
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item disabled={!schedule.semesterStartDate} title={!schedule.semesterStartDate ? "Cần ngày bắt đầu học để xuất lịch" : undefined} onSelect={handleExport} className={menuItemClass}>
+                      <Download aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-500" />Xuất lịch (.ics)
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
             </div>
           </>}
         />
@@ -215,6 +240,16 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
       {/* Color Legend */}
       <ColorLegend />
 
+      {schedule.unassignedEdits?.map(item => <div key={item.from} className="mb-3 rounded-lg border border-amber-200 p-3 text-sm">
+        <p>Buổi {item.from.split('|').join(' · ')} đã đổi sau đồng bộ. Tùy chỉnh cũ đang được giữ lại.</p>
+        {item.candidates.length > 0 && <select aria-label="Gắn tùy chỉnh vào buổi học" value="" className="mt-2 max-w-full rounded border p-2"
+          onChange={event => { if (!saveEdits(moveSessionEdits(schedule.overrides, item.from, event.target.value))) setImageExportError('Chưa lưu được lựa chọn buổi học.'); }}>
+          <option value="" disabled>Chọn buổi tương ứng</option>
+          {item.candidates.map(id => <option key={id} value={id}>{id.split('|').join(' · ')}</option>)}
+        </select>}
+      </div>)}
+      {savedEnd && savedEnd <= totalWeeks && <div role="status" className="mb-2 text-sm">Đã lưu thay đổi. <button className="min-h-11 font-semibold text-[#004A98]"
+        onClick={() => { setCurrentWeek(savedEnd); setSavedEnd(null); }}>Xem tuần {savedEnd}</button></div>}
       {/* Week Navigation */}
       <div className="mb-3 flex min-w-0 items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 md:mb-4 md:p-4">
         <button
@@ -231,7 +266,9 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
 
         <div className="min-w-0 px-2 text-center">
           <div className="text-sm md:text-lg font-semibold text-[#004A98]">
-            Tuần {currentWeek}
+            <select aria-label="Chọn tuần học" value={currentWeek} onChange={event => setCurrentWeek(Number(event.target.value))} className="max-w-full cursor-pointer rounded bg-transparent px-2 py-1">
+              {Array.from({ length: totalWeeks }, (_, i) => <option key={i} value={i + 1}>Tuần {i + 1}</option>)}
+            </select>
           </div>
           <div className="truncate text-[10px] text-gray-500 md:text-xs" title={weekRangeStr}>{weekRangeStr}</div>
         </div>
@@ -248,7 +285,6 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
-{/* 
       {currentWeekHolidays.length > 0 && (
         <div className="mb-3 flex items-start gap-3 border-y border-amber-200 bg-amber-50 px-3 py-3 md:mb-4 md:px-4">
           <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
@@ -258,10 +294,11 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           </div>
           <button type="button" onClick={() => setIsHolidayManagerOpen(true)} className="shrink-0 text-xs font-semibold text-amber-800 hover:text-amber-950">Xem chi tiết</button>
         </div>
-      )} */}
+      )}
 
       {imageExportError && <p role="alert" className="mb-3 text-sm font-medium text-red-700">{imageExportError}</p>}
 
+      {!displaySessions.length && <p role="status" className="mb-3 text-sm text-slate-600">Tuần này không có buổi học. Bạn vẫn có thể chỉnh từng buổi ở phần chi tiết bên dưới.</p>}
       {/* Weekly Calendar Grid */}
       {scheduleAxis.mode === 'time' && (
         <p className="mb-2 text-xs text-slate-500" title={getScheduleAxisTimeBreakSummary(scheduleAxis) ?? undefined}>
@@ -337,10 +374,7 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
                     <CourseCard
                       sessions={block.sessions}
                       hasConflict={block.sessions.length > 1}
-                      weekNumber={currentWeek}
-                      overrides={schedule.overrides}
-                      onSave={schedule.updateOverrides}
-                      onOpenClassDetails={setOpenClassDetails}
+                      onEdit={setEditingId}
                       timelineMode
                     />
                   </div>
@@ -358,20 +392,24 @@ export function VisualScheduleMain({ selectedSemester }: VisualScheduleMainProps
           Chi tiết môn học đã đăng ký
         </h3>
         <div className="space-y-0">
-          {uniqueCourses.map((session) => (
-            <CourseDetailCard key={session.id} session={session} onOpenClassDetails={setOpenClassDetails} />
+          {schedule.sessions.map(session => (
+            <CourseDetailCard key={session.id} session={session} weeks={calendar.bySession.get(session.id)?.map(item => item.calendarWeek)}
+              onEdit={() => setEditingId(session.id)} onOpenClassDetails={setOpenClassDetails} />
           ))}
         </div>
       </div>
 
+      {editing && <EditSessionDialog key={editing.id} onOpenChange={open => { if (!open) setEditingId(null); }} session={editing}
+        semesterStartDate={schedule.semesterStartDate} systemHolidays={schedule.systemHolidays}
+        overrides={schedule.overrides} onSave={saveEdits} />}
       <OpenClassDetailDialog target={openClassDetails} onOpenChange={(open) => { if (!open) setOpenClassDetails(null); }} />
-      {isImageDialogOpen && (
+      {imageScope && (
         <ScheduleImageDialog
-          open={isImageDialogOpen}
-          onOpenChange={setIsImageDialogOpen}
-          lessons={fromScheduleSessions(schedule.sessions)}
+          open
+          onOpenChange={open => { if (!open) setImageScope(null); }}
+          lessons={fromScheduleSessions(imageScope === 'week' ? displaySessions : schedule.sessions.filter(s => calendar.bySession.get(s.id)?.length))}
           title="Thời khóa biểu"
-          subtitle={schedule.semesterName}
+          subtitle={imageScope === 'week' ? schedule.semesterName + ' · Tuần ' + currentWeek : schedule.semesterName}
           filename={`thoi-khoa-bieu-${schedule.semester.replace(/\//g, '-')}`}
         />
       )}

@@ -2,7 +2,9 @@ import { useMemo } from 'react';
 import { CalendarDays, Clock, MapPin } from 'lucide-react';
 
 import { useSchedule } from '../../visual-schedule';
-import { getTodayScheduleSessions, summarizeTodaySessions } from '../services/dashboard-insights';
+import { summarizeTodaySessions } from '../services/dashboard-insights';
+
+import { buildScheduleCalendar, calendarWeekOf } from '../../visual-schedule/services/schedule-occurrences';
 
 function formatTodayLabel(date: Date) {
   return new Intl.DateTimeFormat('vi-VN', {
@@ -16,8 +18,9 @@ export function TodayScheduleWidget() {
   const schedule = useSchedule();
   const today = useMemo(() => new Date(), []);
   const todaySessions = useMemo(
-    () => getTodayScheduleSessions(schedule.sessions, today),
-    [schedule.sessions, today],
+    () => (buildScheduleCalendar(schedule).byWeek.get(calendarWeekOf(schedule.semesterStartDate, today)) ?? [])
+      .filter(session => session.dayOfWeek === (today.getDay() || 7) + 1).sort((a, b) => a.startTime.localeCompare(b.startTime)),
+    [schedule.sessions, schedule.overrides, schedule.systemHolidays, schedule.semesterStartDate, today],
   );
   const summary = useMemo(() => summarizeTodaySessions(todaySessions), [todaySessions]);
 

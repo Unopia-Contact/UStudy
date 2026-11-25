@@ -16,7 +16,7 @@ interface HolidayManagerDialogProps {
     systemHolidays: Holiday[];
     courses: CourseOption[];
     semesterStartDate?: Date;
-    onSave: (newOverrides: ScheduleOverrides) => void;
+    onSave: (newOverrides: ScheduleOverrides) => boolean | void;
 }
 
 type AffectedMode = 'all' | 'selected';
@@ -111,7 +111,7 @@ export function HolidayManagerDialog({
         const nextHolidays = editingId
             ? overrides.holidays.map((item) => item.id === editingId ? holiday : item)
             : [...overrides.holidays, holiday];
-        onSave({ ...overrides, holidays: sortHolidays(nextHolidays, semesterStartDate) });
+        if (onSave({ ...overrides, holidays: sortHolidays(nextHolidays, semesterStartDate) }) === false) { setError('Chưa lưu được thay đổi ngày nghỉ. Hãy thử lại.'); return; }
         resetForm();
     };
 
@@ -128,7 +128,7 @@ export function HolidayManagerDialog({
     };
 
     const removeHoliday = (holidayId: string) => {
-        onSave({ ...overrides, holidays: overrides.holidays.filter((holiday) => holiday.id !== holidayId) });
+        if (onSave({ ...overrides, holidays: overrides.holidays.filter((holiday) => holiday.id !== holidayId) }) === false) { setError('Chưa lưu được thay đổi ngày nghỉ. Hãy thử lại.'); return; }
         if (editingId === holidayId) resetForm();
     };
 

@@ -1,4 +1,4 @@
-import { isSessionActiveInWeek } from '../../visual-schedule/services/holiday-logic';
+import { buildScheduleCalendar, calendarWeekOf } from '../../visual-schedule/services/schedule-occurrences';
 import type { Holiday, ScheduleSession, WeeklySchedule } from '../../visual-schedule';
 import type { DashboardCalendarSource } from './dashboard-layout';
 
@@ -18,7 +18,7 @@ export type DashboardSchedule = WeeklySchedule & {
   overrides?: { holidays?: Holiday[] };
 };
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+
 
 export function startOfDay(value: Date): Date {
   const date = new Date(value);
@@ -63,13 +63,6 @@ function getPortalDay(date: Date): ScheduleSession['dayOfWeek'] {
   return (day === 0 ? 8 : day + 1) as ScheduleSession['dayOfWeek'];
 }
 
-function isDateInsideSession(date: Date, session: ScheduleSession): boolean {
-  const target = startOfDay(date).getTime();
-  const start = session.startDateParsed ? startOfDay(session.startDateParsed).getTime() : Number.MIN_SAFE_INTEGER;
-  const end = session.endDateParsed ? startOfDay(session.endDateParsed).getTime() : Number.MAX_SAFE_INTEGER;
-  return target >= start && target <= end;
-}
-
 function getClassEvents(
   schedule: DashboardSchedule,
   rangeStart: Date,
@@ -77,18 +70,12 @@ function getClassEvents(
 ): DashboardCalendarEvent[] {
   const events: DashboardCalendarEvent[] = [];
   const semesterStart = schedule.semesterStartDate ? startOfDay(schedule.semesterStartDate) : undefined;
-  const holidays = [...(schedule.systemHolidays || []), ...(schedule.overrides?.holidays || [])];
-
+  const calendar = buildScheduleCalendar(schedule);
   for (let date = startOfDay(rangeStart); date <= rangeEnd; date = addDays(date, 1)) {
     const portalDay = getPortalDay(date);
-    const week = semesterStart
-      ? Math.floor((date.getTime() - semesterStart.getTime()) / (7 * DAY_MS)) + 1
-      : 1;
-
-    schedule.sessions
-      .filter((session) => session.dayOfWeek === portalDay)
-      .filter((session) => isDateInsideSession(date, session))
-      .filter((session) => !semesterStart || (week >= 1 && isSessionActiveInWeek(session, week, semesterStart, holidays)))
+    const week = calendarWeekOf(semesterStart, date);
+    (calendar.byWeek.get(week) ?? [])
+      .filter(session => session.dayOfWeek === portalDay)
       .forEach((session) => {
         events.push({
           id: `class-${session.id}-${toDateKey(date)}`,

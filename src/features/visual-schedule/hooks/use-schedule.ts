@@ -1,4 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
+import { activeSemester, semesterKey } from '../../../logic/academic-semester';
+import { useMemo, useState, useEffect, useSyncExternalStore } from 'react';
 import { readFromStorage, saveToStorage } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config';
 import { useDepartmentData } from '../../../context/DepartmentContext';
@@ -20,10 +21,19 @@ function normalizeOverrides(value: ScheduleOverrides | null | undefined): Schedu
     };
 }
 
-export function useSchedule(): WeeklySchedule & {
+function subscribeToStorage(refresh: () => void) {
+    window.addEventListener('storage', refresh);
+    window.addEventListener('ustudy:storage-changed', refresh);
+    return () => {
+        window.removeEventListener('storage', refresh);
+        window.removeEventListener('ustudy:storage-changed', refresh);
+    };
+}
+
+export function useSchedule(): Omit<WeeklySchedule, 'updateOverrides'> & {
     overrides: ScheduleOverrides;
     systemHolidays: Holiday[];
-    updateOverrides: (newOverrides: ScheduleOverrides) => void
+    updateOverrides: (newOverrides: ScheduleOverrides) => boolean
 } {
     const {
         data: { courses: allCoursesMeta },
@@ -38,52 +48,49 @@ export function useSchedule(): WeeklySchedule & {
     const activeGroupSchedule = readFromStorage<any>(STORAGE_KEYS.ACTIVE_GROUP_SCHEDULE, null);
     const legacySavedSchedules = readFromStorage<any>(STORAGE_KEYS.SAVED_SCHEDULES, null);
     const registrationMeta = metadata?.params?.registration;
-    const overridesStorageKey = `${STORAGE_KEYS.SCHEDULE_OVERRIDES}:${registrationMeta?.year || 'unknown'}:${registrationMeta?.sem || 'unknown'}`;
     const groupRegistrations = activeGroupSchedule?.registrations ?? legacySavedSchedules?.activeGroupSchedule?.registrations;
     const courses_registered = Array.isArray(groupRegistrations) && groupRegistrations.length > 0
         ? groupRegistrations
         : studentDb?.registrations || [];
 
+    const inferred = semesterKey(activeSemester(courses_registered, registrationMeta || metadata?.params?.class)).split('/');
+    const period = inferred[0] || 'unknown';
+    const term = inferred[1] || 'unknown';
+    const overridesStorageKey = [STORAGE_KEYS.SCHEDULE_OVERRIDES, period, term].join(':');
+    const fullYear = period.split('-').map(year => year.length === 2 ? '20' + year : year).join('-');
+    const legacyPeriodKey = [STORAGE_KEYS.SCHEDULE_OVERRIDES, fullYear, term].join(':');
+
     const [systemHolidays, setSystemHolidays] = useState<Holiday[]>([]);
     const [workloadRevision, setWorkloadRevision] = useState(0);
 
-    const readOverridesForSemester = () => {
-        const semesterOverrides = readFromStorage<ScheduleOverrides | null>(overridesStorageKey, null);
-        if (semesterOverrides) return normalizeOverrides(semesterOverrides);
-
-        // Dữ liệu trước đây dùng một key chung; giữ làm fallback để không mất thiết lập cũ.
-        return normalizeOverrides(readFromStorage<ScheduleOverrides>(STORAGE_KEYS.SCHEDULE_OVERRIDES, EMPTY_OVERRIDES));
-    };
-
-    // Dùng useState để tránh reload trang khi cập nhật overrides
-    const [overrides, setOverrides] = useState<ScheduleOverrides>(readOverridesForSemester);
+    const readStored = () => localStorage.getItem(overridesStorageKey) ?? localStorage.getItem(legacyPeriodKey)
+        ?? localStorage.getItem(STORAGE_KEYS.SCHEDULE_OVERRIDES);
+    const stored = useSyncExternalStore(subscribeToStorage, readStored);
+    const overrides = useMemo(() => {
+        try { return normalizeOverrides(stored ? JSON.parse(stored) : null); }
+        catch { return EMPTY_OVERRIDES; }
+    }, [stored]);
 
     useEffect(() => {
-        setOverrides(readOverridesForSemester());
-    }, [overridesStorageKey]);
-
-    useEffect(() => {
-        const refreshOverrides = () => setOverrides(readOverridesForSemester());
-        window.addEventListener('ustudy:storage-changed', refreshOverrides);
-        window.addEventListener('storage', refreshOverrides);
-        return () => {
-            window.removeEventListener('ustudy:storage-changed', refreshOverrides);
-            window.removeEventListener('storage', refreshOverrides);
-        };
-    }, [overridesStorageKey]);
-
-    useEffect(() => {
-        fetch(`/data/campuses/${defaultCampusId}/holidays.json`)
+        const controller = new AbortController();
+        setSystemHolidays([]);
+        fetch(`/data/campuses/${defaultCampusId}/holidays.json`, { signal: controller.signal })
             .then(res => res.json())
             .then(data => setSystemHolidays(Array.isArray(data) ? data : []))
-            .catch(err => console.error('Failed to load system holidays:', err));
+            .catch(err => { if (!controller.signal.aborted) console.error('Failed to load system holidays:', err); });
+        return () => controller.abort();
     }, [defaultCampusId]);
 
     useEffect(() => {
         const refreshWorkload = () => setWorkloadRevision((revision) => revision + 1);
+        const refreshAfterUnlock = (event: MessageEvent) => {
+            if (event.data?.type === 'CACHE_POPULATED') refreshWorkload();
+        };
+        window.addEventListener('message', refreshAfterUnlock);
         window.addEventListener(SCHEDULE_WORKLOAD_OVERRIDES_EVENT, refreshWorkload);
         window.addEventListener('storage', refreshWorkload);
         return () => {
+            window.removeEventListener('message', refreshAfterUnlock);
             window.removeEventListener(SCHEDULE_WORKLOAD_OVERRIDES_EVENT, refreshWorkload);
             window.removeEventListener('storage', refreshWorkload);
         };
@@ -106,15 +113,22 @@ export function useSchedule(): WeeklySchedule & {
         );
     }, [courses_registered, metadata, allCoursesMeta, overrides, systemHolidays, openCourses, defaultCampusId, campusRevision, facultyId, majorId, cohortId, workloadRevision]);
 
+    useEffect(() => {
+        if (schedule.overrides && schedule.overrides !== overrides && readStored() === stored) {
+            saveToStorage(overridesStorageKey, schedule.overrides);
+        }
+    }, [schedule.overrides, overrides, overridesStorageKey, stored]);
+
     const updateOverrides = (newOverrides: ScheduleOverrides) => {
         const normalized = normalizeOverrides(newOverrides);
-        saveToStorage(overridesStorageKey, normalized);
-        setOverrides(normalized);
+        if (readStored() !== stored) return false;
+        if (!saveToStorage(overridesStorageKey, normalized)) return false;
+        return true;
     };
 
     return {
         ...schedule,
-        overrides,
+        overrides: schedule.overrides ?? overrides,
         systemHolidays,
         updateOverrides
     };

@@ -90,7 +90,7 @@ export function DashboardWidgets() {
       exams,
       layout.calendarDays,
       layout.calendarSources,
-      schedule.overrides?.holidays,
+      schedule.overrides,
       schedule.semesterStartDate,
       schedule.sessions,
       schedule.systemHolidays,

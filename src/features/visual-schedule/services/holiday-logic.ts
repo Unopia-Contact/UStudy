@@ -1,4 +1,4 @@
-import type { Holiday, ScheduleSession } from '../types';
+import type { Holiday, ScheduleSession, ScheduleOverrides } from '../types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -92,7 +92,7 @@ export function holidayAffectsSessionOnDate(
 }
 
 function getFirstSessionOccurrence(session: ScheduleSession, semesterStartDate: Date): Date {
-    return alignToSessionDay(session.startDateParsed || semesterStartDate, session.dayOfWeek);
+    return alignToSessionDay(session.startDateParsed || semesterStartDate, session.baseValues?.dayOfWeek ?? session.dayOfWeek);
 }
 
 function getPlannedOccurrenceCount(session: ScheduleSession, firstOccurrence: Date): number {
@@ -102,84 +102,56 @@ function getPlannedOccurrenceCount(session: ScheduleSession, firstOccurrence: Da
     return Math.max(1, weeks + 1);
 }
 
-/**
- * Xét một buổi lặp theo tuần. Mỗi lịch lặp được đếm riêng nên môn có nhiều
- * buổi/tuần chỉ nghỉ đúng buổi rơi vào khoảng ngày nghỉ.
- */
-export function isSessionActiveInWeek(
-    session: ScheduleSession,
-    week: number,
-    semesterStartDate: Date | undefined,
-    holidays: Holiday[],
-): boolean {
-    if (!semesterStartDate) return true;
-
-    const occurrenceDate = getSessionDateForWeek(semesterStartDate, week, session.dayOfWeek);
-    const firstOccurrence = getFirstSessionOccurrence(session, semesterStartDate);
-    if (occurrenceDate < firstOccurrence) return false;
-
-    const holidaysOnCurrentDate = holidays.filter((holiday) => (
-        holidayAffectsSessionOnDate(holiday, session, occurrenceDate, semesterStartDate)
-    ));
-    if (holidaysOnCurrentDate.length > 0) return false;
-
-    const plannedOccurrences = getPlannedOccurrenceCount(session, firstOccurrence);
-    let consumedOccurrences = 0;
-
-    for (let date = new Date(firstOccurrence); date < occurrenceDate; date = addDays(date, 7)) {
-        const matchingHolidays = holidays.filter((holiday) => (
-            holidayAffectsSessionOnDate(holiday, session, date, semesterStartDate)
-        ));
-        const requiresMakeUp = matchingHolidays.some((holiday) => holiday.makeUp !== false);
-        if (!requiresMakeUp) consumedOccurrences += 1;
-    }
-
-    return consumedOccurrences < plannedOccurrences;
+export interface SessionWeeks {
+    startWeek: number;
+    weekCount: number;
+    weeks: number[];
+    lastWeek: number;
 }
 
-export function getScheduleCalendarWeekCount(
-    sessions: ScheduleSession[],
-    semesterStartDate: Date | undefined,
-    holidays: Holiday[],
-): number {
-    const baseWeeks = Math.max(1, ...sessions.map((session) => session.totalWeeks || 0));
-    if (!semesterStartDate) return baseWeeks;
+// Weeks are calendar weeks of the semester. An explicit end is inclusive;
+// A duration follows the holiday make-up rules, even when explicitly edited.
+export function getSessionWeeks(session: ScheduleSession, semesterStart: Date | undefined,
+    holidays: Holiday[], overrides?: ScheduleOverrides): SessionWeeks {
+    const edit = overrides?.sessionOverrides?.[session.id];
+    const first = semesterStart ? getFirstSessionOccurrence(session, semesterStart) : undefined;
+    const originalStart = first && semesterStart
+        ? 1 + Math.floor((first.getTime() - semesterStart.getTime()) / (7 * DAY_MS)) : 1;
+    const start = validWeek(edit?.startWeek) ? edit.startWeek : originalStart;
+    const inferred = first ? getPlannedOccurrenceCount(session, first) : session.totalWeeks || 15;
+    const explicitCount = validWeek(edit?.weekCount) ? edit.weekCount : undefined;
+    const planned = explicitCount ?? inferred;
+    const end = explicitCount === undefined && (edit?.endWeek === 0 || validWeek(edit?.endWeek)) ? edit.endWeek : undefined;
+    const limit = end ?? start + planned + 104;
+    const weeks: number[] = [];
+    let consumed = 0;
+    let lastWeek = 0;
+    for (let week = start; week <= limit && (end !== undefined || consumed < planned); week++) {
+        const day = overrides?.weekOverrides?.[week + '_' + session.id]?.dayOfWeek ?? session.dayOfWeek;
+        const date = semesterStart && getSessionDateForWeek(semesterStart, week, day);
+        const breaks = holidays.filter(holiday => date ? holidayAffectsSessionOnDate(holiday, session, date, semesterStart)
+            : !holiday.startDate && holiday.startWeek && week >= holiday.startWeek && week < holiday.startWeek + (holiday.duration || 1)
+                && (holiday.affectedCourseCodes === 'all' || holiday.affectedCourseCodes.includes(session.courseCode)));
+        if (!breaks.some(holiday => holiday.makeUp !== false)) consumed++;
+        lastWeek = week;
+        if (!breaks.length && !edit?.hiddenWeeks?.includes(week)) weeks.push(week);
+    }
+    return { startWeek: start, weekCount: end === undefined ? planned : consumed, weeks, lastWeek };
+}
 
-    const datedWeeks = Math.max(0, ...sessions.map((session) => {
-        if (!session.endDateParsed) return 0;
-        return Math.floor((atStartOfDay(session.endDateParsed).getTime() - atStartOfDay(semesterStartDate).getTime()) / (7 * DAY_MS)) + 1;
-    }));
+export function validWeek(value: unknown): value is number {
+    return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 520;
+}
 
-    const lastActiveWeek = sessions.reduce((latestWeek, session) => {
-        const firstOccurrence = getFirstSessionOccurrence(session, semesterStartDate);
-        const firstWeek = Math.max(1, Math.floor((firstOccurrence.getTime() - atStartOfDay(semesterStartDate).getTime()) / (7 * DAY_MS)) + 1);
-        const plannedOccurrences = getPlannedOccurrenceCount(session, firstOccurrence);
-        let consumedOccurrences = 0;
-        let calendarWeek = firstWeek;
-        let lastActive = 0;
+export function isSessionActiveInWeek(session: ScheduleSession, week: number, semesterStart: Date | undefined,
+    holidays: Holiday[], overrides?: ScheduleOverrides) {
+    return getSessionWeeks(session, semesterStart, holidays, overrides).weeks.includes(week);
+}
 
-        // A bounded guard also protects old or malformed imported holiday ranges.
-        const maximumWeek = firstWeek + plannedOccurrences + 104;
-        while (consumedOccurrences < plannedOccurrences && calendarWeek <= maximumWeek) {
-            const occurrenceDate = getSessionDateForWeek(semesterStartDate, calendarWeek, session.dayOfWeek);
-            const matchingHolidays = holidays.filter((holiday) => (
-                holidayAffectsSessionOnDate(holiday, session, occurrenceDate, semesterStartDate)
-            ));
-            const requiresMakeUp = matchingHolidays.some((holiday) => holiday.makeUp !== false);
-
-            if (matchingHolidays.length === 0) {
-                consumedOccurrences += 1;
-                lastActive = calendarWeek;
-            } else if (!requiresMakeUp) {
-                consumedOccurrences += 1;
-            }
-            calendarWeek += 1;
-        }
-
-        return Math.max(latestWeek, lastActive);
-    }, 0);
-
-    return Math.max(baseWeeks, datedWeeks, lastActiveWeek);
+export function getScheduleCalendarWeekCount(sessions: ScheduleSession[], semesterStart: Date | undefined,
+    holidays: Holiday[], overrides?: ScheduleOverrides) {
+    return sessions.reduce((latest, session) => Math.max(latest,
+        getSessionWeeks(session, semesterStart, holidays, overrides).lastWeek), 1);
 }
 
 export function sortHolidays(holidays: Holiday[], semesterStartDate?: Date): Holiday[] {

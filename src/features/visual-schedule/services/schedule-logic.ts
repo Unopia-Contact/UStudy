@@ -1,3 +1,5 @@
+import { reconcileSessionEdits } from './schedule-overrides';
+import { semesterKey, registrationsForSemester, activeSemester } from '../../../logic/academic-semester';
 /**
  * ScheduleLogic.ts
  *
@@ -331,17 +333,14 @@ export const ScheduleLogic = {
         allCoursesMeta: any[],
         metadata: any,
         overrides?: ScheduleOverrides,
-        systemHolidays: Holiday[] = [],
+        _systemHolidays: Holiday[] = [],
         openCourses: any[] = [],
         defaultCampusId: CampusId = 'dong-hoa',
         workloadOptions: ScheduleWorkloadOptions = {},
     ): WeeklySchedule => {
-        const semester = metadata?.params?.registration?.sem || '1';
-        const year = metadata?.params?.registration?.year || '24-25';
-
-        // Merge holidays: System holidays + User overrides
-        const combinedHolidays = [...systemHolidays, ...(overrides?.holidays || [])];
-        const activeOverrides = overrides ? { ...overrides, holidays: combinedHolidays } : { sessionOverrides: {}, weekOverrides: {}, holidays: combinedHolidays };
+        const active = activeSemester(coursesRegistered, metadata?.params?.registration || metadata?.params?.class);
+        coursesRegistered = registrationsForSemester(coursesRegistered, active);
+        const [year, semester] = (semesterKey(active) || '24-25/1').split('/');
 
         const normalizeCourseId = (value: unknown) => String(value ?? '').trim().toUpperCase();
         const metadataByCourseId = new Map(
@@ -367,6 +366,7 @@ export const ScheduleLogic = {
                 }),
             ]),
         );
+        const sessionIds = new Set<string>();
         const periodsPerWeekByComponent = new Map<string, number>();
         coursesRegistered.forEach((course: any) => {
             const courseId = normalizeCourseId(course?.id);
@@ -376,18 +376,19 @@ export const ScheduleLogic = {
                 const match = part.match(SCHEDULE_PART_REGEX);
                 if (!match) return sum;
                 const sessionId = `${course.id}|${course.classGroup || ''}|${componentType}|${part}`;
-                const override = activeOverrides.sessionOverrides?.[sessionId];
-                const startPeriod = override?.startPeriod ?? Number.parseFloat(match[2]);
-                const endPeriod = override?.endPeriod ?? Number.parseFloat(match[3]);
-                return sum + ScheduleLogic.adjustPeriodsForPractical(componentType, startPeriod, endPeriod).duration;
+                if (sessionIds.has(sessionId)) return sum;
+                sessionIds.add(sessionId);
+                return sum + ScheduleLogic.adjustPeriodsForPractical(componentType, Number(match[2]), Number(match[3])).duration;
             }, 0);
-            const componentKey = `${courseId}|${componentType}`;
+            const componentKey = `${courseId}|${course.classGroup || ''}|${componentType}`;
             periodsPerWeekByComponent.set(
                 componentKey,
                 (periodsPerWeekByComponent.get(componentKey) ?? 0) + duration,
             );
         });
 
+        const reconciled = reconcileSessionEdits(overrides ?? { sessionOverrides: {}, weekOverrides: {}, holidays: [] }, sessionIds);
+        const emittedIds = new Set<string>();
         const countedCourseCodes = new Set<string>();
         let totalCourses = 0;
         let totalCredits = 0;
@@ -399,7 +400,7 @@ export const ScheduleLogic = {
         // Build startWeek map: LT course → startWeek (TH/BT sẽ kế thừa)
         const courseStartWeeks = new Map<string, string>();
         coursesRegistered.forEach((c: any) => {
-            if (c.startWeek && c.startWeek.trim() !== '') {
+            if ((normalizeScheduleComponentType(c.courseType) ?? 'LT') === 'LT' && c.startWeek?.trim()) {
                 const existing = courseStartWeeks.get(c.id) || '';
                 if (c.startWeek.length > existing.length) {
                     courseStartWeeks.set(c.id, c.startWeek);
@@ -410,7 +411,7 @@ export const ScheduleLogic = {
         coursesRegistered.forEach((course: any) => {
             const normalizedCourseId = normalizeCourseId(course.id);
             const meta = metadataByCourseId.get(normalizedCourseId);
-            const credits = parseInt(meta?.credits as any) || 0;
+            const credits = Number.parseFloat(String(meta?.credits ?? course.credits ?? '').replace(',', '.')) || 0;
 
             const scheduleStr: string = course.schedule || '';
             const scheduleParts: string[] = scheduleStr.split(/[;,]/).map((s) => s.trim()).filter(Boolean);
@@ -445,7 +446,9 @@ export const ScheduleLogic = {
 
                 // --- Apply Global Overrides ---
                 const sessionId = `${course.id}|${course.classGroup || ''}|${cType}|${part}`;
-                const override = activeOverrides.sessionOverrides?.[sessionId];
+                if (emittedIds.has(sessionId)) return [];
+                emittedIds.add(sessionId);
+                const override = reconciled.overrides.sessionOverrides[sessionId];
                 if (override) {
                     if (override.room !== undefined) room = override.room;
                     if (override.startPeriod !== undefined) rawStart = override.startPeriod;
@@ -488,7 +491,7 @@ export const ScheduleLogic = {
                 }];
             });
 
-            const periodsPerWeek = periodsPerWeekByComponent.get(`${normalizedCourseId}|${cType}`)
+            const periodsPerWeek = periodsPerWeekByComponent.get(`${normalizedCourseId}|${course.classGroup || ''}|${cType}`)
                 ?? parsedSessions.reduce((sum, session) => sum + session.adjusted.duration, 0);
             const totalWeeks = requiredHours > 0 && periodsPerWeek > 0
                 ? Math.ceil(requiredHours / periodsPerWeek)
@@ -564,8 +567,10 @@ export const ScheduleLogic = {
         }
 
         return {
+            overrides: reconciled.overrides,
+            unassignedEdits: reconciled.unassigned,
             semester: `${semester}-${year}`,
-            semesterName: `Học kỳ ${semester} Năm học ${year}`,
+            semesterName: active ? `Học kỳ ${semester} Năm học ${year}` : '',
             weekNumber: 1,
             weekRange: 'Tuần 1',
             totalCourses,

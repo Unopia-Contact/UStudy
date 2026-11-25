@@ -154,6 +154,13 @@ describe('visual schedule workload integration', () => {
     ]);
   });
 
+  it('keeps parallel groups separate and counts a repeated Portal row once', () => {
+    const meeting = { id: 'ADD00031', name: 'Anh văn 1', classGroup: '01', courseType: 'LT', schedule: 'T2(6-9)' };
+    const schedule = ScheduleLogic.buildScheduleSessions([meeting, meeting, { ...meeting, classGroup: '02' }],
+      [{ course_id: 'ADD00031', credits: 3, theory_hours: 30, lab_hours: 30, exercise_hours: 0 }], metadata);
+    expect(schedule.sessions.map(s => s.totalWeeks)).toEqual([15, 15]);
+  });
+
   it('aggregates multiple rows of the same component before calculating weeks', () => {
     const schedule = ScheduleLogic.buildScheduleSessions(
       [

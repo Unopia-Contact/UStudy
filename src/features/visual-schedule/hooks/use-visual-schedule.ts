@@ -1,87 +1,48 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSchedule } from './use-schedule';
 import { useCourseData } from '../../../hooks/useCourseData';
-import { ScheduleLogic } from '../services/schedule-logic';
-import { getHolidayDateRange, getScheduleCalendarWeekCount, isSessionActiveInWeek, sortHolidays } from '../services/holiday-logic';
+import { buildScheduleCalendar, calendarWeekOf } from '../services/schedule-occurrences';
+import { getHolidayDateRange, sortHolidays } from '../services/holiday-logic';
 import { exportCalendar } from '../services/schedule-export';
 import { getCurrentDayAndTime } from '../services/schedule-helpers';
-import { type ScheduleSession } from '../types';
-import { tryResolvePeriodRange } from '../../../domain/campus';
+
 
 interface UseVisualScheduleProps {
     selectedSemester?: string;
 }
 
 export function useVisualSchedule({ selectedSemester }: UseVisualScheduleProps = {}) {
-    const { overrides, updateOverrides, ...SEMESTER_3_SCHEDULE_BASE } = useSchedule();
+    const { overrides, updateOverrides, ...baseSchedule } = useSchedule();
     const { isReady, hasData } = useCourseData();
 
     const [currentWeek, setCurrentWeek] = useState(() => {
-        if (!SEMESTER_3_SCHEDULE_BASE.semesterStartDate) return 1;
+        if (!baseSchedule.semesterStartDate) return 1;
         const now = new Date();
-        const msDiff = now.getTime() - SEMESTER_3_SCHEDULE_BASE.semesterStartDate.getTime();
+        const msDiff = now.getTime() - baseSchedule.semesterStartDate.getTime();
         if (msDiff < 0) return 1;
         const week = Math.floor(msDiff / (7 * 24 * 60 * 60 * 1000)) + 1;
         return week;
     });
 
     const schedule = useMemo(() => ({
-        ...SEMESTER_3_SCHEDULE_BASE,
-        semesterName: selectedSemester || SEMESTER_3_SCHEDULE_BASE.semesterName,
+        ...baseSchedule,
+        semesterName: baseSchedule.semesterName || selectedSemester || 'Chưa xác định học kỳ',
         overrides,
         updateOverrides
-    }), [SEMESTER_3_SCHEDULE_BASE, selectedSemester, overrides, updateOverrides]);
+    }), [baseSchedule, selectedSemester, overrides, updateOverrides]);
 
     const { semesterStartDate } = schedule;
+    const lastSemester = useRef(schedule.semester);
 
-    const totalWeeks = useMemo(() => {
-        const allHolidays = [...(schedule.systemHolidays || []), ...schedule.overrides.holidays];
-        return getScheduleCalendarWeekCount(schedule.sessions, semesterStartDate, allHolidays);
-    }, [schedule.sessions, schedule.systemHolidays, schedule.overrides.holidays, semesterStartDate]);
-
+    const calendar = useMemo(() => buildScheduleCalendar(schedule),
+        [schedule.sessions, semesterStartDate, schedule.systemHolidays, overrides]);
+    const { totalWeeks } = calendar;
     useEffect(() => {
-        setCurrentWeek((week) => Math.min(Math.max(1, week), totalWeeks));
-    }, [totalWeeks]);
-
-    const displaySessions = useMemo(() => {
-        const allHolidays = [...schedule.systemHolidays, ...schedule.overrides.holidays];
-        return schedule.sessions.filter(session => {
-            if (!isSessionActiveInWeek(session, currentWeek, semesterStartDate, allHolidays)) return false;
-
-            const sessionOverride = schedule.overrides.sessionOverrides[session.id];
-            if (sessionOverride) {
-                if (sessionOverride.startWeek !== undefined && currentWeek < sessionOverride.startWeek) return false;
-                if (sessionOverride.endWeek !== undefined && currentWeek > sessionOverride.endWeek) return false;
-                if (sessionOverride.hiddenWeeks?.includes(currentWeek)) return false;
-            }
-            return true;
-        }).map(session => {
-            const weekOverride = schedule.overrides.weekOverrides[`${currentWeek}_${session.id}`];
-            if (weekOverride) {
-                let sP = weekOverride.startPeriod !== undefined ? weekOverride.startPeriod : session.startPeriod;
-                let eP = weekOverride.endPeriod !== undefined ? weekOverride.endPeriod : session.endPeriod;
-                const adjusted = ScheduleLogic.adjustPeriodsForPractical(session.type, sP, eP);
-                const campusId = weekOverride.campusId ?? session.campusId ?? 'dong-hoa';
-                const periodRange = tryResolvePeriodRange(
-                    campusId,
-                    adjusted.startPeriod,
-                    adjusted.endPeriod,
-                );
-
-                return {
-                    ...session,
-                    ...weekOverride,
-                    startPeriod: adjusted.startPeriod,
-                    endPeriod: adjusted.endPeriod,
-                    startTime: periodRange?.startTime ?? ScheduleLogic.periodToTimeString(adjusted.startPeriod, true, campusId),
-                    endTime: periodRange?.endTime ?? ScheduleLogic.periodToTimeString(adjusted.endPeriod, false, campusId),
-                    session: periodRange?.session ?? session.session,
-                    duration: adjusted.duration,
-                };
-            }
-            return session;
-        });
-    }, [schedule, currentWeek, semesterStartDate]);
+        const switchedSemester = lastSemester.current !== schedule.semester;
+        lastSemester.current = schedule.semester;
+        setCurrentWeek(week => Math.min(Math.max(1, switchedSemester ? calendarWeekOf(semesterStartDate, new Date()) : week), totalWeeks));
+    }, [totalWeeks, schedule.semester, semesterStartDate]);
+    const displaySessions = calendar.byWeek.get(currentWeek) ?? [];
 
     const weekRangeStr = useMemo(() => {
         if (!semesterStartDate) return `Tuần ${currentWeek}`;
@@ -132,17 +93,7 @@ export function useVisualSchedule({ selectedSemester }: UseVisualScheduleProps =
     const trends = useMemo(() => {
         if (currentWeek <= 1 || !semesterStartDate) return { periodsTrend: undefined, coursesTrend: undefined };
 
-        const previousWeek = currentWeek - 1;
-        const allHolidays = [...schedule.systemHolidays, ...schedule.overrides.holidays];
-        const prevSessions = schedule.sessions.filter(session => {
-            if (!isSessionActiveInWeek(session, previousWeek, semesterStartDate, allHolidays)) return false;
-            const override = schedule.overrides.sessionOverrides[session.id];
-            if (!override) return true;
-            if (override.startWeek !== undefined && previousWeek < override.startWeek) return false;
-            if (override.endWeek !== undefined && previousWeek > override.endWeek) return false;
-            return !override.hiddenWeeks?.includes(previousWeek);
-        });
-
+        const prevSessions = calendar.byWeek.get(currentWeek - 1) ?? [];
         const prevTotalPeriods = prevSessions.reduce((acc, s) => acc + s.duration, 0);
         const prevTotalCourses = new Set(prevSessions.map(s => s.courseCode)).size;
 
@@ -153,16 +104,7 @@ export function useVisualSchedule({ selectedSemester }: UseVisualScheduleProps =
             periodsTrend: diffPeriods > 0 ? { direction: 'up' as const, value: `+${diffPeriods} tiết` } : (diffPeriods < 0 ? { direction: 'down' as const, value: `${diffPeriods} tiết` } : undefined),
             coursesTrend: diffCourses > 0 ? { direction: 'up' as const, value: `+${diffCourses} môn` } : (diffCourses < 0 ? { direction: 'down' as const, value: `${diffCourses} môn` } : undefined),
         };
-    }, [currentWeek, semesterStartDate, schedule.sessions, schedule.systemHolidays, schedule.overrides, stats.totalPeriods, stats.totalCourses]);
-
-    const uniqueCourses = useMemo(() => {
-        return schedule.sessions.reduce((acc, session) => {
-            if (!acc.find(s => s.courseCode === session.courseCode)) {
-                acc.push(session);
-            }
-            return acc;
-        }, [] as ScheduleSession[]);
-    }, [schedule.sessions]);
+    }, [currentWeek, semesterStartDate, calendar, stats.totalPeriods, stats.totalCourses]);
 
     const { isToday, currentPeriod } = getCurrentDayAndTime();
 
@@ -181,8 +123,9 @@ export function useVisualSchedule({ selectedSemester }: UseVisualScheduleProps =
         displaySessions,
         stats,
         trends,
-        uniqueCourses,
-        isToday,
+        isToday: (day: number) => currentWeek === calendarWeekOf(semesterStartDate, new Date()) && isToday(day),
+        setCurrentWeek,
+        calendar,
         currentPeriod,
         handlePreviousWeek,
         handleNextWeek,

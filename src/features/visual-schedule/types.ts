@@ -52,6 +52,7 @@ export interface WeeklySchedule {
     totalHoursPerWeek: number;
     sessions: ScheduleSession[];
     semesterStartDate?: Date;
+    unassignedEdits?: { from: string; candidates: string[] }[];
     systemHolidays?: Holiday[];
     overrides?: ScheduleOverrides;
     updateOverrides?: (overrides: ScheduleOverrides) => void;
@@ -81,7 +82,8 @@ export interface SessionOverride {
     startPeriod?: number;
     endPeriod?: number;
     startWeek?: number;   // Tuần bắt đầu dạy
-    endWeek?: number;     // Tuần kết thúc dạy
+    weekCount?: number;   // Số tuần dự kiến, có bù các ngày nghỉ theo cấu hình
+    endWeek?: number;     // Mốc kết thúc cố định của dữ liệu cũ
     hiddenWeeks?: number[]; // Các tuần bị bỏ qua (nghỉ đột xuất)
     duration?: number;
     dayOfWeek?: 2 | 3 | 4 | 5 | 6 | 7 | 8;

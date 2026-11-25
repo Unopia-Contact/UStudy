@@ -1,7 +1,6 @@
-import { ScheduleLogic } from './schedule-logic';
-import { getScheduleCalendarWeekCount, isSessionActiveInWeek, toDateInputValue } from './holiday-logic';
+import { buildScheduleCalendar } from './schedule-occurrences';
+import { toDateInputValue } from './holiday-logic';
 import type { ScheduleSession, WeeklySchedule } from '../types';
-import { tryResolvePeriodRange } from '../../../domain/campus';
 import { createIcsHelpers, downloadCalendarIcs } from '../../calendar-export';
 
 interface CalendarOccurrence {
@@ -32,10 +31,10 @@ export function buildWidgetScheduleSnapshot(schedule: WeeklySchedule, now = new 
     const lastDay = new Date(today);
     lastDay.setDate(lastDay.getDate() + 30);
     const events: WidgetScheduleEvent[] = [];
-    const totalWeeks = getExportWeekCount(schedule);
+    const calendar = buildScheduleCalendar(schedule);
 
     for (const session of schedule.sessions) {
-        for (const occurrence of getSessionOccurrences(schedule, session, totalWeeks)) {
+        for (const occurrence of (calendar.bySession.get(session.id) ?? [])) {
             const current = occurrence.session;
             const date = getDateForWeek(schedule.semesterStartDate, occurrence.calendarWeek, current.dayOfWeek);
             if (date < today || date > lastDay) continue;
@@ -52,55 +51,6 @@ export function buildWidgetScheduleSnapshot(schedule: WeeklySchedule, now = new 
 
     events.sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime) || a.title.localeCompare(b.title));
     return { version: 1, generatedAt: now.getTime(), validUntil: toDateInputValue(lastDay), events: events.slice(0, 256) };
-}
-
-function getExportWeekCount(schedule: WeeklySchedule): number {
-    const holidays = [...(schedule.systemHolidays || []), ...(schedule.overrides?.holidays || [])];
-    return getScheduleCalendarWeekCount(schedule.sessions, schedule.semesterStartDate, holidays);
-}
-
-function getSessionForWeek(schedule: WeeklySchedule, session: ScheduleSession, calendarWeek: number): ScheduleSession | null {
-    const semesterStart = schedule.semesterStartDate;
-    if (!semesterStart) return null;
-
-    const holidays = [...(schedule.systemHolidays || []), ...(schedule.overrides?.holidays || [])];
-    if (!isSessionActiveInWeek(session, calendarWeek, semesterStart, holidays)) return null;
-
-    const sessionOverride = schedule.overrides?.sessionOverrides[session.id];
-    if (sessionOverride) {
-        if (sessionOverride.startWeek !== undefined && calendarWeek < sessionOverride.startWeek) return null;
-        if (sessionOverride.endWeek !== undefined && calendarWeek > sessionOverride.endWeek) return null;
-        if (sessionOverride.hiddenWeeks?.includes(calendarWeek)) return null;
-    }
-
-    const weekOverride = schedule.overrides?.weekOverrides[`${calendarWeek}_${session.id}`];
-    if (!weekOverride) return session;
-
-    const startPeriod = weekOverride.startPeriod ?? session.startPeriod;
-    const endPeriod = weekOverride.endPeriod ?? session.endPeriod;
-    const adjusted = ScheduleLogic.adjustPeriodsForPractical(session.type, startPeriod, endPeriod);
-    const campusId = weekOverride.campusId ?? session.campusId ?? 'dong-hoa';
-    const periodRange = tryResolvePeriodRange(campusId, adjusted.startPeriod, adjusted.endPeriod);
-
-    return {
-        ...session,
-        ...weekOverride,
-        startPeriod: adjusted.startPeriod,
-        endPeriod: adjusted.endPeriod,
-        startTime: periodRange?.startTime ?? ScheduleLogic.periodToTimeString(adjusted.startPeriod, true, campusId),
-        endTime: periodRange?.endTime ?? ScheduleLogic.periodToTimeString(adjusted.endPeriod, false, campusId),
-        session: periodRange?.session ?? session.session,
-        duration: adjusted.duration,
-    };
-}
-
-function getSessionOccurrences(schedule: WeeklySchedule, session: ScheduleSession, totalWeeks: number): CalendarOccurrence[] {
-    const occurrences: CalendarOccurrence[] = [];
-    for (let calendarWeek = 1; calendarWeek <= totalWeeks; calendarWeek += 1) {
-        const adjustedSession = getSessionForWeek(schedule, session, calendarWeek);
-        if (adjustedSession) occurrences.push({ calendarWeek, session: adjustedSession });
-    }
-    return occurrences;
 }
 
 function getDateForWeek(semesterStart: Date, calendarWeek: number, dayOfWeek: ScheduleSession['dayOfWeek']): Date {
@@ -198,9 +148,9 @@ export function buildCalendarIcs(schedule: WeeklySchedule, now = new Date()): st
         'X-WR-TIMEZONE:Asia/Ho_Chi_Minh',
     ];
 
-    const totalWeeks = getExportWeekCount(schedule);
+    const calendar = buildScheduleCalendar(schedule);
     for (const session of schedule.sessions) {
-        const occurrences = getSessionOccurrences(schedule, session, totalWeeks);
+        const occurrences = (calendar.bySession.get(session.id) ?? []);
         if (!occurrences.length) continue;
 
         const firstOccurrence = occurrences[0];

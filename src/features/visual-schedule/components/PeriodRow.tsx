@@ -1,7 +1,6 @@
 import { CourseCard } from './EditSessionDialog';
-import { type WeeklySchedule, type ScheduleOverrides } from '../types';
+import { type WeeklySchedule } from '../types';
 import { getVisibleWeekDays } from '../../../constants';
-import type { OpenClassDetailTarget } from '../../../components/course';
 import {
     getSessionsForCell,
     getOverlappingSessions,
@@ -17,18 +16,14 @@ export function PeriodRow({
     schedule,
     isToday,
     currentPeriod,
-    overrides,
-    onSave,
-    onOpenClassDetails,
+    onEdit,
 }: {
     period: number;
     time: string;
     schedule: WeeklySchedule;
     isToday: (day: number) => boolean;
     currentPeriod: number | null;
-    overrides: ScheduleOverrides;
-    onSave: (newOverrides: ScheduleOverrides) => void;
-    onOpenClassDetails: (target: OpenClassDetailTarget) => void;
+    onEdit: (sessionId: string) => void;
 }) {
     const visibleDays = getVisibleWeekDays(schedule.sessions.map((session) => session.dayOfWeek));
 
@@ -54,10 +49,7 @@ export function PeriodRow({
                             <CourseCard
                                 sessions={sessionsToDisplay}
                                 hasConflict={hasOverlap}
-                                weekNumber={schedule.weekNumber}
-                                overrides={overrides}
-                                onSave={onSave}
-                                onOpenClassDetails={onOpenClassDetails}
+                                onEdit={onEdit}
                             />
                         </td>
                     );

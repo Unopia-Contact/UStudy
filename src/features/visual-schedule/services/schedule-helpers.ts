@@ -99,6 +99,6 @@ export function getCurrentDayAndTime(): {
     return {
         dayOfWeek: viDay,
         currentPeriod,
-        isToday: (day: number) => day === viDay && viDay >= 2 && viDay <= 7,
+        isToday: (day: number) => day === viDay,
     };
 }
