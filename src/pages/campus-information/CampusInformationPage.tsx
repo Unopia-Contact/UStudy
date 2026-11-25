@@ -41,7 +41,10 @@ export function CampusInformationPage() {
             : 'map';
 
     return (
-        <PageShell header={<PageHeader title="Thông tin trường" description="Bản đồ khuôn viên, kế hoạch năm học và danh bạ đơn vị." />}>
+        <PageShell
+            className={activeTab === 'academic-calendar' ? 'ustudy-academic-calendar-page' : undefined}
+            header={<PageHeader title="Thông tin trường" description="Bản đồ khuôn viên, kế hoạch năm học và danh bạ đơn vị." />}
+        >
             <SectionTabs
                 ariaLabel="Thông tin trường"
                 tabs={[...tabs]}

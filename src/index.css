@@ -465,13 +465,19 @@ body:has(:is(
   }
 }
 
-.scrollbar-hide {
+.scrollbar-hide,
+.ustudy-main-scroll:has(.ustudy-academic-calendar-page) {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+.scrollbar-hide::-webkit-scrollbar,
+.ustudy-main-scroll:has(.ustudy-academic-calendar-page)::-webkit-scrollbar {
   display: none;
+}
+
+.ustudy-main-scroll:has(.ustudy-academic-calendar-page) {
+  scrollbar-gutter: auto;
 }
 
 .mobile-only {
