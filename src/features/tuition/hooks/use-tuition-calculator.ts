@@ -8,14 +8,12 @@ import { useCampus } from '../../../context/CampusContext';
 
 export function useTuitionCalculator(selectedSemesterName: string) {
     const { defaultCampusId } = useCampus();
-    const { registrations } = useStudentDb();
+    const { rawObject: studentDb } = useStudentDb();
+    const importMeta = readFromStorage<any>(STORAGE_KEYS.IMPORT_META, null);
     const { data: { tuitionRates, courses: allCoursesMeta } } = useDepartmentData();
 
     return useMemo(() => {
         const targetSemester = FinancialLogic.parseSemesterName(selectedSemesterName);
-        const studentDb = readFromStorage<any>(STORAGE_KEYS.STUDENT_DB, null);
-        const importMeta = readFromStorage<any>(STORAGE_KEYS.IMPORT_META, null);
-
         const result = FinancialLogic.calculateTuitionData(
             targetSemester,
             selectedSemesterName,
@@ -27,5 +25,5 @@ export function useTuitionCalculator(selectedSemesterName: string) {
         );
 
         return result;
-    }, [selectedSemesterName, registrations, tuitionRates, allCoursesMeta, defaultCampusId]);
+    }, [selectedSemesterName, studentDb, importMeta, tuitionRates, allCoursesMeta, defaultCampusId]);
 }

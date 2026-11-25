@@ -790,6 +790,8 @@ export interface ImportRollbackSnapshot {
     data: Record<string, string>;
     storage?: 'indexeddb';
     snapshotId?: string;
+    writtenHashes?: Record<string, string | null>;
+    academicHashes?: Record<string, string | null>;
     details?: ImportHistoryDetail[];
     restoredSources?: string[];
 }
@@ -922,6 +924,38 @@ export interface ImportCommit {
     displayName?: string;
 }
 
+async function storageHashes(values: Record<string, string | null>): Promise<Record<string, string | null>> {
+    const entries = await Promise.all(Object.entries(values).map(async ([key, value]) => {
+        if (value === null) return [key, null] as const;
+        const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+        return [key, toBase64(digest)] as const;
+    }));
+    return Object.fromEntries(entries);
+}
+
+/** Advance only the observation time while preserving the last content undo point. */
+export async function commitImportObservation(encrypted: string, expected: Record<string, string | null>) {
+    await withStorageMutation(async () => {
+        const snapshot = getImportRollbackSnapshot();
+        const changes: Record<string, string> = { import_meta: encrypted };
+        if (snapshot?.writtenHashes) {
+            const guard = snapshot.academicHashes ?? snapshot.writtenHashes;
+            const previous = await storageHashes({ import_meta: expected.import_meta });
+            if (Object.hasOwn(guard, 'import_meta') && previous.import_meta === guard.import_meta) {
+                const advanced = await storageHashes(changes);
+                const writtenHashes = Object.hasOwn(snapshot.writtenHashes, 'import_meta')
+                    ? { ...snapshot.writtenHashes, ...advanced } : snapshot.writtenHashes;
+                const academicHashes = snapshot.academicHashes && { ...snapshot.academicHashes, ...advanced };
+                changes[IMPORT_ROLLBACK_STORAGE_KEY] = JSON.stringify({ ...snapshot, writtenHashes, academicHashes });
+            }
+        }
+        if (Object.entries(expected).some(([key, value]) => localStorage.getItem(key) !== value)) {
+            throw new Error('Dữ liệu đã thay đổi. Hãy mở lại bản xem trước.');
+        }
+        applyStorageChanges(changes);
+    });
+}
+
 export async function commitImport(
     changes: Record<string, string | null>,
     { source, summary, details = [], displayName }: ImportCommit,
@@ -938,6 +972,13 @@ export async function commitImport(
         ));
         const id = crypto.randomUUID();
         const createdAt = new Date().toISOString();
+        const written = Object.fromEntries(Object.entries(changes).filter(([key, value]) =>
+            !isAnalyticsStorageKey(key) && value !== (previous[key] ?? null)));
+        const writtenHashes = await storageHashes(written);
+        const academicHashes = Object.keys(written).some(key => ACADEMIC_SECURE_KEYS.has(key))
+            ? await storageHashes(Object.fromEntries([...ACADEMIC_SECURE_KEYS].map(key =>
+                [key, Object.hasOwn(written, key) ? written[key] : previous[key] ?? null])))
+            : undefined;
         await writeImportRollbackData(id, data);
         const snapshot: ImportRollbackSnapshot = {
             createdAt,
@@ -946,11 +987,14 @@ export async function commitImport(
             data: {},
             storage: 'indexeddb',
             snapshotId: id,
+            writtenHashes,
+            academicHashes,
             details,
         };
         const entry: ImportHistoryEntry = { id, createdAt, source, summary, details, displayName: displayName?.trim() || undefined };
         try {
-            if (Object.keys(changes).some((key) => localStorage.getItem(key) !== (previous[key] ?? null))) {
+            if ([...Object.keys(changes), ...Object.keys(expected ?? {})]
+                .some(key => localStorage.getItem(key) !== (previous[key] ?? null))) {
                 throw new Error('Dữ liệu đã thay đổi trong lúc nhập. Hãy thử lại.');
             }
             applyStorageChanges({
@@ -1025,22 +1069,34 @@ export async function readImportRollbackValue<T>(key: string, cryptoKey: CryptoK
 }
 
 /** Ghi nhận các nguồn đã được hoàn tác riêng trong snapshot và lịch sử gần nhất. */
-export function markImportRollbackSourcesRestored(sources: readonly string[], changes: Record<string, string> = {}): void {
+export async function markImportRollbackSourcesRestored(sources: readonly string[], changes: Record<string, string> = {}): Promise<void> {
     const snapshot = getImportRollbackSnapshot();
     if (!snapshot) throw new Error('Không tìm thấy điểm hoàn tác.');
 
+    const expected = snapshot.academicHashes ?? snapshot.writtenHashes ?? {};
+    const current = Object.fromEntries([...ACADEMIC_SECURE_KEYS].map(key => [key, localStorage.getItem(key)]));
+    const currentHashes = await storageHashes(current);
+    if (Object.keys(current).some(key => Object.hasOwn(expected, key) && currentHashes[key] !== expected[key])) {
+        throw new Error('Dữ liệu học tập đã được chỉnh sửa sau lần nhập. Các thay đổi hiện tại được giữ lại.');
+    }
     const restoredSources = Array.from(new Set([...(snapshot.restoredSources || []), ...sources]));
+    const updatedHashes = await storageHashes(changes);
+    const writtenHashes = snapshot.writtenHashes && { ...snapshot.writtenHashes, ...updatedHashes };
+    const academicHashes = snapshot.academicHashes && { ...snapshot.academicHashes, ...updatedHashes };
+    if (Object.entries(current).some(([key, value]) => localStorage.getItem(key) !== value)) {
+        throw new Error('Dữ liệu học tập vừa thay đổi ở một tab khác. Hãy thử lại.');
+    }
     const history = getImportHistory();
     if (history[0]) history[0] = { ...history[0], restoredSources };
     applyStorageChanges({
         ...changes,
-        [IMPORT_ROLLBACK_STORAGE_KEY]: JSON.stringify({ ...snapshot, restoredSources }),
+        [IMPORT_ROLLBACK_STORAGE_KEY]: JSON.stringify({ ...snapshot, restoredSources, writtenHashes, academicHashes }),
         [IMPORT_HISTORY_STORAGE_KEY]: JSON.stringify(history),
     });
     window.dispatchEvent(new Event(IMPORT_ROLLBACK_EVENT));
 }
 
-/** Khôi phục toàn bộ localStorage về trạng thái trước lần nhập gần nhất. */
+/** Hoàn tác các mục lần nhập gần nhất đã ghi và bảo toàn chỉnh sửa về sau. */
 export async function restoreLastImportRollback(currentKey?: CryptoKey | null): Promise<boolean> {
     try {
         return await withStorageMutation(async () => {
@@ -1048,6 +1104,7 @@ export async function restoreLastImportRollback(currentKey?: CryptoKey | null): 
             if (!snapshot) return false;
             const data = await readImportRollbackData(snapshot);
             if (!data) return false;
+            if (getCryptoVersionFromSnapshot(data) !== getCryptoVersion() && [...ACADEMIC_SECURE_KEYS].some(key => data[key] !== undefined)) return false;
             if (getCryptoVersionFromSnapshot(data) === 2 && getCryptoVersion() === 2) {
                 const envelopeChanged = CRYPTO_METADATA_KEYS.some((key) => (data[key] ?? null) !== localStorage.getItem(key));
                 if (envelopeChanged && !currentKey) return false;
@@ -1065,12 +1122,27 @@ export async function restoreLastImportRollback(currentKey?: CryptoKey | null): 
                     else data[key] = currentValue;
                 }
             }
-            const previous = readLocalStorage();
-            const changes = Object.fromEntries(Object.keys(previous).filter((key) => !isAnalyticsStorageKey(key))
-                .map((key) => [key, null])) as Record<string, string | null>;
-            for (const [key, value] of Object.entries(data)) {
-                if (typeof value !== 'string') return false;
-                if (!isAnalyticsStorageKey(key) && key !== IMPORT_ROLLBACK_STORAGE_KEY) changes[key] = value;
+            const changes: Record<string, string | null> = {};
+            if (snapshot.writtenHashes) {
+                const current = readLocalStorage();
+                const keys = Object.keys(snapshot.writtenHashes).filter(key => !isAnalyticsStorageKey(key)
+                    && !getCryptoMetadataKeys().includes(key));
+                const expected = { ...snapshot.writtenHashes, ...snapshot.academicHashes };
+                const guardKeys = [...new Set([...keys, ...Object.keys(snapshot.academicHashes ?? {})])];
+                const hashes = await storageHashes(Object.fromEntries(guardKeys.map(key => [key, current[key] ?? null])));
+                const edited = new Set(guardKeys.filter(key => hashes[key] !== expected[key]
+                    || localStorage.getItem(key) !== (current[key] ?? null)));
+                // The raw database, its projections and metadata form a single revision.
+                if ([...edited].some(key => ACADEMIC_SECURE_KEYS.has(key))) return false;
+                for (const key of keys) if (!edited.has(key)) changes[key] = data[key] ?? null;
+                changes[IMPORT_HISTORY_STORAGE_KEY] = JSON.stringify(getImportHistory().filter(entry => entry.id !== snapshot.snapshotId));
+                changes[IMPORT_ROLLBACK_STORAGE_KEY] = null;
+            } else {
+                // Old snapshots cannot identify later edits to preferences.
+                if (![...ACADEMIC_SECURE_KEYS].some(key => key in data || localStorage.getItem(key) !== null)) return false;
+                for (const key of [...ACADEMIC_SECURE_KEYS, 'ustudy_last_data_import']) changes[key] = data[key] ?? null;
+                changes[IMPORT_ROLLBACK_STORAGE_KEY] = null;
+                if (data[IMPORT_HISTORY_STORAGE_KEY]) changes[IMPORT_HISTORY_STORAGE_KEY] = data[IMPORT_HISTORY_STORAGE_KEY];
             }
             applyStorageChanges(changes);
             clearSecureCache();

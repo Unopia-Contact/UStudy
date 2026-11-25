@@ -1,3 +1,4 @@
+import { semesterKey, activeSemester, registrationsForSemester } from './academic-semester';
 /**
  * ScheduleLogic.ts
  *
@@ -301,8 +302,9 @@ export const ScheduleLogic = {
         overrides?: ScheduleOverrides,
         systemHolidays: Holiday[] = []
     ): WeeklySchedule => {
-        const semester = metadata?.params?.registration?.sem || '1';
-        const year = metadata?.params?.registration?.year || '24-25';
+        const active = activeSemester(coursesRegistered, metadata?.params?.registration || metadata?.params?.class);
+        coursesRegistered = registrationsForSemester(coursesRegistered, active);
+        const [year, semester] = (semesterKey(active) || '24-25/1').split('/');
 
         // Merge holidays: System holidays + User overrides
         const combinedHolidays = [...systemHolidays, ...(overrides?.holidays || [])];

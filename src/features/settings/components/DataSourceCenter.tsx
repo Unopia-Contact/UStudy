@@ -1,3 +1,5 @@
+import { STORAGE_KEYS } from '../../../config/storageKeys';
+import { activeSemester, registrationsForSemester } from '../../../logic/academic-semester';
 import {
   BookOpenCheck,
   Check,
@@ -45,6 +47,7 @@ interface SourceView {
 }
 
 const SOURCE_LABELS: Record<string, string> = {
+  profile: 'Hồ sơ sinh viên',
   grades: 'Bảng điểm',
   registrations: 'Đăng ký học phần',
   exams: 'Lịch thi',
@@ -268,15 +271,15 @@ export function DataSourceCenter({ defaultExpanded = false }: { defaultExpanded?
     const params = meta.params || {};
     const sourceUpdatedAt = meta.sourceUpdatedAt || {};
     const hasSourceTimestamps = Boolean(meta.sourceUpdatedAt && typeof meta.sourceUpdatedAt === 'object');
-    const fallbackUpdatedAt = meta.scrapedAt || null;
+    const fallbackUpdatedAt = meta.legacyScrapedAt || (!hasSourceTimestamps && meta.scrapedAt) || null;
     const gradePeriods = Array.from(new Set((raw.grades || []).map((grade: any) => String(grade.semester || '').trim()).filter(Boolean)));
 
-    const updatedAt = (source: PortalDataSource, wasRequested = true) => sourceUpdatedAt[source] || (!hasSourceTimestamps && wasRequested ? fallbackUpdatedAt : null);
+    const updatedAt = (source: PortalDataSource, wasRequested = true) => sourceUpdatedAt[source] || (wasRequested ? fallbackUpdatedAt : null);
     const result: SourceView[] = [
       { id: 'grades', label: 'Bảng điểm', description: 'Điểm và tín chỉ đã có kết quả', period: formatPeriodValue(gradePeriods.at(-1)) || 'Chưa xác định học kỳ', count: raw.grades?.length || 0, unit: 'dòng điểm', updatedAt: updatedAt('grades'), icon: GraduationCap },
-      { id: 'registrations', label: 'Đăng ký học phần', description: 'Các môn đã đăng ký ở kỳ hiện tại', period: formatPeriod(params.registration), count: raw.registrations?.length || 0, unit: 'môn đăng ký', updatedAt: updatedAt('registrations', Boolean(params.registration)), icon: BookOpenCheck },
+      { id: 'registrations', label: 'Đăng ký học phần', description: 'Các môn đã đăng ký ở kỳ hiện tại', period: formatPeriod(params.registration), count: registrationsForSemester(raw.registrations || [], activeSemester(raw.registrations || [], params.registration)).length, unit: 'môn đăng ký', updatedAt: updatedAt('registrations', Boolean(params.registration)), icon: BookOpenCheck },
       { id: 'exams', label: 'Lịch thi', description: 'Lịch giữa kỳ và cuối kỳ', period: formatPeriod(params.exam), count: countExams(raw.exams), unit: 'lịch thi', updatedAt: updatedAt('exams', Boolean(params.exam)), icon: FileClock },
-      { id: 'courses', label: 'Danh sách lớp mở', description: 'Lớp học phần dùng để xếp lịch', period: formatPeriod(params.class), count: raw.courses?.length || 0, unit: 'lớp mở', updatedAt: updatedAt('courses', Boolean(params.class)), icon: Database },
+      { id: 'courses', label: 'Danh sách lớp mở', description: 'Lớp học phần dùng để xếp lịch', period: formatPeriod(params.class), count: registrationsForSemester(raw.courses || [], activeSemester(raw.courses || [], params.class)).length, unit: 'lớp mở', updatedAt: updatedAt('courses', Boolean(params.class)), icon: Database },
       { id: 'tuition', label: 'Học phí', description: 'Chi tiết học phí theo học kỳ', period: formatPeriod(params.tuition), count: countTuitionRows(raw.tuition), unit: 'khoản học phí', updatedAt: updatedAt('tuition', Boolean(params.tuition)), icon: ReceiptText },
     ];
 
@@ -293,7 +296,8 @@ export function DataSourceCenter({ defaultExpanded = false }: { defaultExpanded?
     .map((detail) => detail.source)
     .filter((source): source is PortalDataSource => source in SOURCE_LABELS && source !== 'all')
     .filter((source, index, list) => list.indexOf(source) === index);
-  const candidateSources = recordedSources.length > 0 ? recordedSources : sources.map((source) => source.id);
+  const rawWasImported = !rollbackSnapshot?.writtenHashes || Object.hasOwn(rollbackSnapshot.writtenHashes, STORAGE_KEYS.RAW_STUDENT_DB);
+  const candidateSources = recordedSources.length ? recordedSources : rawWasImported ? sources.map(source => source.id) : [];
   const restorableSources = candidateSources.filter((source) => !restoredSources.has(source));
   const canPartiallyUndo = canUndo && restorableSources.length > 0;
 
@@ -595,8 +599,7 @@ export function DataSourceCenter({ defaultExpanded = false }: { defaultExpanded?
         <div className="divide-y divide-slate-200 border-b border-slate-200">
           {restorableSources.map((sourceId) => {
             const source = sources.find((item) => item.id === sourceId);
-            if (!source) return null;
-            const Icon = source.icon;
+            const Icon = source?.icon ?? Database;
             const checked = selectedUndoSources.includes(sourceId);
             return (
               <label key={sourceId} className="flex cursor-pointer items-center gap-3 px-1 py-3 transition hover:bg-slate-50">
@@ -608,7 +611,7 @@ export function DataSourceCenter({ defaultExpanded = false }: { defaultExpanded?
                 />
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#004A98]"><Icon className="h-4 w-4" /></div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-900">{source.label}</p>
+                  <p className="text-sm font-semibold text-slate-900">{source?.label ?? SOURCE_LABELS[sourceId]}</p>
                   <p className="mt-0.5 truncate text-xs text-slate-500">Khôi phục dữ liệu và học kỳ của riêng nguồn này</p>
                 </div>
               </label>
@@ -616,14 +619,14 @@ export function DataSourceCenter({ defaultExpanded = false }: { defaultExpanded?
           })}
         </div>
         {!cryptoKey && <p className="mt-3 text-xs font-medium text-amber-700">Cần mở khóa dữ liệu trước khi hoàn tác từng phần.</p>}
-        <p className="mt-3 text-xs leading-5 text-slate-500">Các thay đổi bạn tạo sau lần import trong những nguồn được chọn cũng sẽ bị thay bằng dữ liệu từ snapshot.</p>
+        <p className="mt-3 text-xs leading-5 text-slate-500">Nếu dữ liệu học tập đã thay đổi sau lần nhập, UStudy sẽ dừng hoàn tác và giữ bản hiện tại.</p>
       </AppDialog>
 
       <AppDialog
         open={isUndoConfirmOpen}
         onOpenChange={setIsUndoConfirmOpen}
         title="Hoàn tác toàn bộ lần nhập gần nhất"
-        description="Khôi phục toàn bộ localStorage về đúng trạng thái trước lần import gần nhất."
+        description="Khôi phục các mục đã ghi trong lần nhập gần nhất. Mục bạn chỉnh sửa sau đó sẽ được giữ lại."
         icon={Undo2}
         size="sm"
         footer={(
@@ -631,7 +634,7 @@ export function DataSourceCenter({ defaultExpanded = false }: { defaultExpanded?
             <button type="button" onClick={() => setIsUndoConfirmOpen(false)} className="h-9 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50">Hủy</button>
             <button type="button" onClick={async () => {
               if (await restoreLastImportRollback(cryptoKey)) window.location.reload();
-              else addNotification({ title: 'Không thể hoàn tác', message: 'Không khôi phục được dữ liệu từ điểm hoàn tác.', type: 'error' });
+              else addNotification({ title: 'Không thể hoàn tác', message: 'UStudy đã giữ lại dữ liệu hiện tại. Dữ liệu có thể đã thay đổi hoặc điểm hoàn tác không còn đọc được.', type: 'error' });
             }} className="h-9 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700">Hoàn tác toàn bộ</button>
           </>
         )}

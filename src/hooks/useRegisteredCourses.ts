@@ -15,10 +15,10 @@ import { CACHE_POPULATED_EVENT } from '../context/CryptoContext';
 import {
     resolveRegistrations,
     computeCombinedMask,
-    normalizeSemester,
     type RegisteredCourse,
     type RawRegistration,
 } from '../logic/scheduler/RegistrationResolver';
+import { activeSemester } from '../logic/academic-semester';
 import { maskToSections } from '../logic/scheduler/ScheduleDecoder';
 import type { ClassSection } from '../types';
 import { useCampus } from '../context/CampusContext';
@@ -93,7 +93,7 @@ export function useRegisteredCourses(): UseRegisteredCoursesResult {
         }
 
         // 2. Xác định semester hiện tại từ import_meta
-        const currentSemester = normalizeSemester(
+        const currentSemester = activeSemester(rawRegistrations,
             importMeta?.params?.registration || importMeta?.params?.class || null
         );
 

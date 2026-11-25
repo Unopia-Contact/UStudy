@@ -1,15 +1,8 @@
 import type { TuitionRates, CourseMeta, CourseFeeResult, TuitionCourse, TuitionDataSource, TuitionSummary } from '../types';
 import { getTuitionDeadline } from '../../../config/tuitionDeadlines';
 
-function parsePortalCurrency(value: unknown): number | undefined {
-    const text = String(value ?? '').trim().replace(/\s*(?:VNĐ|VND|₫|đ)$/iu, '').trim();
-    const normalized = /^-?\d{1,3}(?:[.\s]\d{3})+$/.test(text)
-        ? text.replace(/[.\s]/g, '')
-        : text.replace(/,/g, '');
-    if (!/^-?\d+(?:\.\d+)?$/.test(normalized)) return undefined;
-    const amount = Number(normalized);
-    return Number.isFinite(amount) ? amount : undefined;
-}
+import { parsePortalCurrency, parsePortalDecimal } from '../../../logic/portal-numbers';
+import { activeSemester, normalizeSemester, registrationsForSemester, semesterKey } from '../../../logic/academic-semester';
 /**
  * FinancialLogic.ts
  *
@@ -135,10 +128,11 @@ export const FinancialLogic = {
     /**
      * Xây dựng mã học kỳ từ import_meta.
      */
-    buildSemesterTarget: (importMeta: any): { registrationSemesterName: string; regTarget: string } => {
+    buildSemesterTarget: (importMeta: any, registrations: { semester?: unknown }[] = []): { registrationSemesterName: string; regTarget: string } => {
         const regMeta = importMeta?.params?.registration;
         if (!regMeta || !regMeta.sem || !regMeta.year) {
-            return { registrationSemesterName: '', regTarget: '' };
+            const period = activeSemester(registrations, importMeta?.params?.class);
+            return { registrationSemesterName: period ? 'Học kỳ ' + period.semester + ', ' + period.academicYear : '', regTarget: semesterKey(period) };
         }
 
         const registrationSemesterName = `Học kỳ ${regMeta.sem}, ${regMeta.year}`;
@@ -256,12 +250,12 @@ export const FinancialLogic = {
             hasAdvancePayment: false,
         };
 
-        const { registrationSemesterName: regSemName, regTarget } = FinancialLogic.buildSemesterTarget(importMeta);
+        const { registrationSemesterName: regSemName, regTarget } = FinancialLogic.buildSemesterTarget(importMeta, studentDb?.registrations);
         const isCurrentRegMatch = regTarget === targetSemester;
         const tuitionInDb = studentDb?.tuition?.[targetSemester];
 
         // 1. Thử lấy từ dữ liệu đã thanh toán (portal)
-        const usePortalData = !isCurrentRegMatch && tuitionInDb && tuitionInDb.details && tuitionInDb.details.length > 0;
+        const usePortalData = tuitionInDb && Array.isArray(tuitionInDb.details) && (tuitionInDb.details.length > 0 || parsePortalCurrency(tuitionInDb.total) !== undefined);
 
         if (usePortalData) {
             const portalCourses: TuitionCourse[] = tuitionInDb.details.map((d: any, idx: number) => ({
@@ -312,13 +306,15 @@ export const FinancialLogic = {
         let source: 'registration' | 'grades' | 'none' = 'none';
 
         // 2. Dự phòng 1: Lấy từ môn đăng ký
-        if (isCurrentRegMatch && registrations && registrations.length > 0) {
-            matchingCourses = registrations.filter((r: any) => r.courseType === 'LT' || r.courseType === undefined);
+        const semesterRegistrations = registrationsForSemester<any>(registrations ?? [], normalizeSemester(targetSemester), isCurrentRegMatch)
+            .filter(r => r.courseType === 'LT' || r.courseType === undefined);
+        if (semesterRegistrations.length) {
+            matchingCourses = semesterRegistrations;
             source = 'registration';
         } else {
             // 3. Dự phòng 2: Lấy từ lịch sử điểm
             if (studentDb && studentDb.grades) {
-                matchingCourses = studentDb.grades.filter((g: any) => g.semester === targetSemester).map((g: any) => ({
+                matchingCourses = studentDb.grades.filter((g: any) => semesterKey(g.semester) === targetSemester).map((g: any) => ({
                     id: g.id,
                     name: g.name,
                     credits: g.credits,
@@ -351,7 +347,7 @@ export const FinancialLogic = {
         });
 
         const allSemestersSet = new Set<string>();
-        if (registrations) registrations.forEach((r: any) => r.semester && allSemestersSet.add(FinancialLogic.parseSemesterName(r.semester)));
+        if (registrations) registrations.forEach((r: any) => r.semester && allSemestersSet.add(semesterKey(r.semester)));
         if (studentDb?.grades) studentDb.grades.forEach((g: any) => g.semester && allSemestersSet.add(g.semester));
 
         const shouldAddIntro = FinancialLogic.shouldAddIntroductoryCourse(targetSemester, Array.from(allSemestersSet));
@@ -381,7 +377,7 @@ export const FinancialLogic = {
                 courseFee = intro.fee;
                 pricePerCredit = tuitionRates?.default_price || 0;
             } else {
-                const result = FinancialLogic.calculateCourseFee(cid, parseInt(reg.credits || 3), tuitionRates, allCoursesMeta);
+                const result = FinancialLogic.calculateCourseFee(cid, (parsePortalDecimal(reg.credits) ?? 3), tuitionRates, allCoursesMeta);
                 billingCredits = result.billingCredits;
                 courseFee = result.courseFee;
                 missingMeta = result.missingMeta;
@@ -391,7 +387,7 @@ export const FinancialLogic = {
             if (missingMeta && cid !== 'ADD00002') missingMetaCourses.push(cid);
 
             const meta = allCoursesMeta ? allCoursesMeta.find((m: any) => m.course_id === cid) : null;
-            const credits = cid === 'ADD00002' ? 2 : parseInt(reg.credits || meta?.credits || 3);
+            const credits = cid === 'ADD00002' ? 2 : (parsePortalDecimal(reg.credits ?? meta?.credits) ?? 3);
             const billingCr = cid === 'ADD00002' ? 2 : (meta ? FinancialLogic.calculateBillingCredits(meta, credits) : 0);
             const periods = billingCr * 15;
 

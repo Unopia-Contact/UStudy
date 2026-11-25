@@ -7,11 +7,11 @@ import { CryptoProvider, CACHE_POPULATED_EVENT, useCrypto } from './context/Cryp
 import { CampusProvider } from './context/CampusContext';
 import { DepartmentProvider } from './context/DepartmentContext';
 import { NotificationProvider, useAppNotification } from './context/NotificationContext';
-import { commitImport, readFromStorage, populateSecureCache } from './helpers/localStorage/save';
+import { commitImport, commitImportObservation, encryptStorageValues, readFromStorage, populateSecureCache } from './helpers/localStorage/save';
 import { STORAGE_KEYS } from './config/storageKeys';
-import { buildAcademicStorageValues, encryptAcademicStorageValues } from './logic/academic-storage';
+import { buildAcademicStorageValues, encryptAcademicStorageValues, readAcademicBaseline } from './logic/academic-storage';
 import { buildDataImportStatus } from './helpers/localStorage/data-import-status';
-import { assertSameStudent, buildRawImportPreview, getImportCollectionLabel, mergeSelectedRawImport, type RawImportChange } from './logic/import-preview';
+import { buildRawImportPreview, getImportCollectionLabel, mergeSelectedRawImport, type RawImportChange } from './logic/import-preview';
 import { mergeImportMetadata, type PortalDataSource } from './logic/import-metadata';
 import { requestPortalExtension } from './portal-sync/bridge';
 import { AnalyticsBootstrap } from './features/analytics/AnalyticsBootstrap';
@@ -136,7 +136,7 @@ function AppContent() {
     return Array.from(summaries.values());
   }, [importPreview]);
 
-  const preparePortalImport = useCallback((payload: PortalSyncPacket, source: PortalImportTransport, suppressIfUnchanged = false, extensionPendingId?: string) => {
+  const preparePortalImport = useCallback(async (payload: PortalSyncPacket, source: PortalImportTransport, suppressIfUnchanged = false, extensionPendingId?: string) => {
       const incomingVersion = payload.scraperVersion || payload.version || String(payload.meta?.scraperVersion || payload.meta?.version || '');
       if (incomingVersion && incomingVersion !== PORTAL_SCRAPER_VERSION) {
         addNotification({
@@ -149,25 +149,38 @@ function AppContent() {
           type: 'warning',
         });
       }
-      const currentRaw = readFromStorage<any>('raw_student_db', null);
+      let currentRaw;
+      let changes: RawImportChange[];
       const currentMeta = readFromStorage<any>('import_meta', null);
       const expected = Object.fromEntries([
         STORAGE_KEYS.RAW_STUDENT_DB, STORAGE_KEYS.STUDENT_DB, STORAGE_KEYS.COURSE_DB_OFFLINE, STORAGE_KEYS.IMPORT_META,
       ].map((key) => [key, localStorage.getItem(key)]));
       try {
+        currentRaw = readAcademicBaseline();
         if (!currentRaw && expected.raw_student_db !== null) {
           throw new Error('Dữ liệu đang được mở khóa hoặc không đọc được. Hãy thử lại khi dữ liệu đã sẵn sàng.');
         }
-        assertSameStudent(payload.raw, currentRaw ?? readFromStorage(STORAGE_KEYS.STUDENT_DB, null));
+        if (!currentMeta && expected.import_meta !== null) throw new Error('Hãy mở khóa thông tin đồng bộ trước khi nhập.');
+        changes = buildRawImportPreview(payload.raw, currentRaw, { incomingMeta: payload.meta, currentMeta });
       } catch (error) {
         addNotification({ title: 'Không thể nhập dữ liệu', message: (error as Error).message, type: 'error' });
         return 'rejected';
       }
-      const changes = buildRawImportPreview(payload.raw, currentRaw, {
-        incomingMeta: payload.meta,
-        currentMeta,
-      });
-      if (suppressIfUnchanged && changes.every((change) => change.status === 'unchanged')) return 'unchanged';
+      const updates = changes.filter(c => c.status !== 'unchanged');
+      if (suppressIfUnchanged && updates.every(c => c.observationOnly)) {
+        if (updates.length && cryptoKey) {
+          try {
+            const meta = mergeImportMetadata(currentMeta, payload.meta, updates.map(c => c.collection), updates);
+            const encrypted = await encryptStorageValues({ import_meta: meta }, cryptoKey);
+            await commitImportObservation(encrypted.import_meta, expected);
+            populateSecureCache('import_meta', meta, encrypted.import_meta);
+            window.postMessage({ type: CACHE_POPULATED_EVENT }, window.location.origin);
+          } catch {
+            return 'rejected';
+          }
+        }
+        return 'unchanged';
+      }
       setIsImportDetailsOpen(false);
       setImportPreview({
         payload,
@@ -178,7 +191,7 @@ function AppContent() {
         expected,
       });
       return 'preview';
-  }, [addNotification]);
+  }, [addNotification, cryptoKey]);
 
   useEffect(() => {
     const handleBookmarkletMessage = (event: MessageEvent) => {
@@ -217,7 +230,7 @@ function AppContent() {
         if (!active || !pendingImport || handledExtensionImports.current.has(pendingImport.id)) return;
         handledExtensionImports.current.add(pendingImport.id);
         if (!isPortalSyncPacket(pendingImport.packet)) continue;
-        const outcome = preparePortalImport(pendingImport.packet, 'extension', pendingImport.trigger === 'auto', pendingImport.id);
+        const outcome = await preparePortalImport(pendingImport.packet, 'extension', pendingImport.trigger === 'auto', pendingImport.id);
         if (outcome === 'preview') return;
         if (outcome === 'unchanged') await requestPortalExtension('ACK_PENDING_IMPORT', { id: pendingImport.id });
       }
@@ -246,8 +259,17 @@ function AppContent() {
     const selected = new Set(preview.selectedIds);
     const selectedChanges = preview.changes.filter((change) => selected.has(change.id));
     const updatedSources = new Set<PortalDataSource>(selectedChanges.map((change) => change.collection));
-    const raw = mergeSelectedRawImport(preview.payload.raw, readFromStorage(STORAGE_KEYS.RAW_STUDENT_DB, null), preview.selectedIds);
-    const meta = mergeImportMetadata(readFromStorage(STORAGE_KEYS.IMPORT_META, null), preview.payload.meta, updatedSources);
+    const currentMeta = readFromStorage(STORAGE_KEYS.IMPORT_META, null);
+    const raw = mergeSelectedRawImport(preview.payload.raw, readAcademicBaseline(), preview.selectedIds, { currentMeta, incomingMeta: preview.payload.meta });
+    const meta = mergeImportMetadata(currentMeta, preview.payload.meta, updatedSources, selectedChanges);
+    if (selectedChanges.length && selectedChanges.every(c => c.observationOnly)) {
+      const encrypted = await encryptStorageValues({ import_meta: meta }, key);
+      await commitImportObservation(encrypted.import_meta, preview.expected);
+      populateSecureCache('import_meta', meta, encrypted.import_meta);
+      window.postMessage({ type: CACHE_POPULATED_EVENT }, window.location.origin);
+      if (preview.extensionPendingId) void requestPortalExtension('ACK_PENDING_IMPORT', { id: preview.extensionPendingId });
+      return;
+    }
     const makeSummary = (changes: RawImportChange[], unchanged: number): ImportSummary => ({
       added: changes.filter((change) => change.status === 'add').length,
       updated: changes.filter((change) => change.status === 'update').length,
@@ -263,7 +285,7 @@ function AppContent() {
       ),
     }));
     const source = { extension: 'UStudy Extension', 'mobile-app': 'UStudy Android', bookmarklet: 'Bookmarklet Portal' }[preview.source];
-    const values = buildAcademicStorageValues(raw);
+    const values = buildAcademicStorageValues(raw, meta);
     const encrypted = await encryptAcademicStorageValues(values, meta, key);
     await commitImport({ ...encrypted, [STORAGE_KEYS.LAST_DATA_IMPORT]: buildDataImportStatus(preview.source) },
       { source, summary, details }, preview.expected);

@@ -7,11 +7,12 @@ import {
   withStorageMutation,
 } from '../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../config/storageKeys';
-import { buildAcademicStorageValues, encryptAcademicStorageValues } from './academic-storage';
+import { buildAcademicStorageValues, encryptAcademicStorageValues, recoverLegacyAcademicData } from './academic-storage';
 import { PORTAL_SOURCE_BY_PARAM, type ImportMetadata, type PortalDataSource } from './import-metadata';
 import { assertSameStudent } from './import-preview';
 
 const EMPTY_SOURCE_DATA: Record<PortalDataSource, unknown> = {
+  profile: {},
   grades: [],
   registrations: [],
   exams: { midterm: [], final: [] },
@@ -31,7 +32,12 @@ export async function restoreImportSources(sources: readonly PortalDataSource[],
     if (!currentRaw || typeof currentRaw !== 'object' || Array.isArray(currentRaw)) {
       throw new Error('Không đọc được dữ liệu Portal hiện tại.');
     }
-    const previousRaw = await readImportRollbackValue<any>(STORAGE_KEYS.RAW_STUDENT_DB, cryptoKey, undefined);
+    let previousRaw = await readImportRollbackValue<any>(STORAGE_KEYS.RAW_STUDENT_DB, cryptoKey, undefined);
+    if (previousRaw === undefined) {
+      const student = await readImportRollbackValue(STORAGE_KEYS.STUDENT_DB, cryptoKey, null);
+      const courses = await readImportRollbackValue<any[]>(STORAGE_KEYS.COURSE_DB_OFFLINE, cryptoKey, []);
+      previousRaw = recoverLegacyAcademicData(student, courses) ?? undefined;
+    }
     if (previousRaw !== undefined && (!previousRaw || typeof previousRaw !== 'object' || Array.isArray(previousRaw))) {
       throw new Error('Dữ liệu Portal trong điểm hoàn tác không hợp lệ.');
     }
@@ -44,12 +50,28 @@ export async function restoreImportSources(sources: readonly PortalDataSource[],
     const nextRaw = { ...currentRaw };
 
     for (const source of sources) {
-      nextRaw[source] = previousRaw?.[source] ?? EMPTY_SOURCE_DATA[source];
+      if (source === 'profile') {
+        const academic = new Set(['grades', 'registrations', 'exams', 'courses', 'tuition', '_legacyCourses']);
+        for (const key of Object.keys(nextRaw)) if (!academic.has(key)) delete nextRaw[key];
+        for (const [key, value] of Object.entries(previousRaw ?? {})) if (!academic.has(key)) nextRaw[key] = value;
+        // Other retained sources still belong to this student on a first-import undo.
+        nextRaw.studentId ??= currentRaw.studentId;
+        nextRaw.name ??= currentRaw.name;
+      } else {
+        nextRaw[source] = previousRaw?.[source] ?? EMPTY_SOURCE_DATA[source];
+        if (source === 'courses') {
+          if (previousRaw?._legacyCourses) nextRaw._legacyCourses = previousRaw._legacyCourses;
+          else delete nextRaw._legacyCourses;
+        }
+      }
     }
 
+    const periodUpdatedAt = { ...currentMeta?.periodUpdatedAt };
     const nextParams = { ...(currentMeta?.params || {}) };
     const nextSourceUpdatedAt = { ...(currentMeta?.sourceUpdatedAt || {}) };
     for (const source of sources) {
+      if (previousMeta?.periodUpdatedAt?.[source]) periodUpdatedAt[source] = previousMeta.periodUpdatedAt[source];
+      else delete periodUpdatedAt[source];
       const paramKey = PARAM_KEY_BY_SOURCE[source];
       if (paramKey) {
         const previousParam = previousMeta?.params?.[paramKey];
@@ -70,13 +92,14 @@ export async function restoreImportSources(sources: readonly PortalDataSource[],
       ? {
           ...(currentMeta || previousMeta || {}),
           params: nextParams,
+          periodUpdatedAt,
           sourceUpdatedAt: nextSourceUpdatedAt,
         }
       : null;
 
-    const values = buildAcademicStorageValues(nextRaw);
+    const values = buildAcademicStorageValues(nextRaw, nextMeta);
     const encrypted = await encryptAcademicStorageValues(values, nextMeta, cryptoKey);
-    markImportRollbackSourcesRestored(sources, encrypted);
+    await markImportRollbackSourcesRestored(sources, encrypted);
     for (const [key, value] of Object.entries(values)) populateSecureCache(key, value, encrypted[key]);
     if (nextMeta) populateSecureCache(STORAGE_KEYS.IMPORT_META, nextMeta, encrypted[STORAGE_KEYS.IMPORT_META]);
     window.postMessage({ type: CACHE_POPULATED_EVENT }, window.location.origin);

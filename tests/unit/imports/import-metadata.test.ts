@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { mergeImportMetadata } from '../../../src/logic/import-metadata';
 
@@ -28,13 +28,7 @@ describe('import metadata', () => {
     });
   });
 
-  it('uses the current time when the incoming package has no scrapedAt', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-08-24T12:00:00.000Z'));
-
-    expect(mergeImportMetadata(null, {}, ['grades'])?.sourceUpdatedAt?.grades)
-      .toBe('2026-08-24T12:00:00.000Z');
-
-    vi.useRealTimers();
+  it('keeps an undated legacy import undated', () => {
+    expect(mergeImportMetadata(null, {}, ['grades'])?.sourceUpdatedAt?.grades).toBeUndefined();
   });
 });

@@ -1,3 +1,4 @@
+import { semesterKey } from './academic-semester';
 /**
  * dataProcessor.ts
  * 
@@ -8,6 +9,7 @@
  * App cần lưu: student_db_full (processed) + course_db_offline (processed)
  */
 
+import { parsePortalCurrency, parsePortalDecimal } from './portal-numbers';
 import { ScheduleLogic } from './ScheduleLogic';
 import { detectCampusFromOpenClassLocations, type CampusDetection } from '../domain/campus';
 
@@ -66,6 +68,7 @@ export interface RawSubClass {
 }
 
 export interface RawOpenClass {
+    semester?: string;
     id: string;
     name: string;
     className: string;
@@ -77,8 +80,10 @@ export interface RawOpenClass {
     practicalGroupRaw: string;
     exerciseGroupRaw: string;
     location: string;
-    practicalClasses: RawSubClass[];
-    exerciseClasses: RawSubClass[];
+    practicalClasses?: RawSubClass[];
+    exerciseClasses?: RawSubClass[];
+    practicalClassesComplete?: boolean;
+    exerciseClassesComplete?: boolean;
     [key: string]: unknown;
 }
 
@@ -93,14 +98,19 @@ interface RawRegistration {
     semester?: string;
 }
 
+interface RawExamPeriod {
+    midterm: RawExamEntry[];
+    final: RawExamEntry[];
+    completeTables?: ('midterm' | 'final')[];
+}
+
 interface RawData {
-    name: string;
-    grades: RawGrade[];
-    exams: {
-        midterm: RawExamEntry[];
-        final: RawExamEntry[];
-    };
-    tuition: Record<string, {
+    name?: string;
+    studentId?: string;
+    grades?: RawGrade[];
+    exams?: RawExamPeriod | Record<string, RawExamPeriod>;
+    tuition?: Record<string, {
+        snapshotComplete?: boolean;
         details: RawTuitionDetail[];
         totals: {
             credits: string;
@@ -114,8 +124,8 @@ interface RawData {
         year: string;
         sem: string;
     }>;
-    registrations: RawRegistration[];
-    courses: RawOpenClass[];
+    registrations?: RawRegistration[];
+    courses?: RawOpenClass[];
     [key: string]: unknown;
 }
 
@@ -179,7 +189,7 @@ interface GroupedOpenClass {
 function processGrades(rawGrades: RawGrade[]) {
     return rawGrades.map(g => {
         const rawScore = g.score;
-        const score = !isNaN(parseFloat(rawScore)) ? parseFloat(rawScore) : rawScore;
+        const score = parsePortalDecimal(rawScore) ?? rawScore;
         return {
             semester: g.semester,
             id: g.id,
@@ -214,19 +224,19 @@ function processTuition(rawTuitionMap: RawData['tuition']) {
             return {
                 code,
                 name,
-                credits: parseFloat(d.credits) || 0,
-                fee: parseFloat(d.fee?.replace(/,/g, '')) || 0,
-                actualFee: parseFloat(d.cost?.replace(/,/g, '')) || 0,
-                periods: parseFloat(d.periods) || 0,
-                tuitionCredits: parseFloat(d.tuitionCredits) || 0,
+                credits: parsePortalDecimal(d.credits) ?? 0,
+                fee: parsePortalCurrency(d.fee) ?? 0,
+                actualFee: parsePortalCurrency(d.cost) ?? parsePortalCurrency(d.fee) ?? 0,
+                periods: parsePortalDecimal(d.periods) ?? 0,
+                tuitionCredits: parsePortalDecimal(d.tuitionCredits) ?? 0,
                 classId: codeMatch ? codeMatch[1]?.split('/')[1] : ""
             };
         });
 
-        processedMap[period] = {
+        processedMap[semesterKey(period) || period] = {
             total: rawTuition.totals.totalDue ?? "",
-            fee: rawTuition.totals.fee || "0",
-            actualFee: rawTuition.totals.actualFee || "0",
+            fee: rawTuition.totals.fee ?? "",
+            actualFee: rawTuition.totals.actualFee ?? "",
             details,
             year: rawTuition.year,
             sem: rawTuition.sem,
@@ -331,7 +341,7 @@ export function processOpenClasses(rawClasses: RawOpenClass[] = []) {
             courseMap[subjID] = {
                 id: subjID,
                 name: row.name,
-                credits: Number.parseFloat(row.credits) || 0,
+                credits: parsePortalDecimal(row.credits) ?? 0,
                 classes: [],
                 source: { portalRows: [] },
             };
@@ -426,19 +436,22 @@ export function processRawData(rawData: RawData) {
     // Xử lý open classes
     const processedCourses = processOpenClasses(Array.isArray(rawData.courses) ? rawData.courses : []);
 
-    const knownFields = new Set(['name', 'grades', 'exams', 'tuition', 'registrations', 'courses']);
+    const knownFields = new Set(['name', 'grades', 'exams', 'tuition', 'registrations', 'courses', 'program', '_legacyCourses', 'source']);
     const additionalPortalFields = Object.fromEntries(
         Object.entries(rawData).filter(([key]) => !knownFields.has(key)),
     );
 
     // Build student payload (format cũ cho student_db_full)
     const studentPayload = {
+        dataSchemaVersion: 2,
         name: rawData.name,
         grades: processedGrades,
-        exams: rawData.exams || {},  // Exams giữ nguyên format (đã có đủ fields)
+        exams: Object.fromEntries(Object.entries(rawData.exams ?? {}).map(([key, exams]) =>
+            [(semesterKey(key) || key).replace('/', '-'), exams])),
         tuition: processedTuition,
         registrations: Array.isArray(rawData.registrations) ? rawData.registrations : [],  // Registrations giữ nguyên
-        program: [],
+        program: Array.isArray(rawData.program) ? rawData.program : [],
+        studentId: rawData.studentId,
         source: {
             additionalPortalFields,
         },

@@ -1,3 +1,4 @@
+import { useRegisteredCourses } from '../../hooks/useRegisteredCourses';
 import { Suspense, lazy, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { DatabaseBackup } from 'lucide-react';
 import { useRoadmapViewState } from '../study-roadmap/hooks/use-roadmap-view-state';
@@ -66,18 +67,14 @@ export function StudyPlanContainer() {
         return AcademicRulesEngine.checkBLMExemption(studentDb.grades);
     }, [studentDb]);
 
-    const registeredCourseIds = useMemo(() => new Set(
-        (studentDb?.registrations || [])
-            .map((registration: { id?: string }) => String(registration.id || '').trim())
-            .filter(Boolean)
-    ), [studentDb]);
+    const { registeredCourseCodes: registeredCourseIds } = useRegisteredCourses();
 
     const getCourseStatus = useMemo(() => (courseId: string): CourseStatus => {
         const gradeStatus = studentDb?.grades
             ? AcademicRulesEngine.getCourseStatus(courseId, studentDb.grades, hasBLMExemption)
             : 'none';
         if (gradeStatus === 'passed') return 'passed';
-        return registeredCourseIds.has(courseId) ? 'studying' : gradeStatus;
+        return registeredCourseIds.has(courseId.trim().toUpperCase()) ? 'studying' : gradeStatus;
     }, [studentDb, hasBLMExemption, registeredCourseIds]);
 
     const courseById = useMemo(() => {

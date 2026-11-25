@@ -34,7 +34,7 @@ describe('raw import preview', () => {
     expect(mergeSelectedRawImport(incoming, current, [])).toMatchObject(current);
   });
 
-  it('replaces old registrations when a verified new-period snapshot is empty', () => {
+  it('preserves registrations from other periods when a verified new period is empty', () => {
     const current = {
       registrations: [
         { id: 'CSC10009', classGroup: 'A', courseType: 'LT', semester: '25-26/3' },
@@ -47,8 +47,9 @@ describe('raw import preview', () => {
     });
     const removalIds = preview.filter((change) => change.status === 'remove').map((change) => change.id);
 
-    expect(removalIds).toHaveLength(1);
-    expect(mergeSelectedRawImport(incoming, current, removalIds).registrations).toEqual([]);
+    expect(removalIds).toHaveLength(0);
+    expect(preview.some(c => c.collection === 'registrations' && c.status === 'update')).toBe(true);
+    expect(mergeSelectedRawImport(incoming, current, removalIds).registrations).toEqual(current.registrations);
   });
 
   it('keeps registrations when an empty snapshot was not verified by the scraper', () => {
@@ -91,16 +92,17 @@ describe('raw import preview', () => {
       ],
     };
     const incoming = { grades: [current.grades[0]] };
-    const preview = buildRawImportPreview(incoming, current);
+    const context = { incomingMeta: { params: { grades: { semester: '25-26/1', snapshotComplete: true } } } };
+    const preview = buildRawImportPreview(incoming, current, context);
     const removal = preview.find((change) => change.status === 'remove');
 
     expect(removal?.courseId).toBe('CSC10002');
-    const merged = mergeSelectedRawImport(incoming, current, removal ? [removal.id] : []);
+    const merged = mergeSelectedRawImport(incoming, current, removal ? [removal.id] : [], context);
     expect(merged.grades).toEqual([current.grades[0]]);
   });
 
   it('preserves future scraper fields that the current UI does not know yet', () => {
-    const merged = mergeSelectedRawImport({ customPortalBlock: { value: 1 } }, {}, []);
+    const merged = mergeSelectedRawImport({ customPortalBlock: { value: 1 } }, {}, ['profile:0']);
     expect(merged.customPortalBlock).toEqual({ value: 1 });
   });
 

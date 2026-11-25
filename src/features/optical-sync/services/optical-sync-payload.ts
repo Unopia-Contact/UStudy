@@ -1,6 +1,6 @@
 import { STORAGE_KEYS } from '../../../config/storageKeys';
 import { readFromStorage, SECURE_DATA_KEYS } from '../../../helpers/localStorage/save';
-import { SYSTEM_BACKUP_SOURCE } from '../../settings/services/system-backup';
+import { isSemesterScheduleOverride, SYSTEM_BACKUP_SOURCE } from '../../settings/services/system-backup';
 
 const OPTICAL_SYNC_KEYS = new Set<string>([
   STORAGE_KEYS.RAW_STUDENT_DB,
@@ -32,7 +32,7 @@ const OPTICAL_SYNC_KEYS = new Set<string>([
 ]);
 
 export function isOpticalSyncKey(key: string): boolean {
-  return OPTICAL_SYNC_KEYS.has(key);
+  return OPTICAL_SYNC_KEYS.has(key) || isSemesterScheduleOverride(key);
 }
 
 export function buildOpticalSyncPayload(

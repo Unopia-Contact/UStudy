@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { prepareBackupChanges, normalizeStorageBackupData, unwrapSystemBackup } from '../../../src/features/settings/services/system-backup';
+import { mergeOpticalScheduleValue, prepareBackupChanges, normalizeStorageBackupData, unwrapSystemBackup } from '../../../src/features/settings/services/system-backup';
 import { buildOpticalSyncPayload } from '../../../src/features/optical-sync/services/optical-sync-payload';
 import { applyStorageChanges, getCryptoMetadataKeys, IMPORT_ROLLBACK_STORAGE_KEY, populateSecureCache, readSecure, saveSecure, setupPin } from '../../../src/helpers/localStorage/save';
 import { restoreImportSources } from '../../../src/logic/import-rollback';
@@ -28,6 +28,17 @@ describe('backup storage', () => {
     await expect(readSecure('gpa_projected_grades', current, null)).resolves.toMatchObject({ grades: { TEST: 9 } });
   });
 
+  it('merges current and legacy schedule durations in either direction while keeping other edits', () => {
+    const key = 'schedule_overrides:26-27:1';
+    const packet = (edit: object) => JSON.stringify({ sessionOverrides: { session: edit } });
+    localStorage.setItem(key, packet({ endWeek: 4, room: 'B201' }));
+    const current = mergeOpticalScheduleValue(key, packet({ weekCount: 8 }));
+    expect(JSON.parse(current).sessionOverrides.session).toEqual({ weekCount: 8, room: 'B201' });
+    localStorage.setItem(key, current);
+    const legacy = mergeOpticalScheduleValue(key, packet({ endWeek: 0 }));
+    expect(JSON.parse(legacy).sessionOverrides.session).toEqual({ endWeek: 0, room: 'B201' });
+  });
+
   it('exports the captured plain preference rather than unrelated cached data', () => {
     const key = 'solver_preferences';
     localStorage.setItem(key, JSON.stringify({ session: 'morning' }));
@@ -44,6 +55,20 @@ describe('backup storage', () => {
       import_meta: { scrapedAt: '2026-11-19' },
     });
     expect(normalizeStorageBackupData({ app_notification: [] })).toEqual({ app_notifications: '[]' });
+  });
+
+  it('preserves a later academic edit when partial rollback detects a different revision', async () => {
+    const key = await setupPin('restore-fixture');
+    const current = { name: 'Backup student', grades: [{ id: 'NEWER', score: '9' }] };
+    await saveSecure('raw_student_db', current, key);
+    populateSecureCache('raw_student_db', current);
+    const data = Object.fromEntries(getCryptoMetadataKeys().map(storageKey => [storageKey, localStorage.getItem(storageKey)]));
+    localStorage.setItem(IMPORT_ROLLBACK_STORAGE_KEY, JSON.stringify({
+      createdAt: '2026-11-19', source: 'test', summary: { added: 1, updated: 0, unchanged: 0 }, data,
+      writtenHashes: { raw_student_db: null }, academicHashes: { raw_student_db: null },
+    }));
+    await expect(restoreImportSources(['grades'], key)).rejects.toThrow('đã được chỉnh sửa');
+    await expect(readSecure('raw_student_db', key, null)).resolves.toEqual(current);
   });
 
   it('restores only the selected source and preserves unrelated raw fields', async () => {

@@ -1,20 +1,25 @@
+import { readAcademicBaseline } from '../../../logic/academic-storage';
+import { sameImportValue, type RawImportChange } from '../../../logic/import-preview';
 import { CheckCircle2, Database, Download, FileUp, QrCode, RefreshCw, ScanLine, Upload } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { AppDialog } from '../../../components/ui/overlays/app-dialog';
 import { SecurityLock } from '../../../components/security';
 import { useCrypto } from '../../../context/CryptoContext';
-import { commitImport, getCryptoMetadataKeys, hasSecureData, IMPORT_HISTORY_STORAGE_KEY, IMPORT_ROLLBACK_STORAGE_KEY, isEncryptedBackup, SECURE_DATA_KEYS, unlockBackupKey } from '../../../helpers/localStorage/save';
+import { commitImport, commitImportObservation, readFromStorage, getCryptoMetadataKeys, hasSecureData, IMPORT_HISTORY_STORAGE_KEY, IMPORT_ROLLBACK_STORAGE_KEY, isEncryptedBackup, SECURE_DATA_KEYS, unlockBackupKey } from '../../../helpers/localStorage/save';
 import { STORAGE_KEYS } from '../../../config/storageKeys';
 import { buildDataImportStatus } from '../../../helpers/localStorage/data-import-status';
 import { OpticalReceiverDialog, OpticalSenderDialog } from '../../optical-sync';
 import { buildOpticalSyncPayload, isOpticalSyncKey } from '../../optical-sync/services/optical-sync-payload';
 import {
   isSystemBackupData,
+  isSemesterScheduleOverride,
+  mergeOpticalScheduleValue,
   normalizeStorageBackupData,
   getBackupSelection,
   isBundledWithRaw,
   prepareBackupChanges,
+  previewPortalBackup,
   SYSTEM_BACKUP_SOURCE,
   isManagedStorageKey,
   unwrapSystemBackup,
@@ -38,6 +43,9 @@ interface ImportPreview {
   selectedKeys: string[];
   expected: Record<string, string | null>;
   isPortalFile?: boolean;
+  optical?: boolean;
+  rawChanges?: RawImportChange[];
+  selectedIds?: string[];
 }
 
 interface ExportGroup {
@@ -80,7 +88,8 @@ const IMPORT_LABELS: Record<string, { label: string; group: string }> = {
 };
 
 function getImportItem(key: string, value: string): ImportItem {
-  const config = IMPORT_LABELS[key] ?? { label: key, group: 'Cài đặt và dữ liệu khác' };
+  const config = IMPORT_LABELS[key] ?? (isSemesterScheduleOverride(key)
+    ? { label: 'Tùy chỉnh thời khóa biểu · ' + key.split(':').slice(1).join('/'), group: 'Lịch học' } : undefined) ?? { label: key, group: 'Cài đặt và dữ liệu khác' };
   const currentValue = localStorage.getItem(key);
   return {
     key,
@@ -132,6 +141,10 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
         if (key) store[key] = localStorage.getItem(key) || '';
       }
 
+      if (destination === 'optical' && !store[STORAGE_KEYS.RAW_STUDENT_DB]) {
+        const baseline = readAcademicBaseline();
+        if (baseline) store[STORAGE_KEYS.RAW_STUDENT_DB] = JSON.stringify(baseline);
+      }
       const items = Object.entries(store)
         .filter(([key]) => !INTERNAL_BACKUP_KEYS.has(key))
         .filter(([key]) => key !== 'app_notification')
@@ -213,11 +226,28 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
     }
 
     const importData = normalizeStorageBackupData(backup.data);
+    const optical = transferMode === 'optical' || backup.optical;
+    let rawChanges: RawImportChange[] | undefined;
+    if ((optical || backup.isPortalFile) && importData.raw_student_db !== undefined) {
+      try {
+        const raw = JSON.parse(importData.raw_student_db);
+        const result = previewPortalBackup(raw, importData.import_meta && JSON.parse(importData.import_meta), optical);
+        rawChanges = result.changes.filter(c => c.status !== 'unchanged');
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : 'Dữ liệu Portal không hợp lệ.');
+        return false;
+      }
+    }
     const items = Object.entries(importData)
       .filter(([key]) => !INTERNAL_BACKUP_KEYS.has(key))
       .filter(([key]) => !Object.hasOwn(importData, STORAGE_KEYS.RAW_STUDENT_DB) || !isBundledWithRaw(key))
       .map(([key, value]) => {
-        const item = getImportItem(key, value);
+        const scheduleItem = isSemesterScheduleOverride(key) || key === STORAGE_KEYS.SCHEDULE_OVERRIDES;
+        const item = getImportItem(key, optical && scheduleItem ? mergeOpticalScheduleValue(key, value) : value);
+        if (key === STORAGE_KEYS.RAW_STUDENT_DB && rawChanges) return { ...item, status: rawChanges.length ? item.status === 'add' ? 'add' as const : 'update' as const : 'unchanged' as const };
+        if (optical && (SECURE_DATA_KEYS as readonly string[]).includes(key) && sameImportValue(readFromStorage(key, undefined), JSON.parse(value))) {
+          return { ...item, status: 'unchanged' as const };
+        }
         if (item.status === 'unchanged' && key === STORAGE_KEYS.RAW_STUDENT_DB
           && Object.keys(importData).some((related) => isBundledWithRaw(related) && importData[related] !== localStorage.getItem(related))) {
           return { ...item, status: 'update' as const };
@@ -235,6 +265,7 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
       sourceName,
       items,
       isPortalFile: backup.isPortalFile,
+      rawChanges, selectedIds: rawChanges?.map(c => c.id), optical,
       selectedKeys: items.filter((item) => item.status !== 'unchanged').map((item) => item.key),
       expected: Object.fromEntries([...Object.keys(importData), ...getCryptoMetadataKeys(),
         STORAGE_KEYS.RAW_STUDENT_DB, STORAGE_KEYS.STUDENT_DB, STORAGE_KEYS.COURSE_DB_OFFLINE, STORAGE_KEYS.IMPORT_META,
@@ -286,12 +317,19 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
       currentKey: key ?? backupKey,
       backupKey,
       isPortalFile: importPreview.isPortalFile,
+      optical: importPreview.optical, selectedIds: importPreview.selectedIds,
     });
     if (backupKey && !key) {
       for (const metadataKey of getCryptoMetadataKeys()) changes[metadataKey] = importPreview.data[metadataKey] ?? null;
     }
-    if (importPreview.selectedKeys.some((storageKey) => ACADEMIC_DATA_KEYS.has(storageKey))) {
-      changes[STORAGE_KEYS.LAST_DATA_IMPORT] = buildDataImportStatus(transferMode === 'optical' ? 'optical' : 'json');
+    if (!Object.keys(changes).length) return;
+    if (Object.keys(changes).length === 1 && changes.import_meta && importPreview.rawChanges?.length
+      && importPreview.rawChanges.filter(c => importPreview.selectedIds?.includes(c.id)).every(c => c.observationOnly)) {
+      await commitImportObservation(changes.import_meta, importPreview.expected);
+      return;
+    }
+    if (Object.keys(changes).some((storageKey) => ACADEMIC_DATA_KEYS.has(storageKey))) {
+      changes[STORAGE_KEYS.LAST_DATA_IMPORT] = buildDataImportStatus(importPreview.optical ? 'optical' : 'json');
     }
     if (completeSetup) changes[STORAGE_KEYS.DEPARTMENT_CONFIGURED] = JSON.stringify(true);
     const selectedItems = importPreview.items.filter((item) => importPreview.selectedKeys.includes(item.key));
@@ -299,12 +337,26 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
       // setupPin has just initialized the local envelope for a plain transfer.
       .filter((storageKey) => Object.hasOwn(importPreview.expected, storageKey))
       .map((storageKey) => [storageKey, importPreview.expected[storageKey]]));
+    if (importPreview.selectedKeys.includes(STORAGE_KEYS.RAW_STUDENT_DB)) {
+      for (const key of [STORAGE_KEYS.RAW_STUDENT_DB, STORAGE_KEYS.STUDENT_DB, STORAGE_KEYS.COURSE_DB_OFFLINE, STORAGE_KEYS.IMPORT_META]) {
+        expected[key] = importPreview.expected[key];
+      }
+    }
     if (!importPreview.selectedKeys.includes(STORAGE_KEYS.RAW_STUDENT_DB)
       && importPreview.selectedKeys.some(isBundledWithRaw)) {
       expected[STORAGE_KEYS.RAW_STUDENT_DB] = importPreview.expected[STORAGE_KEYS.RAW_STUDENT_DB];
     }
+    const academicChanges = importPreview.selectedKeys.includes(STORAGE_KEYS.RAW_STUDENT_DB)
+      ? (importPreview.rawChanges ?? []).filter(change => importPreview.selectedIds?.includes(change.id)) : [];
+    const details = Array.from(new Set(academicChanges.map(change => change.collection)), source => {
+      const rows = academicChanges.filter(change => change.collection === source);
+      return { source, added: rows.filter(row => row.status === 'add').length,
+        updated: rows.filter(row => row.status === 'update').length,
+        removed: rows.filter(row => row.status === 'remove').length, unchanged: 0 };
+    });
     await commitImport(changes, {
-      source: transferMode === 'optical' ? 'Đồng bộ quang học' : 'Tệp sao lưu',
+      source: importPreview.optical ? 'Đồng bộ quang học' : importPreview.isPortalFile ? 'Tệp Portal' : 'Tệp sao lưu',
+      details,
       summary: {
         added: selectedItems.filter((item) => item.status === 'add').length,
         updated: selectedItems.filter((item) => item.status === 'update').length,
@@ -384,14 +436,14 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
         open={Boolean(preview)}
         onOpenChange={(open) => { if (!open) setPreview(null); }}
         title="Xem trước dữ liệu nhập"
-        description={preview?.encrypted ? 'Tệp được mã hóa. Bạn vẫn có thể chọn các khối dữ liệu trước khi xác thực PIN.' : 'Chỉ các mục được chọn mới ghi vào dữ liệu hiện tại.'}
+        description={preview?.optical ? 'Lịch nhận qua QR được gộp theo buổi và học kỳ. Khi cùng sửa một trường, giá trị được chọn từ máy gửi sẽ được dùng.' : preview?.rawChanges ? 'Kiểm tra và chọn từng thay đổi học tập. Các mục thiết lập được chọn sẽ thay giá trị hiện tại.' : 'Khôi phục bản sao lưu sẽ thay toàn bộ nội dung của từng mục được chọn trên thiết bị này.'}
         icon={FileUp}
         size="lg"
         mobileFullScreen={transferMode === 'optical'}
         footer={(
           <>
             <button type="button" onClick={() => setPreview(null)} className="ustudy-button-dialog ustudy-button-dialog-cancel">Hủy</button>
-            <button type="button" disabled={isImporting || !preview?.selectedKeys.length} onClick={() => { void confirmPreview(); }} className="ustudy-button-dialog ustudy-button-dialog-confirm">Nhập {preview?.selectedKeys.length ?? 0} mục</button>
+            <button type="button" disabled={isImporting || !preview?.selectedKeys.some(k => k !== STORAGE_KEYS.RAW_STUDENT_DB || !preview.rawChanges || preview.selectedIds?.length)} onClick={() => { void confirmPreview(); }} className="ustudy-button-dialog ustudy-button-dialog-confirm">Nhập {preview?.selectedKeys.length ?? 0} mục</button>
           </>
         )}
       >
@@ -420,6 +472,21 @@ export function ImportData({ compact = false, importButtonLabel = 'Nhập dữ l
             </section>
           ))}
         </div>
+        {preview?.rawChanges && preview.selectedKeys.includes(STORAGE_KEYS.RAW_STUDENT_DB) && (
+          <div className="max-h-64 overflow-y-auto">
+            {preview.rawChanges.map(change => (
+              <label key={change.id} className="flex items-center gap-2 py-1 text-sm">
+                <input type="checkbox" checked={preview.selectedIds?.includes(change.id) ?? false}
+                  onChange={event => {
+                    const checked = event.target.checked;
+                    setPreview(current => current && { ...current, selectedIds: checked
+                      ? [...(current.selectedIds ?? []), change.id] : current.selectedIds?.filter(id => id !== change.id) });
+                  }} />
+                {change.status === 'remove' ? 'Xóa' : change.status === 'add' ? 'Thêm' : 'Cập nhật'} · {change.label}
+              </label>
+            ))}
+          </div>
+        )}
       </AppDialog>
 
       <AppDialog

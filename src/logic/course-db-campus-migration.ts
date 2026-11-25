@@ -1,8 +1,10 @@
 import {
   readSecure,
-  saveSecure,
+  applyStorageChanges,
+  encryptStorageValues,
 } from '../helpers/localStorage/save';
-import { processOpenClasses, type RawOpenClass } from './dataProcessor';
+import { buildAcademicStorageValues } from './academic-storage';
+import { sameImportValue } from './import-preview';
 
 function hasCampusMetadata(courseDatabase: unknown): boolean {
   if (!Array.isArray(courseDatabase) || courseDatabase.length === 0) return false;
@@ -23,15 +25,27 @@ function hasCampusMetadata(courseDatabase: unknown): boolean {
  * snapshot so a later default-campus change cannot alter known NVC/LT classes.
  */
 export async function migrateCourseDatabaseCampusMetadata(cryptoKey: CryptoKey): Promise<boolean> {
-  const [rawData, storedCourseDatabase] = await Promise.all([
+  const [raw, storedCourses, storedStudent, meta] = await Promise.all([
     readSecure<any>('raw_student_db', cryptoKey, null),
-    readSecure<unknown>('course_db_offline', cryptoKey, null),
+    readSecure<any[]>('course_db_offline', cryptoKey, []),
+    readSecure<any>('student_db_full', cryptoKey, null),
+    readSecure<any>('import_meta', cryptoKey, null),
   ]);
-
-  if (!Array.isArray(rawData?.courses) || rawData.courses.length === 0) return false;
-  if (hasCampusMetadata(storedCourseDatabase)) return false;
-
-  const rebuiltCourseDatabase = processOpenClasses(rawData.courses as RawOpenClass[]);
-  await saveSecure('course_db_offline', rebuiltCourseDatabase, cryptoKey);
+  if (!raw) return false;
+  const upgradeStudent = storedStudent?.dataSchemaVersion !== 2;
+  const upgradeCourses = raw.courses?.length && !hasCampusMetadata(storedCourses);
+  if (!upgradeStudent && !upgradeCourses) return false;
+  const next = buildAcademicStorageValues(raw, meta);
+  const updates: Record<string, unknown> = {};
+  if (upgradeStudent) {
+    const student = { ...storedStudent, ...next.student_db_full };
+    for (const field of ['grades', 'exams', 'tuition', 'registrations', 'program', 'name', 'studentId']) {
+      if (!Object.hasOwn(raw, field) && storedStudent?.[field] !== undefined) student[field] = storedStudent[field];
+    }
+    updates.student_db_full = student;
+  }
+  if (upgradeCourses && !sameImportValue(storedCourses, next.course_db_offline)) updates.course_db_offline = next.course_db_offline;
+  if (!Object.keys(updates).length) return false;
+  applyStorageChanges(await encryptStorageValues(updates, cryptoKey));
   return true;
 }

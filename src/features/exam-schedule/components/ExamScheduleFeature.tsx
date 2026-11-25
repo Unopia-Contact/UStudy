@@ -47,6 +47,7 @@ export function ExamScheduleVi() {
             // key is expected to be "YY-YY-S" e.g., "24-25-2"
             const parts = key.split('-');
             let readableSemester = key;
+            if (Array.isArray(semesterExams)) readableSemester = 'Chưa rõ học kỳ';
             if (parts.length === 3) {
                 readableSemester = `Học kỳ ${parts[2]}, 20${parts[0]}-20${parts[1]}`;
             }
@@ -75,6 +76,11 @@ export function ExamScheduleVi() {
                 };
             };
 
+            if (Array.isArray(semesterExams) && (key === 'midterm' || key === 'final')) {
+                const type = key === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ';
+                allMappedExams.push(...semesterExams.map(item => mapExam(item, type)));
+                return;
+            }
             if (semesterExams.midterm) {
                 allMappedExams.push(...semesterExams.midterm.map((e: any) => mapExam(e, 'Giữa kỳ')));
             }

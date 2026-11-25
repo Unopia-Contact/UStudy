@@ -1,321 +1,285 @@
+import { semesterKey } from './academic-semester';
+import { sourceDate, type ImportMetadata, type PortalDataSource, type ImportScope } from './import-metadata';
+
 export type ImportChangeStatus = 'add' | 'update' | 'remove' | 'unchanged';
-
-type ImportCollection = 'grades' | 'registrations' | 'courses' | 'exams' | 'tuition';
-
-export interface RawImportChange {
+export interface RawImportChange extends ImportScope {
   id: string;
-  collection: ImportCollection;
   index: number;
   label: string;
   status: ImportChangeStatus;
   courseId?: string;
   courseName?: string;
+  observationOnly?: boolean;
 }
-
 export interface RawImportPreviewContext {
-  incomingMeta?: any;
-  currentMeta?: any;
+  incomingMeta?: ImportMetadata | null;
+  currentMeta?: ImportMetadata | null;
+  additive?: boolean;
 }
 
-const COLLECTION_LABELS: Record<ImportCollection, string> = {
-  grades: 'Bảng điểm',
-  registrations: 'Kết quả đăng ký',
-  courses: 'Danh sách lớp mở',
-  exams: 'Lịch thi',
-  tuition: 'Học phí',
+const LABELS: Record<PortalDataSource, string> = {
+  grades: 'Bảng điểm', registrations: 'Kết quả đăng ký', courses: 'Danh sách lớp mở',
+  exams: 'Lịch thi', tuition: 'Học phí', profile: 'Hồ sơ sinh viên',
 };
+export const getImportCollectionLabel = (source: PortalDataSource) => LABELS[source];
 
-const COLLECTIONS: ImportCollection[] = ['grades', 'registrations', 'courses', 'exams', 'tuition'];
-
-function normalizeIdentityPart(value: unknown): string {
+function norm(value: unknown): string {
   return String(value ?? '').normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleUpperCase('vi-VN');
 }
 
-function normalizeSemester(value: unknown): string {
-  const normalized = normalizeIdentityPart(value).replace(/\s+/g, '').replace('/HK', '/');
-  const match = normalized.match(/^(\d{2}|\d{4})-(\d{2}|\d{4})\/(\d)$/);
-  if (!match) return normalized;
-  const shortYear = (year: string) => year.length === 4 ? year.slice(-2) : year;
-  return `${shortYear(match[1])}-${shortYear(match[2])}/${match[3]}`;
-}
 
-function registrationBaseKey(value: any): string {
-  return [value?.id, value?.classGroup, value?.courseType].map(normalizeIdentityPart).join('|');
-}
-
-function registrationKey(value: any): string {
-  return `${normalizeSemester(value?.semester)}|${registrationBaseKey(value)}`;
-}
-
-function registrationScopeFromMeta(meta: any): string {
-  const registration = meta?.params?.registration;
-  if (!registration || typeof registration !== 'object') return '';
-  const explicitSemester = normalizeSemester(registration.semester);
-  if (explicitSemester) return explicitSemester;
-  if (!registration.year || !registration.sem) return '';
-  return normalizeSemester(`${registration.year}/${registration.sem}`);
-}
-
-function isRegistrationSnapshotComplete(meta: any): boolean {
-  return meta?.params?.registration?.snapshotComplete === true;
-}
-
-function registrationSnapshotChangeId(scope: string): string {
-  return `registrations:snapshot:${encodeURIComponent(scope)}`;
-}
-
-function dedupeRegistrations(values: any[]): any[] {
-  const basesWithSemester = new Set(
-    values.filter((value) => normalizeSemester(value?.semester)).map(registrationBaseKey),
-  );
-  const seen = new Set<string>();
-  const result: any[] = [];
-  for (const value of values) {
-    const semester = normalizeSemester(value?.semester);
-    const baseKey = registrationBaseKey(value);
-    if (!semester && basesWithSemester.has(baseKey)) continue;
-    const key = registrationKey(value);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    result.push(value);
-  }
-  return result;
-}
-
-function valueKey(collection: ImportCollection, value: any, index: number): string {
-  switch (collection) {
-    case 'grades':
-      return [value?.semester, value?.id, value?.class, value?.type].map((part) => String(part ?? '').trim()).join('|') || `grade-${index}`;
-    case 'registrations':
-      return registrationKey(value) || `registration-${index}`;
-    case 'courses':
-      return JSON.stringify([value?.id, value?.className, value?.schedule, value?.location,
-        value?.practicalGroupRaw, value?.exerciseGroupRaw].map(normalizeIdentityPart));
-    default:
-      return collection;
-  }
-}
-
-function collectionKeys(collection: ImportCollection, values: any[]): string[] {
-  const occurrences = new Map<string, number>();
-  return values.map((value, index) => {
-    const key = valueKey(collection, value, index);
-    if (collection !== 'courses') return key;
-    const occurrence = occurrences.get(key) ?? 0;
-    occurrences.set(key, occurrence + 1);
-    return JSON.stringify([key, occurrence]);
-  });
-}
-
-function mergePeriodData(collection: 'exams' | 'tuition', incoming: unknown, current: any) {
-  if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) return undefined;
-  const entries = Object.entries(incoming).filter(([period, value]) => {
-    if (collection === 'exams' && (period === 'midterm' || period === 'final')) {
-      return Array.isArray(value) && value.length > 0;
-    }
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-    if (collection === 'tuition') return Array.isArray(value.details) && value.totals && typeof value.totals === 'object';
-    return Array.isArray(value.midterm) && Array.isArray(value.final);
-  });
-  if (entries.length === 0) return undefined;
-  return { ...current, ...Object.fromEntries(entries) };
-}
-
-function knownStudentName(value: unknown): string {
-  const name = normalizeIdentityPart(value);
+function knownName(value: unknown) {
+  const name = norm(value);
   return ['UNKNOWN', 'ERROR', 'CHƯA CẬP NHẬT'].includes(name) ? '' : name;
 }
 
 export function assertSameStudent(incoming: any, current: any): void {
   if (!incoming || !current) return;
-  const incomingId = normalizeIdentityPart(incoming?.studentId);
-  const currentId = normalizeIdentityPart(current?.studentId);
-  const incomingName = knownStudentName(incoming?.name);
-  const currentName = knownStudentName(current?.name);
-  if ((currentId || currentName) && !(incomingId && currentId) && !(incomingName && currentName)) {
+  const incomingId = norm(incoming.studentId);
+  const currentId = norm(current.studentId);
+  const incomingName = knownName(incoming.name);
+  const currentName = knownName(current.name);
+  if (incomingId && currentId) {
+    if (incomingId !== currentId) throw new Error('Dữ liệu Portal thuộc hồ sơ sinh viên khác.');
+    return;
+  }
+  if ((currentId || currentName) && !(incomingName && currentName)) {
     throw new Error('Không xác định được hồ sơ sinh viên của gói đồng bộ.');
   }
-  const mismatch = incomingId && currentId
-    ? incomingId !== currentId
-    : incomingName && currentName && incomingName !== currentName;
-  if (mismatch) throw new Error('Dữ liệu Portal thuộc hồ sơ sinh viên khác.');
+  if (currentName && incomingName !== currentName) throw new Error('Dữ liệu Portal thuộc hồ sơ sinh viên khác.');
 }
 
-function removalChangeId(collection: ImportCollection, key: string): string {
-  return `${collection}:remove:${encodeURIComponent(key)}`;
+export function sameImportValue(a: any, b: any): boolean {
+  if (a === b) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return false;
+  const keys = Object.keys(a).filter(key => a[key] !== undefined);
+  return keys.length === Object.keys(b).filter(key => b[key] !== undefined).length && keys.every(k => Object.hasOwn(b, k) && sameImportValue(a[k], b[k]));
 }
 
-function valueLabel(collection: ImportCollection, value: any): string {
-  if (collection === 'grades') return `${value?.id || 'Không rõ mã'} - ${value?.name || 'Không rõ tên'}${value?.semester ? ` (${value.semester})` : ''}`;
-  if (collection === 'registrations') return `${value?.id || 'Không rõ mã'} - ${value?.name || 'Không rõ tên'}${value?.semester ? ` (${value.semester})` : ''}`;
-  if (collection === 'courses') return `${value?.id || 'Không rõ mã'} - ${value?.name || 'Không rõ tên'}${value?.className ? ` (${value.className})` : ''}`;
-  return COLLECTION_LABELS[collection];
-}
-
-function isSameValue(first: unknown, second: unknown): boolean {
-  return JSON.stringify(first) === JSON.stringify(second);
-}
-
-export function buildRawImportPreview(
-  incoming: any,
-  current: any,
-  context: RawImportPreviewContext = {},
-): RawImportChange[] {
-  const changes: RawImportChange[] = [];
-  const incomingRegistrationScope = registrationScopeFromMeta(context.incomingMeta);
-  const currentRegistrationScope = registrationScopeFromMeta(context.currentMeta);
-  for (const collection of COLLECTIONS) {
-    const incomingValue = incoming?.[collection];
-    if (collection === 'exams' || collection === 'tuition') {
-      const currentValue = current?.[collection];
-      const merged = mergePeriodData(collection, incomingValue, currentValue);
-      if (!merged) continue;
-      changes.push({ id: `${collection}:0`, collection, index: 0, label: valueLabel(collection, incomingValue), status: currentValue === undefined ? 'add' : isSameValue(currentValue, merged) ? 'unchanged' : 'update' });
-      continue;
+function collectionRows(source: 'grades' | 'courses' | 'registrations', rows: any[], defaultScope: string) {
+  const occurrences = new Map<string, number>();
+  return rows.filter(row => row && typeof row === 'object' && norm(row.id)).map(row => {
+    const scope = semesterKey(row.semester) || defaultScope;
+    const value = !row.semester && scope && source !== 'grades' ? { ...row, semester: scope } : row;
+    const parts = source === 'grades' ? [row.id, row.class, row.type] : source === 'registrations'
+      ? [row.id, row.classGroup, row.courseType, row.schedule] :
+      [row.id, row.className, row.schedule, row.location, row.practicalGroupRaw, row.exerciseGroupRaw];
+    const base = JSON.stringify(parts.map(norm));
+    let key = scope + '|' + base;
+    if (source === 'courses') {
+      const index = occurrences.get(key) ?? 0;
+      occurrences.set(key, index + 1);
+      key += '|' + index;
     }
-    if (!Array.isArray(incomingValue)) continue;
-    const currentValues = Array.isArray(current?.[collection]) ? current[collection] : [];
-    const currentKeys = collectionKeys(collection, currentValues);
-    const incomingKeyList = collectionKeys(collection, incomingValue);
-    const currentByKey = new Map(currentValues.map((value: any, index: number) => [currentKeys[index], value]));
-    const legacyRegistrationsByBase = collection === 'registrations'
-      ? new Map(currentValues
-        .filter((value: any) => !normalizeSemester(value?.semester))
-        .map((value: any) => [registrationBaseKey(value), value]))
-      : null;
-    incomingValue.forEach((value: any, index: number) => {
-      const key = incomingKeyList[index];
-      const currentValue = currentByKey.get(key)
-        ?? (collection === 'registrations' ? legacyRegistrationsByBase?.get(registrationBaseKey(value)) : undefined);
-      const hasRegistrationDuplicates = collection === 'registrations' && currentValues.filter((currentValue: any) => (
-        valueKey(collection, currentValue, 0) === key
-        || (!normalizeSemester(currentValue?.semester) && registrationBaseKey(currentValue) === registrationBaseKey(value))
-      )).length > 1;
-      const courseId = String(value?.id ?? '').trim();
-      const courseName = String(value?.name ?? '').trim();
-      changes.push({
-        id: `${collection}:${index}`,
-        collection,
-        index,
-        label: valueLabel(collection, value),
-        status: currentValue === undefined ? 'add' : !hasRegistrationDuplicates && isSameValue(currentValue, value) ? 'unchanged' : 'update',
-        ...(courseId ? { courseId } : {}),
-        ...(courseName ? { courseName } : {}),
-      });
-    });
+    return { key, base, scope, value };
+  });
+}
 
-    const isScopedRegistrationSnapshot = collection === 'registrations'
-      && Boolean(incomingRegistrationScope)
-      && isRegistrationSnapshotComplete(context.incomingMeta);
-    if (isScopedRegistrationSnapshot && incomingValue.length === 0 && currentValues.length === 0) {
-      changes.push({
-        id: registrationSnapshotChangeId(incomingRegistrationScope),
-        collection,
-        index: -1,
-        label: `Kết quả đăng ký (${incomingRegistrationScope}) - Không có môn`,
-        status: incomingRegistrationScope === currentRegistrationScope ? 'unchanged' : 'update',
-      });
-    }
+function observedFields(row: Record<string, unknown>) {
+  return Object.fromEntries(Object.entries(row).filter(([, value]) => value != null && value !== ''));
+}
 
-    // Empty generic arrays remain non-destructive because they may come from a
-    // parser failure. Registration snapshots with a verified period are safe.
-    if ((!isScopedRegistrationSnapshot && incomingValue.length === 0)
-      || (collection !== 'grades' && collection !== 'registrations' && collection !== 'courses')) continue;
-
-    const incomingKeys = new Set(incomingKeyList);
-    const incomingRegistrationBases = collection === 'registrations'
-      ? new Set(incomingValue.map(registrationBaseKey))
-      : null;
-    const incomingRegistrationSemesters = collection === 'registrations'
-      ? new Set(incomingValue.map((value: any) => normalizeSemester(value?.semester)).filter(Boolean))
-      : null;
-
-    const queuedRemovalKeys = new Set<string>();
-    currentValues.forEach((value: any, index: number) => {
-      const key = currentKeys[index];
-      const semester = collection === 'registrations' ? normalizeSemester(value?.semester) : '';
-      const existsInIncoming = incomingKeys.has(key)
-        || (collection === 'registrations'
-          && !semester
-          && incomingRegistrationBases?.has(registrationBaseKey(value)));
-      const isInReconciledScope = collection !== 'registrations'
-        || isScopedRegistrationSnapshot
-        || Boolean(semester && incomingRegistrationSemesters?.has(semester));
-      if (existsInIncoming || !isInReconciledScope || queuedRemovalKeys.has(key)) return;
-      queuedRemovalKeys.add(key);
-
-      const courseId = String(value?.id ?? '').trim();
-      const courseName = String(value?.name ?? '').trim();
-      changes.push({
-        id: removalChangeId(collection, key),
-        collection,
-        index,
-        label: valueLabel(collection, value),
-        status: 'remove',
-        ...(courseId ? { courseId } : {}),
-        ...(courseName ? { courseName } : {}),
-      });
-    });
+function mergeDetailRows(existing: any[], incoming: any[], identity: (row: any) => string) {
+  const result = [...existing];
+  const indexes = new Map<string, number[]>();
+  existing.forEach((row, index) => {
+    const key = identity(row);
+    const matches = indexes.get(key) ?? [];
+    matches.push(index);
+    indexes.set(key, matches);
+  });
+  const occurrences = new Map<string, number>();
+  for (const row of incoming) {
+    const key = identity(row);
+    const occurrence = occurrences.get(key) ?? 0;
+    occurrences.set(key, occurrence + 1);
+    const index = indexes.get(key)?.[occurrence];
+    if (index === undefined) result.push(row);
+    else result[index] = { ...result[index], ...observedFields(row) };
   }
-  return changes;
+  return result;
 }
 
-export function mergeSelectedRawImport(incoming: any, current: any, selectedIds: readonly string[]): any {
+function reconcile(incoming: any, current: any, context: RawImportPreviewContext, selected = new Set<string>()) {
   assertSameStudent(incoming, current);
-  const selected = new Set(selectedIds);
-  const next = { ...(current || {}) };
-  const collectionNames = new Set<string>(COLLECTIONS);
-
-  // Preserve future scraper fields even before the import UI knows how to
-  // render them. Known collections still follow the user's item selection.
-  for (const [key, value] of Object.entries(incoming || {})) {
-    if (key !== 'name' && key !== 'studentId' && !collectionNames.has(key)) next[key] = value;
+  const changes: RawImportChange[] = [];
+  const next = { ...current };
+  const opts = (context.incomingMeta?.params ?? {}) as Record<string, any>;
+  const prev = (context.currentMeta?.params ?? {}) as Record<string, any>;
+  function eligible(source: PortalDataSource, scope: string, existing: boolean) {
+    const stored = context.currentMeta?.periodUpdatedAt?.[source];
+    const previous = stored?.[scope] ?? (existing ? sourceDate(context.currentMeta, source, scope) : undefined);
+    if (!previous || !Number.isFinite(Date.parse(previous))) return true;
+    const date = sourceDate(context.incomingMeta, source, scope);
+    return Boolean(date && Date.parse(date) >= Date.parse(previous));
   }
-  for (const collection of COLLECTIONS) {
-    const incomingValue = incoming?.[collection];
-    if (incomingValue === undefined) continue;
-    if (collection === 'exams' || collection === 'tuition') {
-      const merged = mergePeriodData(collection, incomingValue, current?.[collection]);
-      if (merged && selected.has(`${collection}:0`)) next[collection] = merged;
-      continue;
+  function record(change: RawImportChange) {
+    changes.push(change);
+    return selected.has(change.id) && change.status !== 'unchanged';
+  }
+  const profile = Object.fromEntries(Object.entries(incoming ?? {}).filter(([key, value]) =>
+    !(key in LABELS) && key !== '_legacyCourses' && key !== '__proto__' && key !== 'constructor'
+    && (key !== 'name' || knownName(value)) && (key !== 'studentId' || norm(value))));
+  if (Object.keys(profile).length && eligible('profile', '', Boolean(current?.name))
+      && !Object.entries(profile).every(([key, value]) => sameImportValue(current?.[key], value))) {
+    if (record({ id: 'profile:0', collection: 'profile', scope: '', index: 0, label: LABELS.profile, status: current ? 'update' : 'add' })) {
+      Object.assign(next, profile);
     }
-    if (!Array.isArray(incomingValue)) continue;
-    const currentCollection = Array.isArray(current?.[collection]) ? current[collection] : [];
-    if (!selectedIds.some((id) => id.startsWith(`${collection}:`))) continue;
-    const currentKeys = collectionKeys(collection, currentCollection);
-    const incomingKeys = collectionKeys(collection, incomingValue);
-    const retainedKeys = currentKeys.filter((key) => !selected.has(removalChangeId(collection, key)));
-    const retainedCurrentCollection = currentCollection.filter((_, index) =>
-      !selected.has(removalChangeId(collection, currentKeys[index])),
-    );
-    const merged = collection === 'registrations' ? dedupeRegistrations(retainedCurrentCollection) : [...retainedCurrentCollection];
-    const mergedKeys = collection === 'registrations' ? collectionKeys(collection, merged) : retainedKeys;
-    const indexesByKey = new Map(mergedKeys.map((key, index) => [key, index]));
-    const legacyRegistrationIndexes = collection === 'registrations'
-      ? new Map(merged
-        .map((value: any, index: number) => ({ value, index }))
-        .filter(({ value }) => !normalizeSemester(value?.semester))
-        .map(({ value, index }) => [registrationBaseKey(value), index]))
-      : null;
-    incomingValue.forEach((value: any, index: number) => {
-      if (!selected.has(`${collection}:${index}`)) return;
-      const key = incomingKeys[index];
-      const currentIndex = indexesByKey.get(key)
-        ?? (collection === 'registrations' ? legacyRegistrationIndexes?.get(registrationBaseKey(value)) : undefined);
-      if (currentIndex === undefined) {
-        indexesByKey.set(key, merged.length);
-        merged.push(value);
-      } else {
-        merged[currentIndex] = value;
-        indexesByKey.set(key, currentIndex);
+  }
+
+  for (const source of ['grades', 'registrations', 'courses'] as const) {
+    if (!Array.isArray(incoming?.[source])) continue;
+    const param = source === 'registrations' ? 'registration' : source === 'courses' ? 'class' : 'grades';
+    const incomingScope = semesterKey(opts[param]), currentScope = semesterKey(prev[param]);
+    const old = collectionRows(source, Array.isArray(current?.[source]) ? current[source] : [], currentScope);
+    const rows = collectionRows(source, incoming[source], incomingScope);
+    const byKey = new Map(old.map(row => [row.key, row]));
+    const legacy = new Map(old.filter(row => !row.scope).map(row => [row.base, row]));
+    const duplicates = new Set<string>();
+    const seen = new Set<string>();
+    for (const row of old) { if (seen.has(row.key)) duplicates.add(row.key); seen.add(row.key); }
+    const result = new Map(old.map(row => [row.key, row.value]));
+    const present = new Set<string>();
+    let applied = false;
+    const scopeHasRows = new Set(old.map(row => row.scope));
+    rows.forEach(({ key, scope, base, value }, index) => {
+      const match = byKey.get(key);
+      const unscoped = source === 'registrations' ? legacy.get(base) : undefined;
+      const before = match ?? unscoped;
+      present.add(key);
+      if (unscoped) present.add(unscoped.key);
+      if (!eligible(source, scope, scopeHasRows.has(scope) || Boolean(before))) return;
+      const merged = { ...before?.value, ...value };
+      if (source === 'courses' && before) {
+        for (const field of ['practicalClasses', 'exerciseClasses']) {
+          if (context.additive && Array.isArray(before.value[field]) && Array.isArray(value[field])) {
+            merged[field] = mergeDetailRows(before.value[field], value[field], row => norm(row.Nhom) + '|' + norm(row.LichHoc));
+          } else if (value[field] == null || (value[field]?.length === 0 && value[field + 'Complete'] !== true)) {
+            if (before.value[field] !== undefined) merged[field] = before.value[field];
+          }
+        }
+      }
+      const courseId = String(value.id), courseName = String(value.name ?? '');
+      const status = !before ? 'add' : !duplicates.has(key) && !(unscoped && unscoped.key !== key && match)
+        && sameImportValue(before.value, merged) ? 'unchanged' : 'update';
+      if (record({ id: source + ':' + index, collection: source, scope, index, courseId, courseName,
+        label: [courseId, courseName, scope].filter(Boolean).join(' · '), status })) {
+        if (unscoped && unscoped.key !== key) result.delete(unscoped.key);
+        result.set(key, merged);
+        applied = true;
       }
     });
-    next[collection] = merged;
+    const complete = !context.additive && rows.length === incoming[source].length && opts[param]?.snapshotComplete === true;
+    const allGrades = source === 'grades' && opts.grades?.allSemesters === true;
+    if (complete) {
+      for (const [key, row] of byKey) {
+        if (present.has(key) || !(allGrades || (incomingScope && row.scope === incomingScope))
+          || !eligible(source, row.scope, true)) continue;
+        const courseId = String(row.value.id), courseName = String(row.value.name ?? '');
+        if (record({ id: source + ':remove:' + key, collection: source, scope: row.scope,
+          index: -1, courseId, courseName, label: [courseId, courseName, row.scope].filter(Boolean).join(' · '), status: 'remove' })) {
+          result.delete(key);
+          applied = true;
+        }
+      }
+    }
+    if (source !== 'grades' && incomingScope && eligible(source, incomingScope, scopeHasRows.has(incomingScope))
+      && (rows.length > 0 || complete) && (incomingScope !== currentScope || rows.length === 0)
+      && (!sourceDate(context.currentMeta, source, '') || !currentScope || incomingScope === currentScope
+        || Date.parse(sourceDate(context.incomingMeta, source, '') ?? '') >= Date.parse(sourceDate(context.currentMeta, source, '')!))
+      && !changes.some(c => c.collection === source && c.status !== 'unchanged')) {
+      applied = record({ id: source + ':scope', collection: source, scope: incomingScope, index: -1,
+        label: LABELS[source] + ' (' + incomingScope + ')', status: incomingScope === currentScope ? 'unchanged' : 'update' }) || applied;
+    }
+    if (applied) next[source] = [...result.values()];
   }
-  if (normalizeIdentityPart(incoming?.studentId)) next.studentId = incoming.studentId;
-  return { ...next, name: (knownStudentName(incoming?.name) && incoming.name) || next.name };
+
+  // Older devices can have usable scheduler classes without the original Portal rows.
+  if (context.additive && Array.isArray(incoming?._legacyCourses)) {
+    const existing = Array.isArray(current?._legacyCourses) ? current._legacyCourses : [];
+    const known = new Set([...existing, ...(current?.courses ?? []), ...(incoming.courses ?? [])].map(row => norm(row?.id)));
+    const merged = [...existing];
+    for (const [index, course] of incoming._legacyCourses.entries()) {
+      const id = norm(course?.id);
+      if (!id || known.has(id) || !Array.isArray(course.classes)) continue;
+      known.add(id);
+      if (record({ id: 'courses:legacy:' + index, collection: 'courses', scope: '', index,
+        label: [id, course.name].filter(Boolean).join(' · '), status: 'add' })) {
+        merged.push(course);
+        next._legacyCourses = merged;
+      }
+    }
+  }
+
+  for (const source of ['exams', 'tuition'] as const) {
+    if (!incoming?.[source] || typeof incoming[source] !== 'object' || Array.isArray(incoming[source])) continue;
+    const result = { ...current?.[source] };
+    for (const [period, value] of Object.entries<any>(incoming[source])) {
+      const scope = semesterKey(period) || period;
+      const outputKey = source === 'exams' ? scope.replace('/', '-') : scope;
+      const storedKey = Object.hasOwn(result, outputKey) ? outputKey :
+        Object.keys(result).find(key => (semesterKey(key) || key) === scope);
+      const before = storedKey === undefined ? undefined : result[storedKey];
+      if (!eligible(source, scope, before !== undefined) || !value || ['__proto__','constructor','prototype'].includes(period)) continue;
+      let merged;
+      if (source === 'tuition') {
+        if (!Array.isArray(value.details) || !value.totals) continue;
+        merged = { ...before, ...value, totals: { ...before?.totals, ...value.totals } };
+        if (before && (context.additive || value.snapshotComplete !== true)) {
+          merged.totals = { ...before.totals, ...observedFields(value.totals) };
+          merged.details = mergeDetailRows(before.details ?? [], value.details, row => norm(row.subject));
+        }
+      } else if (Array.isArray(value)) {
+        if (!['midterm','final'].includes(period) || !value.length) continue;
+        merged = mergeDetailRows(before ?? [], value, examIdentity);
+      } else {
+        if (!Array.isArray(value.midterm) || !Array.isArray(value.final)) continue;
+        merged = { ...before, ...value };
+        for (const type of ['midterm', 'final']) {
+          if (context.additive || !value.completeTables?.includes(type)) {
+            merged[type] = mergeDetailRows(before?.[type] ?? [], value[type], examIdentity);
+          }
+        }
+        if (!before && !merged.midterm.length && !merged.final.length && !value.completeTables?.length) continue;
+      }
+      const status = before === undefined ? 'add' : sameImportValue(before, merged) ? 'unchanged' : 'update';
+      if (record({ collection: source, id: source + ':' + period, scope, index: 0, label: LABELS[source] + ' (' + period + ')', status })) {
+        if (storedKey !== undefined && storedKey !== outputKey) delete result[storedKey];
+        result[outputKey] = merged;
+        next[source] = result;
+      }
+    }
+  }
+  // An identical later scan still establishes a watermark. Keep it separate
+  // from content edits so a background check never consumes the undo point.
+  const seenScopes = new Set<string>();
+  const changedScopes = new Set(changes.filter(c => c.status !== 'unchanged').map(c => c.collection + ':' + c.scope));
+  const observed: ImportScope[] = changes.filter(c => c.status === 'unchanged');
+  if (Object.keys(profile).length && current && eligible('profile', '', true)) observed.push({ collection: 'profile', scope: '' });
+  for (const { collection, scope } of observed) {
+    const id = collection + ':' + scope;
+    if (changedScopes.has(id) || seenScopes.has(id)) continue;
+    seenScopes.add(id);
+    const date = sourceDate(context.incomingMeta, collection, scope);
+    const previous = sourceDate(context.currentMeta, collection, scope);
+    if (date && (!previous || Date.parse(date) > Date.parse(previous))) {
+      record({ collection, scope, id: 'observed:' + id, index: -1, status: 'update', observationOnly: true,
+        label: 'Xác nhận thời điểm cập nhật · ' + LABELS[collection] + (scope ? ' (' + scope + ')' : '') });
+    }
+  }
+  if (selected.size && !knownName(current?.name) && knownName(incoming?.name)) next.name = incoming.name;
+  if (selected.size && !norm(current?.studentId) && norm(incoming?.studentId)) next.studentId = incoming.studentId;
+  return { changes, raw: next };
 }
 
-export function getImportCollectionLabel(collection: ImportCollection): string {
-  return COLLECTION_LABELS[collection];
+function examIdentity(row: any) {
+  return JSON.stringify([row.id, row.group, row.date, row.time].map(norm));
+}
+
+export function buildRawImportPreview(incoming: any, current: any, context: RawImportPreviewContext = {}) {
+  return reconcile(incoming, current, context).changes;
+}
+
+export function mergeSelectedRawImport(incoming: any, current: any, selectedIds: readonly string[], context: RawImportPreviewContext = {}) {
+  return reconcile(incoming, current, context, new Set(selectedIds)).raw;
 }
