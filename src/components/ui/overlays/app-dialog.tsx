@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './dialog';
 import { cn } from '../utils';
 
@@ -20,6 +20,7 @@ interface AppDialogProps {
   backgroundHeader?: string;
   mobileFullScreen?: boolean;
   preserveMobileNavigation?: boolean;
+  focusTitleOnOpen?: boolean;
 }
 
 const sizeClasses: Record<AppDialogSize, string> = {
@@ -44,11 +45,17 @@ export function AppDialog({
   backgroundHeader,
   mobileFullScreen = false,
   preserveMobileNavigation = false,
+  focusTitleOnOpen = false,
 }: AppDialogProps) {
+  const titleRef = useRef<HTMLHeadingElement>(null);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent
+        onOpenAutoFocus={focusTitleOnOpen ? event => {
+          event.preventDefault();
+          titleRef.current?.focus({ preventScroll: true });
+        } : undefined}
         data-preserve-mobile-navigation={preserveMobileNavigation ? 'true' : undefined}
         overlayClassName={preserveMobileNavigation ? 'ustudy-dialog-above-mobile-nav' : undefined}
         className={cn(
@@ -70,7 +77,7 @@ export function AppDialog({
             )}
 
             <div className="min-w-0 pt-0.5">
-              <DialogTitle className="text-base font-bold tracking-tight text-white sm:text-lg">
+              <DialogTitle ref={titleRef} tabIndex={focusTitleOnOpen ? -1 : undefined} className="text-base font-bold tracking-tight text-white outline-none sm:text-lg">
                 {title}
               </DialogTitle>
 

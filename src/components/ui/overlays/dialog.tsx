@@ -96,18 +96,19 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function DialogTitle({
+const DialogTitle = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Title>, React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>>(function DialogTitle({
   className,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Title>) {
+}, ref) {
   return (
     <DialogPrimitive.Title
+      ref={ref}
       data-slot="dialog-title"
       className={cn("text-lg leading-none font-semibold", className)}
       {...props}
     />
   );
-}
+});
 
 function DialogDescription({
   className,

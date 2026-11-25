@@ -14,6 +14,7 @@ interface MobileBottomSheetProps {
     contentClassName?: string;
     sheetId?: string;
     scrollContent?: boolean;
+    focusTitleOnOpen?: boolean;
 }
 
 export function MobileBottomSheet({
@@ -28,8 +29,10 @@ export function MobileBottomSheet({
     contentClassName = '',
     sheetId,
     scrollContent = true,
+    focusTitleOnOpen = false,
 }: MobileBottomSheetProps) {
     const sheetRef = useRef<HTMLElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
     const dragStartYRef = useRef(0);
     const dragOffsetRef = useRef(0);
     const [dragOffset, setDragOffset] = useState(0);
@@ -54,7 +57,10 @@ export function MobileBottomSheet({
 
         document.body.style.overflow = 'hidden';
         window.addEventListener('keydown', handleKeyDown);
-        const frame = requestAnimationFrame(() => (focusable()[0] ?? sheetRef.current)?.focus());
+        const frame = requestAnimationFrame(() => {
+            const target = focusTitleOnOpen ? titleRef.current : focusable()[0];
+            (target ?? sheetRef.current)?.focus({ preventScroll: true });
+        });
 
         return () => {
             document.body.style.overflow = previousOverflow;
@@ -62,7 +68,7 @@ export function MobileBottomSheet({
             cancelAnimationFrame(frame);
             if (previousFocus?.isConnected) previousFocus.focus();
         };
-    }, []);
+    }, [focusTitleOnOpen]);
 
     const updateDragOffset = (offset: number) => {
         const nextOffset = Math.max(0, offset);
@@ -147,8 +153,10 @@ export function MobileBottomSheet({
                             )}
 
                             <h2
+                                ref={titleRef}
+                                tabIndex={focusTitleOnOpen ? -1 : undefined}
                                 className={`${eyebrow ? 'mt-1' : ''
-                                    } text-base font-bold leading-snug text-white`}
+                                    } text-base font-bold leading-snug text-white outline-none`}
                             >
                                 {title}
                             </h2>

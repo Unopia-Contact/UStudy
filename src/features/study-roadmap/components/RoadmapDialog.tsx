@@ -4,11 +4,12 @@ import { MobileBottomSheet } from '../../../components/ui/overlays/mobile-bottom
 import { useIsMobile } from '../../../components/ui/use-mobile';
 
 /** One responsive overlay, not two hidden overlays competing for focus/scroll. */
-export function RoadmapDialog({ title, description, onClose, children, footer }: {
+export function RoadmapDialog({ title, description, onClose, children, footer, focusTitleOnOpen }: {
     title: string; description?: string; onClose: () => void; children: ReactNode; footer?: ReactNode;
+    focusTitleOnOpen?: boolean;
 }) {
     const isMobile = useIsMobile();
     return isMobile
-        ? <MobileBottomSheet title={title} eyebrow={description} onClose={onClose} className="md:hidden" contentClassName="p-4" footer={footer}>{children}</MobileBottomSheet>
-        : <AppDialog open onOpenChange={open => { if (!open) onClose(); }} title={title} description={description} footer={footer}>{children}</AppDialog>;
+        ? <MobileBottomSheet title={title} eyebrow={description} onClose={onClose} className="md:hidden" contentClassName="p-4" footer={footer} focusTitleOnOpen={focusTitleOnOpen}>{children}</MobileBottomSheet>
+        : <AppDialog open onOpenChange={open => { if (!open) onClose(); }} title={title} description={description} footer={footer} focusTitleOnOpen={focusTitleOnOpen}>{children}</AppDialog>;
 }
